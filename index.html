@@ -91,7 +91,7 @@
   #screen-home .topbar{ padding-bottom:20px; }
   #screen-home h1{ font-size:24px; margin:0; font-weight:600; }
   .tile-grid{
-    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+    display:grid; grid-template-columns:1fr 1fr; gap:12px 14px;
     padding:20px; flex:1; align-content:start;
   }
   .today-card{
@@ -99,6 +99,10 @@
     border-radius:10px; overflow:hidden;
   }
   .today-card .section-title{ padding:14px 16px 6px !important; }
+  #todayOverview{
+    max-height:280px; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    padding-bottom:6px;
+  }
   .today-row{
     display:flex; align-items:center; gap:10px; padding:9px 16px;
     border-top:1px dotted var(--line); font-size:13.5px;
@@ -108,16 +112,16 @@
   .today-row .tamt.income{ color:var(--green); }
   .today-row .tamt.expense{ color:var(--red); }
   .today-card .empty{ padding:6px 16px 16px; text-align:left; }
-  .tile.tile-hero{ grid-column:1 / span 2; flex-direction:row; align-items:center; padding:22px 18px; }
-  .tile.tile-hero svg{ width:34px; height:34px; }
+  .tile.tile-hero{ grid-column:1 / span 2; flex-direction:row; align-items:center; padding:18px 18px; }
+  .tile.tile-hero svg{ width:32px; height:32px; }
   .tile.tile-hero .tile-name{ font-size:18px; font-weight:600; }
   .tile{
     background:var(--paper-raised); border:1px solid var(--line); border-radius:12px;
-    padding:20px 14px; display:flex; flex-direction:column; align-items:flex-start; gap:12px;
+    padding:16px 14px; display:flex; flex-direction:column; align-items:flex-start; gap:8px;
     cursor:pointer; text-align:left; font-family:'Source Serif 4',serif;
   }
   .tile:active{ background:var(--paper-dark); }
-  .tile svg{ width:26px; height:26px; color:var(--brass-strong); }
+  .tile svg{ width:23px; height:23px; color:var(--brass-strong); }
   .tile-name{ font-size:15.5px; color:var(--ink); }
   .tile-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; }
 
