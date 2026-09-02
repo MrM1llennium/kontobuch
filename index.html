@@ -2424,6 +2424,31 @@
     return formatFromBase(toBaseValue(p1)+toBaseValue(p2), baseUnitOf(p1.unit));
   }
 
+  // Stichwort-basierte Kategorie-Erkennung für die Einkaufsliste.
+  var GROCERY_CATEGORIES = [
+    { name: 'Backwaren', keywords: ['brot','brötchen','toast','baguette','croissant','kuchen','semmel','brezel','vollkorn','knäckebrot','zwieback','waffel','muffin'] },
+    { name: 'Drogerie & Haushalt', keywords: ['klopapier','toilettenpapier','seife','shampoo','zahnpasta','spülmittel','waschmittel','müllbeutel','küchenrolle','batterien','deo','duschgel','windeln','putzmittel','schwamm'] },
+    { name: 'Fisch', keywords: ['fisch','lachs','thunfisch','garnele','shrimp','forelle','kabeljau','hering','matjes','scholle','muschel','krabbe','tintenfisch'] },
+    { name: 'Fleisch', keywords: ['fleisch','wurst','hähnchen','hahn','huhn','pute','rind','schwein','hack','speck','schinken','salami','bacon','steak','wiener','bratwurst','leberwurst','mortadella','gulasch','filet','geflügel','ente','lamm','kotelett','döner','cevapcici','frikadelle','bulette'] },
+    { name: 'Gemüse', keywords: ['tomate','gurke','salat','kartoffel','zwiebel','knoblauch','karotte','möhre','paprika','brokkoli','blumenkohl','spinat','pilz','champignon','avocado','zucchini','aubergine','lauch','porree','sellerie','rettich','radieschen','rosenkohl','kohl','kürbis','ingwer','kräuter','petersilie','schnittlauch','gemüse'] },
+    { name: 'Getränke', keywords: ['wasser','saft','cola','limo','bier','wein','sekt','kaffee','tee','energy drink','smoothie','sprudel','apfelschorle'] },
+    { name: 'Milchprodukte', keywords: ['milch','joghurt','käse','butter','sahne','quark','ei ','eier','frischkäse','mozzarella','parmesan','gouda','feta','schmand','kefir','buttermilch','mascarpone','ricotta','margarine'] },
+    { name: 'Obst', keywords: ['apfel','äpfel','banane','birne','orange','zitrone','limette','traube','beere','erdbeere','himbeere','blaubeere','kiwi','mango','ananas','pfirsich','aprikose','pflaume','kirsche','melone','obst'] },
+    { name: 'Snacks', keywords: ['schokolade','chips','keks','gummibär','bonbon','snack','riegel','popcorn','nüsse','erdnüsse','flips'] },
+    { name: 'Teigwaren', keywords: ['nudel','pasta','spaghetti','penne','fusilli','tagliatelle','lasagne','gnocchi','ravioli','tortellini'] },
+    { name: 'Tiefkühl', keywords: ['tiefkühl','tk ','pizza','eis','pommes','fischstäbchen','gefroren'] }
+  ];
+  function guessGroceryCategory(name){
+    var n = (' '+name.toLowerCase()+' ');
+    for(var i=0;i<GROCERY_CATEGORIES.length;i++){
+      var kws = GROCERY_CATEGORIES[i].keywords;
+      for(var j=0;j<kws.length;j++){
+        if(n.indexOf(kws[j])!==-1) return GROCERY_CATEGORIES[i].name;
+      }
+    }
+    return 'Sonstiges';
+  }
+
   // Fügt eine Zutat/einen Artikel zur Einkaufsliste hinzu. Gibt es schon einen
   // offenen (nicht abgehakten) Eintrag mit demselben Namen, wird nicht doppelt
   // hinzugefügt — bei erkennbaren, kompatiblen Mengen werden diese addiert
@@ -2447,7 +2472,17 @@
         return; // bestehender Eintrag hat schon eine Menge, nichts Neues dazu
       }
     }
-    state.shopping.push({ id: uid(), name: name, amount: amount, checked: false, createdBy: currentUserId });
+    state.shopping.push({ id: uid(), name: name, amount: amount, category: guessGroceryCategory(name), checked: false, createdBy: currentUserId });
+  }
+
+  function shopRowHtml(it){
+    var label = (it.amount ? escapeHtml(it.amount)+' ' : '') + escapeHtml(it.name);
+    return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
+      '<div class="check'+(it.checked?' done':'')+'" data-id="'+it.id+'">'+(it.checked?'✓':'')+'</div>'+
+      '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+label+'</div></div>'+
+      avatarHtml(it.createdBy) +
+      '<button class="sdel" data-id="'+it.id+'">×</button>'+
+    '</div>';
   }
 
   function renderShopping(){
@@ -2457,16 +2492,27 @@
       el.innerHTML = '<p class="empty">Die Liste ist leer.</p>';
       return;
     }
-    var sorted = state.shopping.slice().sort(function(a,b){ return (a.checked===b.checked) ? 0 : (a.checked?1:-1); });
-    el.innerHTML = sorted.map(function(it){
-      var label = (it.amount ? escapeHtml(it.amount)+' ' : '') + escapeHtml(it.name);
-      return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
-        '<div class="check'+(it.checked?' done':'')+'" data-id="'+it.id+'">'+(it.checked?'✓':'')+'</div>'+
-        '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+label+'</div></div>'+
-        avatarHtml(it.createdBy) +
-        '<button class="sdel" data-id="'+it.id+'">×</button>'+
-      '</div>';
-    }).join('');
+    var unchecked = state.shopping.filter(function(it){ return !it.checked; });
+    var checked = state.shopping.filter(function(it){ return it.checked; });
+
+    var groups = {};
+    unchecked.forEach(function(it){
+      var cat = it.category || 'Sonstiges';
+      if(!groups[cat]) groups[cat] = [];
+      groups[cat].push(it);
+    });
+    var catOrder = GROCERY_CATEGORIES.map(function(c){ return c.name; }).concat(['Sonstiges']);
+    var html = '';
+    catOrder.forEach(function(catName){
+      if(!groups[catName] || groups[catName].length===0) return;
+      html += '<p class="section-title" style="padding:14px 20px 4px;">'+catName+'</p>';
+      html += groups[catName].map(shopRowHtml).join('');
+    });
+    if(checked.length>0){
+      html += '<p class="section-title" style="padding:14px 20px 4px;">Erledigt</p>';
+      html += checked.map(shopRowHtml).join('');
+    }
+    el.innerHTML = html;
     el.querySelectorAll('.check').forEach(function(c){
       c.addEventListener('click', function(){
         var id = c.getAttribute('data-id');
