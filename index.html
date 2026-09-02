@@ -572,66 +572,79 @@
       </div>
       <p class="screen-title">Essensplan</p>
     </div>
-    <div class="module-body">
 
-      <div id="mealListView">
-        <div class="month-nav" style="padding:0 20px 6px;">
-          <button id="mealPrevWeek" aria-label="Vorherige Woche">‹</button>
-          <div class="month-label" id="mealWeekLabel" style="color:var(--ink); font-size:15px;">—</div>
-          <button id="mealNextWeek" aria-label="Nächste Woche">›</button>
+    <main class="view active" id="view-mealweek">
+      <div class="month-nav" style="padding:14px 20px 6px;">
+        <button id="mealPrevWeek" aria-label="Vorherige Woche">‹</button>
+        <div class="month-label" id="mealWeekLabel" style="color:var(--ink); font-size:15px;">—</div>
+        <button id="mealNextWeek" aria-label="Nächste Woche">›</button>
+      </div>
+      <div id="mealWeekList"></div>
+
+      <div id="mealAddForm" style="display:none;" class="form-wrap">
+        <p class="section-title" style="padding:0 0 8px;">Essen für <span id="mealAddDateLabel"></span></p>
+        <div class="field">
+          <label for="mealRecipeSelect">Rezept (optional)</label>
+          <select id="mealRecipeSelect"><option value="">— Ohne Rezept —</option></select>
         </div>
-        <div id="mealWeekList"></div>
-
-        <div id="mealAddForm" style="display:none;" class="form-wrap">
-          <p class="section-title" style="padding:0 0 8px;">Essen für <span id="mealAddDateLabel"></span></p>
-          <div class="field">
-            <label for="mealRecipeSelect">Rezept (optional)</label>
-            <select id="mealRecipeSelect"><option value="">— Ohne Rezept —</option></select>
-          </div>
-          <div class="field">
-            <label for="mealNameInput">Bezeichnung</label>
-            <input type="text" id="mealNameInput" placeholder="z. B. Spaghetti Bolognese">
-          </div>
-          <div class="btn-row">
-            <button class="btn ghost" id="cancelMealBtn">Abbrechen</button>
-            <button class="btn" id="saveMealBtn">Speichern</button>
-          </div>
+        <div class="field">
+          <label for="mealNameInput">Bezeichnung</label>
+          <input type="text" id="mealNameInput" placeholder="z. B. Spaghetti Bolognese">
         </div>
-
-        <p class="section-title">Rezepte</p>
-        <div id="recipeList" style="margin-bottom:10px;"></div>
-        <div class="form-wrap">
-          <button class="btn ghost" id="newRecipeBtn">+ Neues Rezept</button>
+        <div class="btn-row">
+          <button class="btn ghost" id="cancelMealBtn">Abbrechen</button>
+          <button class="btn" id="saveMealBtn">Speichern</button>
         </div>
       </div>
+    </main>
 
-      <div id="recipeEditView" style="display:none;">
-        <div class="form-wrap">
-          <div class="field">
-            <label for="recipeNameInput">Name</label>
-            <input type="text" id="recipeNameInput" placeholder="z. B. Spaghetti Bolognese">
-          </div>
-          <div class="field">
-            <label>Zutaten</label>
-            <div id="recipeIngredientsList" style="margin-bottom:8px;"></div>
-            <div style="display:flex; gap:8px;">
-              <input type="text" id="recipeIngredientInput" placeholder="z. B. 200g Mehl" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
-              <button type="button" class="btn" id="addIngredientBtn" style="width:auto; padding:12px 16px;">+</button>
-            </div>
-          </div>
-          <div class="field">
-            <label for="recipeInstructionsInput">Anleitung</label>
-            <textarea id="recipeInstructionsInput" placeholder="Zubereitungsschritte…" style="min-height:130px;"></textarea>
-          </div>
-          <div class="btn-row">
-            <button class="btn ghost" id="cancelRecipeBtn">Zurück</button>
-            <button class="btn" id="saveRecipeBtn">Speichern</button>
-          </div>
-          <button type="button" class="link-btn" id="deleteRecipeBtn" style="margin-top:16px; color:var(--red); display:none;">Rezept löschen</button>
+    <main class="view" id="view-mealrecipes">
+      <div class="form-wrap" style="padding-bottom:6px; display:flex; gap:8px; align-items:flex-end;">
+        <div class="field" style="flex:1; margin-bottom:0;">
+          <label for="recipeSearchInput">Suche</label>
+          <input type="text" id="recipeSearchInput" placeholder="Rezept suchen…">
         </div>
+        <button type="button" class="btn" id="newRecipeBtn" style="width:auto; padding:12px 18px;">+</button>
       </div>
+      <div id="recipeList" style="margin-top:6px;"></div>
+    </main>
 
+    <div id="recipeEditView" style="display:none;">
+      <div class="form-wrap">
+        <div class="field">
+          <label for="recipeNameInput">Name</label>
+          <input type="text" id="recipeNameInput" placeholder="z. B. Spaghetti Bolognese">
+        </div>
+        <div class="field">
+          <label>Zutaten</label>
+          <div id="recipeIngredientsList" style="margin-bottom:8px;"></div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="recipeIngredientInput" placeholder="z. B. 200g Mehl" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+            <button type="button" class="btn" id="addIngredientBtn" style="width:auto; padding:12px 16px;">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="recipeInstructionsInput">Anleitung</label>
+          <textarea id="recipeInstructionsInput" placeholder="Zubereitungsschritte…" style="min-height:130px;"></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" id="cancelRecipeBtn">Zurück</button>
+          <button class="btn" id="saveRecipeBtn">Speichern</button>
+        </div>
+        <button type="button" class="link-btn" id="deleteRecipeBtn" style="margin-top:16px; color:var(--red); display:none;">Rezept löschen</button>
+      </div>
     </div>
+
+    <nav class="tabbar" id="mealTabbar">
+      <button data-mealview="week" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+        Wochenplanung
+      </button>
+      <button data-mealview="recipes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 4h11a2 2 0 0 1 2 2v13a1 1 0 0 1-1 1H7a2 2 0 0 1-2-2V4Z"/><path d="M6 15h13"/></svg>
+        Rezeptesammlung
+      </button>
+    </nav>
   </div>
 
   <div id="ingredientModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
@@ -2420,7 +2433,7 @@
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   }
 
-  function renderMealPlan(){
+  function renderMealWeek(){
     if(!document.getElementById('mealWeekList')) return;
     var days = [];
     for(var i=0;i<7;i++){
@@ -2454,20 +2467,36 @@
         var id = b.getAttribute('data-mealdel');
         state.mealPlan = state.mealPlan.filter(function(m){ return m.id!==id; });
         saveState();
-        renderMealPlan();
+        renderMealWeek();
       });
     });
-
-    renderRecipeList();
   }
   document.getElementById('mealPrevWeek').addEventListener('click', function(){
     mealWeekStart.setDate(mealWeekStart.getDate()-7);
-    renderMealPlan();
+    renderMealWeek();
   });
   document.getElementById('mealNextWeek').addEventListener('click', function(){
     mealWeekStart.setDate(mealWeekStart.getDate()+7);
-    renderMealPlan();
+    renderMealWeek();
   });
+
+  /* ---- Reiter: Wochenplanung / Rezeptesammlung ---- */
+  document.querySelectorAll('#mealTabbar button').forEach(function(btn){
+    btn.addEventListener('click', function(){ switchMealView(btn.getAttribute('data-mealview')); });
+  });
+  function switchMealView(name){
+    document.getElementById('view-mealweek').classList.toggle('active', name==='week');
+    document.getElementById('view-mealrecipes').classList.toggle('active', name==='recipes');
+    document.querySelectorAll('#mealTabbar button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-mealview')===name);
+    });
+    if(name==='week') renderMealWeek();
+    if(name==='recipes') renderRecipeList();
+  }
+  function renderMealPlan(){
+    var activeBtn = document.querySelector('#mealTabbar button.active');
+    switchMealView(activeBtn ? activeBtn.getAttribute('data-mealview') : 'week');
+  }
 
   function openMealAddForm(dateStr){
     mealAddDate = dateStr;
@@ -2499,7 +2528,7 @@
     state.mealPlan.push({ id: uid(), date: mealAddDate, recipeId: recipeId, name: name, createdBy: currentUserId });
     saveState();
     document.getElementById('mealAddForm').style.display = 'none';
-    renderMealPlan();
+    renderMealWeek();
     if(recipeId){
       var recipe = state.recipes.find(function(x){ return x.id===recipeId; });
       if(recipe && recipe.ingredients && recipe.ingredients.length){
@@ -2534,11 +2563,13 @@
   function renderRecipeList(){
     var el = document.getElementById('recipeList');
     if(!el) return;
-    if(state.recipes.length===0){
-      el.innerHTML = '<p class="empty">Noch keine Rezepte angelegt.</p>';
+    var query = (document.getElementById('recipeSearchInput').value || '').trim().toLowerCase();
+    var list = state.recipes.filter(function(r){ return !query || r.name.toLowerCase().indexOf(query)!==-1; });
+    if(list.length===0){
+      el.innerHTML = '<p class="empty">'+(query ? 'Keine Rezepte gefunden.' : 'Noch keine Rezepte angelegt.')+'</p>';
       return;
     }
-    el.innerHTML = state.recipes.map(function(r){
+    el.innerHTML = list.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).map(function(r){
       var snippet = (r.ingredients||[]).slice(0,4).join(', ');
       return '<div class="note-card" data-recipe="'+r.id+'">'+
         '<div class="ntitle">'+escapeHtml(r.name)+'</div>'+
@@ -2549,6 +2580,7 @@
       c.addEventListener('click', function(){ openRecipeEdit(c.getAttribute('data-recipe')); });
     });
   }
+  document.getElementById('recipeSearchInput').addEventListener('input', renderRecipeList);
   document.getElementById('newRecipeBtn').addEventListener('click', function(){ openRecipeEdit(null); });
 
   function openRecipeEdit(id){
@@ -2559,15 +2591,17 @@
     document.getElementById('recipeInstructionsInput').value = r.instructions || '';
     document.getElementById('recipeIngredientInput').value = '';
     renderIngredientEditList();
-    document.getElementById('mealListView').style.display = 'none';
+    document.getElementById('view-mealweek').classList.remove('active');
+    document.getElementById('view-mealrecipes').classList.remove('active');
+    document.getElementById('mealTabbar').style.display = 'none';
     document.getElementById('recipeEditView').style.display = 'block';
     document.getElementById('deleteRecipeBtn').style.display = id ? 'block' : 'none';
   }
   function closeRecipeEdit(){
     editingRecipeId = null;
-    document.getElementById('mealListView').style.display = 'block';
     document.getElementById('recipeEditView').style.display = 'none';
-    renderMealPlan();
+    document.getElementById('mealTabbar').style.display = 'flex';
+    switchMealView('recipes');
   }
   function renderIngredientEditList(){
     var el = document.getElementById('recipeIngredientsList');
