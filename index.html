@@ -1807,6 +1807,32 @@
     }, 15000);
   }
 
+  // Springt Finanzen-Monat, Kalender-Monat und Essensplan-Woche automatisch
+  // auf "jetzt", falls inzwischen ein neuer Monat/eine neue Woche begonnen
+  // hat (z. B. App blieb über Mitternacht im Hintergrund offen). Manuelles
+  // Navigieren zu einem anderen Monat während der aktiven Nutzung bleibt
+  // davon unberührt — die Prüfung greift nur beim Wiederkehren.
+  var lastKnownDateStr = todayISO();
+  function resyncToCurrentPeriodIfNeeded(){
+    var nowStr = todayISO();
+    if(nowStr === lastKnownDateStr) return;
+    lastKnownDateStr = nowStr;
+    viewingDate = new Date(); viewingDate.setDate(1);
+    calViewDate = new Date(); calViewDate.setDate(1);
+    selectedDayStr = nowStr;
+    mealWeekStart = mondayOf(new Date());
+    renderAll();
+    renderCalendar();
+    if(document.getElementById('recipeEditView') && document.getElementById('recipeEditView').style.display==='none'){
+      renderMealPlan();
+    }
+  }
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible') resyncToCurrentPeriodIfNeeded();
+  });
+  window.addEventListener('focus', resyncToCurrentPeriodIfNeeded);
+  setInterval(resyncToCurrentPeriodIfNeeded, 60000);
+
   function showSaveBanner(msg){
     var b = document.getElementById('saveBanner');
     if(!b) return;
