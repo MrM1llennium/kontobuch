@@ -36,9 +36,12 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;min-height:100%;background:var(--ink);}
   @media (max-width: 480px){
-    html, body{
-      background: linear-gradient(to bottom, var(--ink) 0, var(--ink) 220px, var(--paper) 220px, var(--paper) 100%);
-    }
+    html, body{ background:var(--paper); }
+  }
+  #topbarBackdrop{
+    position:fixed; top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px; height:220px;
+    background:var(--ink); z-index:70; pointer-events:none;
   }
   body{
     font-family:'Source Serif 4', Georgia, serif;
@@ -461,6 +464,8 @@
 </div>
 
 <div id="app" style="display:none;">
+
+  <div id="topbarBackdrop"></div>
 
   <div id="sidebarBackdrop"></div>
   <div id="sidebar">
