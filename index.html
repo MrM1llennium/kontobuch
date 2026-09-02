@@ -246,7 +246,12 @@
 
   .new-cat-row{ display:flex; gap:8px; margin-top:8px; }
   .new-cat-row input{ flex:1; }
-  .link-btn{ background:none; border:none; color:var(--brass-strong); font-size:13px; padding:4px 0; cursor:pointer; text-decoration:underline; }
+  .link-btn{
+    background:var(--paper-dark); border:none; color:var(--brass-strong);
+    font-size:12.5px; font-family:'Source Serif 4',serif; padding:6px 12px;
+    border-radius:14px; cursor:pointer; text-decoration:none;
+  }
+  .link-btn:active{ background:var(--brass-soft); }
 
   .rec-card{
     margin:0 20px 10px; padding:14px 16px; background:var(--paper-raised);
@@ -318,7 +323,7 @@
 
   /* ---------- Simple list modules: shopping / todos / notes / calendar ---------- */
   .simple-row{
-    display:flex; align-items:flex-start; gap:12px;
+    display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap;
     padding:13px 20px; border-bottom:1px dotted var(--line);
   }
   .simple-row .check{
