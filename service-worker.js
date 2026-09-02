@@ -75,8 +75,9 @@ self.addEventListener('fetch', function(event){
   event.respondWith(
     fetch(event.request, { cache: 'no-store' }).then(function(response){
       if(response && response.ok){
+        var responseClone = response.clone();
         caches.open(CACHE_NAME).then(function(cache){
-          cache.put(event.request, response.clone());
+          cache.put(event.request, responseClone);
         });
       }
       return response;
