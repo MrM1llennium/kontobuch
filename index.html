@@ -94,6 +94,7 @@
     font-size:20px;line-height:1;padding:8px 10px;cursor:pointer;
     font-family:'IBM Plex Mono',monospace;
   }
+  .month-nav.light button{ color:var(--ink); }
   .month-label{ font-size:19px; font-weight:600; letter-spacing:.01em; }
   .screen-title{ font-size:21px; font-weight:600; margin:0; }
 
@@ -574,7 +575,7 @@
     </div>
 
     <main class="view active" id="view-mealweek">
-      <div class="month-nav" style="padding:14px 20px 6px;">
+      <div class="month-nav light" style="padding:14px 20px 6px;">
         <button id="mealPrevWeek" aria-label="Vorherige Woche">‹</button>
         <div class="month-label" id="mealWeekLabel" style="color:var(--ink); font-size:15px;">—</div>
         <button id="mealNextWeek" aria-label="Nächste Woche">›</button>
@@ -1018,7 +1019,7 @@
         <br><button type="button" id="enablePushBtn">Benachrichtigungen aktivieren</button>
       </div>
 
-      <div class="month-nav" style="padding:0 20px 6px;">
+      <div class="month-nav light" style="padding:0 20px 6px;">
         <button id="calPrevMonth" aria-label="Vorheriger Monat">‹</button>
         <div class="month-label" id="calMonthLabel" style="color:var(--ink); font-size:16px;">—</div>
         <button id="calNextMonth" aria-label="Nächster Monat">›</button>
