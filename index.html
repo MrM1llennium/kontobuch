@@ -371,11 +371,12 @@
   .cal-day-heading{ font-size:13px; color:var(--ink-soft); padding:14px 20px 4px; }
 
   /* ---------- Essensplan ---------- */
-  .meal-day{ margin:0 20px 14px; padding:14px 16px; background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; }
-  .meal-day-head{ font-size:13.5px; font-weight:600; margin-bottom:8px; }
-  .meal-entry{ display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px dotted var(--line); font-size:13.5px; }
+  #mealWeekList{ display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 20px 4px; }
+  .meal-day{ margin:0; padding:12px 14px; background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; }
+  .meal-day-head{ font-size:12.5px; font-weight:600; margin-bottom:8px; }
+  .meal-entry{ display:flex; align-items:center; gap:6px; padding:5px 0; border-top:1px dotted var(--line); font-size:12px; flex-wrap:wrap; }
   .meal-entry:first-of-type{ border-top:none; }
-  .meal-entry span:first-child{ flex:1; min-width:0; }
+  .meal-entry span:first-child{ flex:1; min-width:0; word-break:break-word; }
   .ingredient-chip{
     display:flex; align-items:center; justify-content:space-between; gap:8px;
     padding:8px 10px; background:var(--paper-raised); border:1px solid var(--line);
@@ -2454,7 +2455,7 @@
         return '<div class="meal-entry"><span>'+escapeHtml(m.name)+'</span>'+avatarHtml(m.createdBy)+'<button class="sdel" data-mealdel="'+m.id+'">×</button></div>';
       }).join('');
       return '<div class="meal-day">'+
-        '<div class="meal-day-head">'+WEEKDAY_NAMES_LONG[idx]+', '+String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.</div>'+
+        '<div class="meal-day-head">'+WEEKDAY_NAMES_LONG[idx].slice(0,2)+' '+String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.</div>'+
         entriesHtml +
         '<button type="button" class="link-btn" data-addmeal="'+dateStr+'" style="margin-top:6px;">+ Essen hinzufügen</button>'+
       '</div>';
