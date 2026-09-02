@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kontobuch">
+<meta name="theme-color" content="#1F2420">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<title>Kontobuch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{
+    --paper:#F5F1E6;
+    --paper-raised:#FAF7EF;
+    --paper-dark:#E9E2CE;
+    --ink:#1F2420;
+    --ink-soft:#6B6B5E;
+    --line:#CBC3AA;
+    --red:#A03A2C;
+    --red-soft:#EFDAD3;
+    --green:#2E6B52;
+    --green-soft:#D9E6DC;
+    --brass:#A8813F;
+    --brass-soft:#EADFC0;
+    --brass-strong:#8C6A2E;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;background:var(--ink);}
+  body{
+    font-family:'Source Serif 4', Georgia, serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    box-shadow:0 0 40px rgba(0,0,0,.35);
+  }
+  .num{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    padding:calc(18px + var(--safe-top)) 20px 14px;
+    background:var(--ink);
+    color:var(--paper);
+    border-bottom:3px double var(--brass);
+  }
+  .brand{
+    font-size:13px;
+    letter-spacing:.04em;
+    color:var(--brass-soft);
+    margin:0 0 10px;
+  }
+  .month-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .month-nav button{
+    background:none;border:none;color:var(--paper);
+    font-size:20px;line-height:1;padding:8px 10px;cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .month-label{ font-size:19px; font-weight:600; letter-spacing:.01em; }
+
+  /* ---------- Views ---------- */
+  .view{ display:none; flex:1; overflow-y:auto; padding-bottom:96px; }
+  .view.active{ display:block; }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:26px 20px 18px;
+    text-align:left;
+    border-bottom:1px solid var(--line);
+  }
+  .hero .label{
+    font-size:12.5px; color:var(--ink-soft); margin:0 0 6px;
+  }
+  .hero .balance{
+    font-size:40px; font-weight:600; margin:0; letter-spacing:-0.01em;
+  }
+  .hero .balance.neg{ color:var(--red); }
+  .hero .balance.pos{ color:var(--green); }
+  .delta{
+    margin-top:8px; font-size:13.5px; color:var(--ink-soft);
+    display:flex; align-items:center; gap:6px;
+  }
+  .delta .tag{
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:2px 7px;
+    border-radius:3px;
+  }
+  .delta .tag.up{ background:var(--green-soft); color:var(--green); }
+  .delta .tag.down{ background:var(--red-soft); color:var(--red); }
+
+  .flow{ display:flex; gap:14px; padding:16px 20px 20px; border-bottom:1px solid var(--line); }
+  .flow-col{ flex:1; }
+  .flow-col .flabel{ font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; display:flex; justify-content:space-between; }
+  .flow-col .fval{ font-family:'IBM Plex Mono',monospace; font-size:15px; margin-bottom:6px; }
+  .bar-track{ height:6px; background:var(--paper-dark); border-radius:3px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:3px; }
+  .bar-fill.income{ background:var(--green); }
+  .bar-fill.expense{ background:var(--red); }
+
+  /* ---------- Ledger list ---------- */
+  .section-title{
+    font-size:12px; color:var(--ink-soft); letter-spacing:.03em;
+    padding:16px 20px 6px;
+  }
+  .ledger{ padding:0 20px; }
+  .row{
+    display:flex; align-items:center; gap:10px;
+    padding:11px 0; border-bottom:1px dotted var(--line);
+  }
+  .row .rmeta{ flex:1; min-width:0; }
+  .row .rcat{ font-size:14.5px; color:var(--ink); }
+  .row .rnote{ font-size:12px; color:var(--ink-soft); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .row .ramt{ font-family:'IBM Plex Mono',monospace; font-size:14.5px; white-space:nowrap; }
+  .row .ramt.income{ color:var(--green); }
+  .row .ramt.expense{ color:var(--red); }
+  .row .rdate{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft); width:34px; text-align:center; flex-shrink:0; }
+  .row .rdel{
+    border:none; background:none; color:var(--ink-soft); opacity:.45;
+    font-size:16px; padding:4px 2px; cursor:pointer; flex-shrink:0;
+  }
+  .empty{ padding:30px 20px; color:var(--ink-soft); font-size:14px; text-align:center; }
+
+  /* ---------- Forms ---------- */
+  .form-wrap{ padding:20px; }
+  .type-switch{
+    display:flex; border:1px solid var(--ink); border-radius:6px; overflow:hidden; margin-bottom:20px;
+  }
+  .type-switch button{
+    flex:1; padding:12px; border:none; background:var(--paper);
+    font-family:'Source Serif 4',serif; font-size:14.5px; color:var(--ink); cursor:pointer;
+  }
+  .type-switch button.active.income{ background:var(--green); color:var(--paper); }
+  .type-switch button.active.expense{ background:var(--red); color:var(--paper); }
+
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; letter-spacing:.02em; }
+  .field input, .field select{
+    width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:6px;
+    background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif; color:var(--ink);
+  }
+  .field input.num-input{ font-family:'IBM Plex Mono',monospace; font-size:20px; }
+  .field select{ font-family:'Source Serif 4',serif; }
+  .field input:focus, .field select:focus{ outline:2px solid var(--brass); outline-offset:1px; }
+
+  .btn{
+    display:block; width:100%; padding:14px; border:none; border-radius:6px;
+    background:var(--ink); color:var(--paper); font-size:15px; font-family:'Source Serif 4',serif;
+    cursor:pointer; letter-spacing:.01em;
+  }
+  .btn:active{ background:#3a3f37; }
+  .btn.ghost{
+    background:none; border:1px solid var(--line); color:var(--ink-soft);
+  }
+  .btn-row{ display:flex; gap:10px; }
+  .btn-row .btn{ flex:1; }
+
+  .new-cat-row{ display:flex; gap:8px; margin-top:8px; }
+  .new-cat-row input{ flex:1; }
+  .link-btn{ background:none; border:none; color:var(--brass-strong); font-size:13px; padding:4px 0; cursor:pointer; text-decoration:underline; }
+
+  /* ---------- Budget ---------- */
+  .budget-card{
+    margin:0 20px 16px; padding:16px; background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:8px;
+  }
+  .budget-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .budget-head .bname{ font-size:15.5px; }
+  .budget-head .bnums{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-soft); }
+  .budget-track{ height:9px; background:var(--paper-dark); border-radius:4px; overflow:hidden; margin-bottom:8px; }
+  .budget-fill{ height:100%; background:var(--brass); }
+  .budget-fill.over{ background:var(--red); }
+  .budget-foot{ display:flex; justify-content:space-between; align-items:center; }
+  .budget-foot .bstatus{ font-size:12px; color:var(--ink-soft); }
+  .edit-limit{ display:flex; gap:8px; margin-top:10px; }
+  .edit-limit input{ flex:1; padding:8px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; }
+  .edit-limit button{ padding:8px 12px; border:none; border-radius:5px; background:var(--ink); color:var(--paper); font-size:13px; }
+  .set-limit-btn{ font-size:12.5px; color:var(--brass-strong); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline; }
+
+  /* ---------- Savings ---------- */
+  .goal-card{
+    margin:0 20px 16px; padding:16px; background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:8px;
+  }
+  .goal-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
+  .goal-head .gname{ font-size:16px; }
+  .goal-pct{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--brass-strong); }
+  .goal-nums{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ink-soft); margin-bottom:8px; }
+  .goal-track{ height:9px; background:var(--paper-dark); border-radius:4px; overflow:hidden; margin-bottom:10px; }
+  .goal-fill{ height:100%; background:linear-gradient(90deg, var(--green), #4a8f6f); }
+  .goal-actions{ display:flex; gap:8px; }
+  .goal-actions button{ flex:1; padding:9px; font-size:13px; border-radius:5px; border:1px solid var(--line); background:var(--paper); cursor:pointer; }
+  .deposit-row{ display:flex; gap:8px; margin-top:10px; }
+  .deposit-row input{ flex:1; padding:9px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; }
+  .deposit-row button{ padding:9px 14px; border:none; border-radius:5px; background:var(--green); color:var(--paper); font-size:13px; }
+
+  /* ---------- Tabbar ---------- */
+  .tabbar{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    display:flex; background:var(--ink); border-top:3px double var(--brass);
+    padding-bottom:var(--safe-bottom);
+  }
+  .tabbar button{
+    flex:1; background:none; border:none; padding:10px 4px 8px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    color:#8B8F82; font-family:'Source Serif 4',serif; font-size:10.5px;
+  }
+  .tabbar button.active{ color:var(--paper); }
+  .tabbar svg{ width:21px; height:21px; }
+
+  h2.page-title{ font-size:16px; padding:18px 20px 4px; margin:0; color:var(--ink); }
+  p.page-sub{ font-size:12.5px; color:var(--ink-soft); padding:0 20px; margin:0 0 6px; }
+
+  /* ---------- Code gate ---------- */
+  #codeGate{
+    display:none; min-height:100vh; width:100%; max-width:480px; margin:0 auto;
+    background:var(--ink); color:var(--paper);
+    align-items:center; justify-content:center; padding:24px;
+  }
+  #codeGate .gate-inner{ width:100%; max-width:360px; }
+  #codeGate .brand{ color:var(--brass-soft); }
+  #codeGate h2{ font-size:21px; margin:0 0 10px; font-weight:600; }
+  #codeGate p{ font-size:13.5px; color:#B7BBA9; margin:0 0 22px; line-height:1.5; }
+  #codeGate input{
+    width:100%; padding:13px 12px; border:1px solid #4A4F42; border-radius:6px;
+    background:#2A2F26; color:var(--paper); font-size:15.5px; font-family:'Source Serif 4',serif;
+  }
+  #codeGate input:focus{ outline:2px solid var(--brass); }
+  #codeGate .btn{ margin-top:14px; }
+  #codeError{ color:#E0A99B; font-size:12px; margin-top:10px; display:none; }
+  .settings-links{ display:flex; gap:16px; padding:0 20px; }
+</style>
+</head>
+<body>
+
+<div id="codeGate">
+  <div class="gate-inner">
+    <p class="brand">KONTOBUCH · HAUSHALTSFÜHRUNG</p>
+    <h2>Haushalts-Code</h2>
+    <p>Denkt euch gemeinsam einen Code aus (frei wählbar, z. B. euer Nachname). Wer denselben Code eingibt, sieht dieselben Buchungen — auf beliebig vielen Geräten.</p>
+    <input type="text" id="codeInput" placeholder="z. B. mueller-budget" autocapitalize="off" autocorrect="off">
+    <button class="btn" id="codeSubmitBtn">Starten</button>
+    <p id="codeError"></p>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+
+  <div id="saveBanner" style="display:none; position:fixed; bottom:calc(64px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 24px); max-width:456px; background:var(--red); color:var(--paper); border-radius:8px; padding:10px 12px; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; z-index:50; box-shadow:0 4px 14px rgba(0,0,0,.3);">
+    <span>Nicht auf dem Gerät gespeichert. Daten bleiben nur in dieser Sitzung erhalten.</span>
+    <button type="button" id="retrySaveBtn" style="flex-shrink:0; background:var(--paper); color:var(--red); border:none; border-radius:5px; padding:6px 10px; font-size:12px; cursor:pointer;">Erneut</button>
+  </div>
+
+  <div class="topbar">
+    <p class="brand">KONTOBUCH · HAUSHALTSFÜHRUNG</p>
+    <div class="month-nav">
+      <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
+      <div class="month-label" id="monthLabel">—</div>
+      <button id="nextMonth" aria-label="Nächster Monat">›</button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <main class="view active" id="view-overview">
+    <div class="hero">
+      <p class="label">Saldo diesen Monat</p>
+      <p class="balance num" id="heroBalance">0,00 €</p>
+      <div class="delta" id="heroDelta"></div>
+    </div>
+    <div class="flow">
+      <div class="flow-col">
+        <div class="flabel"><span>Einnahmen</span><span class="num" id="incVal"></span></div>
+        <div class="fval num" id="incValBig"></div>
+        <div class="bar-track"><div class="bar-fill income" id="incBar"></div></div>
+      </div>
+      <div class="flow-col">
+        <div class="flabel"><span>Ausgaben</span><span class="num" id="expVal"></span></div>
+        <div class="fval num" id="expValBig"></div>
+        <div class="bar-track"><div class="bar-fill expense" id="expBar"></div></div>
+      </div>
+    </div>
+    <p class="section-title">Buchungen</p>
+    <div class="ledger" id="ledgerList"></div>
+    <div style="padding:22px 20px 10px;">
+      <div class="settings-links">
+        <button type="button" class="link-btn" id="showBackup">Daten sichern / wiederherstellen</button>
+        <button type="button" class="link-btn" id="switchHouseholdBtn">Haushalt wechseln</button>
+      </div>
+      <div id="backupPanel" style="display:none; margin-top:14px;">
+        <p style="font-size:12px; color:var(--ink-soft); margin:0 0 8px;">Solange die automatische Speicherung nicht funktioniert: Text unten kopieren und irgendwo sichern (z. B. Notizen-App). Zum Wiederherstellen den gesicherten Text einfügen und auf „Wiederherstellen" tippen.</p>
+        <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Aktueller Stand (zum Kopieren)</label>
+        <textarea id="backupOut" readonly style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
+        <button type="button" class="btn ghost" id="copyBackupBtn" style="margin-bottom:16px;">In Zwischenablage kopieren</button>
+        <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Gesicherten Text einfügen</label>
+        <textarea id="backupIn" style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
+        <button type="button" class="btn" id="restoreBackupBtn">Wiederherstellen (überschreibt aktuellen Stand)</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ADD -->
+  <main class="view" id="view-add">
+    <h2 class="page-title">Neue Buchung</h2>
+    <div class="form-wrap">
+      <div class="type-switch">
+        <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
+        <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
+      </div>
+      <div class="field">
+        <label for="amountInput">Betrag</label>
+        <input type="number" inputmode="decimal" step="0.01" min="0" id="amountInput" class="num-input" placeholder="0,00">
+      </div>
+      <div class="field">
+        <label for="categorySelect">Kategorie</label>
+        <select id="categorySelect"></select>
+        <button type="button" class="link-btn" id="showNewCat">+ neue Kategorie</button>
+        <div class="new-cat-row" id="newCatRow" style="display:none;">
+          <input type="text" id="newCatInput" placeholder="Kategoriename">
+          <button type="button" class="btn" style="width:auto;padding:10px 14px;" id="addCatBtn">OK</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="dateInput">Datum</label>
+        <input type="date" id="dateInput">
+      </div>
+      <div class="field">
+        <label for="noteInput">Notiz (optional)</label>
+        <input type="text" id="noteInput" placeholder="z. B. Wocheneinkauf">
+      </div>
+      <button class="btn" id="saveEntryBtn">Buchen</button>
+    </div>
+  </main>
+
+  <!-- BUDGET -->
+  <main class="view" id="view-budget">
+    <h2 class="page-title">Ausgabenplan</h2>
+    <p class="page-sub">Budgets je Kategorie für den angezeigten Monat.</p>
+    <div id="budgetList" style="margin-top:14px;"></div>
+  </main>
+
+  <!-- SAVINGS -->
+  <main class="view" id="view-savings">
+    <h2 class="page-title">Sparpläne</h2>
+    <p class="page-sub">Ziele anlegen und Einzahlungen verfolgen.</p>
+    <div id="goalList" style="margin-top:14px;"></div>
+    <div class="form-wrap" style="padding-top:6px;">
+      <button class="btn ghost" id="newGoalBtn">+ Neues Sparziel</button>
+      <div id="newGoalForm" style="display:none; margin-top:16px;">
+        <div class="field">
+          <label for="goalName">Name</label>
+          <input type="text" id="goalName" placeholder="z. B. Urlaub 2027">
+        </div>
+        <div class="field">
+          <label for="goalTarget">Zielbetrag</label>
+          <input type="number" inputmode="decimal" step="0.01" min="0" id="goalTarget" class="num-input" placeholder="0,00">
+        </div>
+        <div class="field">
+          <label for="goalSaved">Bereits gespart (optional)</label>
+          <input type="number" inputmode="decimal" step="0.01" min="0" id="goalSaved" class="num-input" placeholder="0,00">
+        </div>
+        <div class="btn-row">
+          <button class="btn ghost" id="cancelGoalBtn">Abbrechen</button>
+          <button class="btn" id="createGoalBtn">Anlegen</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="tabbar">
+    <button data-view="overview" class="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+      Übersicht
+    </button>
+    <button data-view="add">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+      Buchen
+    </button>
+    <button data-view="budget">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+      Budget
+    </button>
+    <button data-view="savings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 13c0-3.3 3.1-6 7.5-6 3 0 4.7 1 5.7 2h2.3l-1 2.5 1.5 1v2l-2 .5-1 2h-2l-.5-1.5h-3L10 18H8l-.5-1.8C5.5 15.6 4 14.5 4 13Z"/><circle cx="8.5" cy="12" r=".6" fill="currentColor" stroke="none"/></svg>
+      Sparen
+    </button>
+  </nav>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var DEFAULT_STATE = {
+    transactions: [],
+    budgets: {},
+    savings: [],
+    categories: {
+      income: ["Gehalt","Nebeneinkommen","Sonstige Einnahmen"],
+      expense: ["Miete","Lebensmittel","Transport","Freizeit","Versicherung","Sonstiges"]
+    }
+  };
+
+  var state = null;
+  var viewingDate = new Date();
+  viewingDate.setDate(1);
+  var currentType = "expense";
+
+  var MONTH_NAMES = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+
+  function fmtEUR(n){
+    return n.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) + " €";
+  }
+  function monthKey(d){
+    return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0");
+  }
+  function dateToKey(dateStr){
+    return dateStr.slice(0,7);
+  }
+  function todayISO(){
+    var d = new Date();
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function uid(){
+    return Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  }
+
+  var SUPABASE_URL = 'https://kpugxayvvrzhhhrnibrx.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwdWd4YXl2dnJ6aGhocm5pYnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTM5MzMsImV4cCI6MjEwMzg4OTkzM30.DV70QpWt6J4-GuwFkrY5UHTw-dKFMv5_p_08V8euiNc';
+  var CODE_KEY = 'kontobuch-household-code';
+  var sb = null;
+  var householdCode = null;
+  var realtimeChannel = null;
+  var saveRetryTimer = null;
+  var savePending = false;
+
+  async function loadState(){
+    try{
+      var res = await sb.from('households').select('data').eq('code', householdCode).maybeSingle();
+      if(res.error) throw res.error;
+      if(res.data && res.data.data){
+        state = res.data.data;
+        if(!state.categories) state.categories = DEFAULT_STATE.categories;
+        if(!state.savings) state.savings = [];
+        if(!state.budgets) state.budgets = {};
+      } else {
+        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        var ins = await sb.from('households').insert({ code: householdCode, data: state });
+        if(ins.error) throw ins.error;
+      }
+    } catch(e){
+      console.error("Laden fehlgeschlagen", e);
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      lastFailureWasLoad = true;
+      showSaveBanner("Verbindung zur Cloud fehlgeschlagen. Prüfe deine Internetverbindung und tippe auf Erneut.");
+    }
+  }
+
+  async function saveState(){
+    savePending = true;
+    try{
+      var res = await sb.from('households').upsert(
+        { code: householdCode, data: state, updated_at: new Date().toISOString() },
+        { onConflict: 'code' }
+      );
+      if(res.error) throw res.error;
+      savePending = false;
+      lastFailureWasLoad = false;
+      hideSaveBanner();
+      return true;
+    } catch(e){
+      savePending = false;
+      console.error("Speichern fehlgeschlagen", e);
+      lastFailureWasLoad = false;
+      showSaveBanner("Nicht in der Cloud gespeichert. Bitte Daten unten manuell sichern.");
+      return false;
+    }
+  }
+
+  function applyRemoteState(newData){
+    if(!newData) return;
+    var newStr = JSON.stringify(newData);
+    if(newStr === JSON.stringify(state)) return;
+    state = newData;
+    if(!state.categories) state.categories = DEFAULT_STATE.categories;
+    if(!state.savings) state.savings = [];
+    if(!state.budgets) state.budgets = {};
+    renderAll();
+  }
+
+  function subscribeRealtime(){
+    if(!sb || !householdCode) return;
+    if(realtimeChannel){ sb.removeChannel(realtimeChannel); }
+    realtimeChannel = sb.channel('household-'+householdCode)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'households', filter: 'code=eq.'+householdCode },
+        function(payload){
+          if(payload.new && payload.new.data){ applyRemoteState(payload.new.data); }
+        }
+      )
+      .subscribe();
+  }
+
+  function startPolling(){
+    setInterval(async function(){
+      if(!householdCode || savePending) return;
+      try{
+        var res = await sb.from('households').select('data').eq('code', householdCode).maybeSingle();
+        if(!res.error && res.data){ applyRemoteState(res.data.data); }
+      } catch(e){ /* stiller Fallback, nächster Versuch folgt */ }
+    }, 15000);
+  }
+
+  function showSaveBanner(msg){
+    var b = document.getElementById('saveBanner');
+    if(!b) return;
+    if(msg) b.querySelector('span').textContent = msg;
+    b.style.display = 'flex';
+  }
+  function hideSaveBanner(){
+    var b = document.getElementById('saveBanner');
+    if(!b) return;
+    b.style.display = 'none';
+  }
+
+  /* ---------- Navigation ---------- */
+  document.querySelectorAll('.tabbar button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      switchView(btn.getAttribute('data-view'));
+    });
+  });
+  function switchView(name){
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById('view-'+name).classList.add('active');
+    document.querySelectorAll('.tabbar button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-view')===name);
+    });
+    if(name==='overview') renderOverview();
+    if(name==='budget') renderBudget();
+    if(name==='savings') renderSavings();
+  }
+
+  document.getElementById('prevMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()-1);
+    renderAll();
+  });
+  document.getElementById('nextMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()+1);
+    renderAll();
+  });
+
+  function renderAll(){
+    document.getElementById('monthLabel').textContent = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
+    renderOverview();
+    renderBudget();
+    renderSavings();
+    populateCategorySelect();
+  }
+
+  /* ---------- Overview ---------- */
+  function sumsForMonth(key){
+    var inc=0, exp=0;
+    state.transactions.forEach(function(t){
+      if(dateToKey(t.date)===key){
+        if(t.type==='income') inc+=t.amount; else exp+=t.amount;
+      }
+    });
+    return {inc:inc, exp:exp};
+  }
+
+  function renderOverview(){
+    var key = monthKey(viewingDate);
+    var prev = new Date(viewingDate); prev.setMonth(prev.getMonth()-1);
+    var prevKey = monthKey(prev);
+
+    var cur = sumsForMonth(key);
+    var prv = sumsForMonth(prevKey);
+    var balance = cur.inc - cur.exp;
+    var prevBalance = prv.inc - prv.exp;
+
+    var heroEl = document.getElementById('heroBalance');
+    heroEl.textContent = fmtEUR(balance);
+    heroEl.className = 'balance num ' + (balance<0 ? 'neg':'pos');
+
+    var deltaEl = document.getElementById('heroDelta');
+    var diff = balance - prevBalance;
+    if(prv.inc===0 && prv.exp===0){
+      deltaEl.innerHTML = '<span>Kein Vergleichsmonat</span>';
+    } else {
+      var up = diff>=0;
+      deltaEl.innerHTML = '<span class="tag '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+fmtEUR(Math.abs(diff))+'</span><span>ggü. '+MONTH_NAMES[prev.getMonth()]+'</span>';
+    }
+
+    document.getElementById('incVal').textContent = fmtEUR(cur.inc);
+    document.getElementById('expVal').textContent = fmtEUR(cur.exp);
+    document.getElementById('incValBig').textContent = fmtEUR(cur.inc);
+    document.getElementById('expValBig').textContent = fmtEUR(cur.exp);
+    var max = Math.max(cur.inc, cur.exp, 1);
+    document.getElementById('incBar').style.width = (cur.inc/max*100)+'%';
+    document.getElementById('expBar').style.width = (cur.exp/max*100)+'%';
+
+    var list = state.transactions
+      .filter(function(t){ return dateToKey(t.date)===key; })
+      .sort(function(a,b){ return b.date.localeCompare(a.date); });
+
+    var ledgerEl = document.getElementById('ledgerList');
+    if(list.length===0){
+      ledgerEl.innerHTML = '<div class="empty">Noch keine Buchungen in diesem Monat. Tippe unten auf „Buchen“.</div>';
+      return;
+    }
+    ledgerEl.innerHTML = list.map(function(t){
+      var d = new Date(t.date);
+      var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
+      return '<div class="row">'+
+        '<div class="rdate num">'+dd+'</div>'+
+        '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+'</div>'+
+        (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
+        '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
+        '<button class="rdel" data-id="'+t.id+'" aria-label="Löschen">×</button>'+
+      '</div>';
+    }).join('');
+
+    ledgerEl.querySelectorAll('.rdel').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-id');
+        state.transactions = state.transactions.filter(function(t){ return t.id!==id; });
+        saveState();
+        renderOverview();
+        renderBudget();
+      });
+    });
+  }
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  /* ---------- Add form ---------- */
+  document.getElementById('typeIncomeBtn').addEventListener('click', function(){ setType('income'); });
+  document.getElementById('typeExpenseBtn').addEventListener('click', function(){ setType('expense'); });
+  function setType(t){
+    currentType = t;
+    document.getElementById('typeIncomeBtn').classList.toggle('active', t==='income');
+    document.getElementById('typeExpenseBtn').classList.toggle('active', t==='expense');
+    populateCategorySelect();
+  }
+  function populateCategorySelect(){
+    var sel = document.getElementById('categorySelect');
+    var list = state.categories[currentType];
+    sel.innerHTML = list.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
+  }
+  document.getElementById('showNewCat').addEventListener('click', function(){
+    document.getElementById('newCatRow').style.display = 'flex';
+    document.getElementById('newCatInput').focus();
+  });
+  document.getElementById('addCatBtn').addEventListener('click', function(){
+    var val = document.getElementById('newCatInput').value.trim();
+    if(!val) return;
+    if(state.categories[currentType].indexOf(val)===-1){
+      state.categories[currentType].push(val);
+      saveState();
+    }
+    populateCategorySelect();
+    document.getElementById('categorySelect').value = val;
+    document.getElementById('newCatInput').value = '';
+    document.getElementById('newCatRow').style.display = 'none';
+  });
+  document.getElementById('dateInput').value = todayISO();
+
+  document.getElementById('saveEntryBtn').addEventListener('click', function(){
+    var amount = parseFloat(document.getElementById('amountInput').value);
+    if(!amount || amount<=0){
+      document.getElementById('amountInput').focus();
+      return;
+    }
+    var category = document.getElementById('categorySelect').value;
+    var date = document.getElementById('dateInput').value || todayISO();
+    var note = document.getElementById('noteInput').value.trim();
+    state.transactions.push({
+      id: uid(), type: currentType, amount: Math.round(amount*100)/100,
+      category: category, date: date, note: note
+    });
+    saveState();
+    document.getElementById('amountInput').value = '';
+    document.getElementById('noteInput').value = '';
+    switchView('overview');
+  });
+
+  /* ---------- Budget ---------- */
+  function renderBudget(){
+    var key = monthKey(viewingDate);
+    var spentByCat = {};
+    state.transactions.forEach(function(t){
+      if(t.type==='expense' && dateToKey(t.date)===key){
+        spentByCat[t.category] = (spentByCat[t.category]||0) + t.amount;
+      }
+    });
+    var cats = state.categories.expense.slice();
+    Object.keys(spentByCat).forEach(function(c){ if(cats.indexOf(c)===-1) cats.push(c); });
+
+    var el = document.getElementById('budgetList');
+    el.innerHTML = cats.map(function(cat){
+      var spent = spentByCat[cat]||0;
+      var limit = state.budgets[cat];
+      var card = '<div class="budget-card" data-cat="'+escapeHtml(cat)+'">';
+      card += '<div class="budget-head"><div class="bname">'+escapeHtml(cat)+'</div>';
+      card += '<div class="bnums">'+fmtEUR(spent)+(limit!=null ? ' / '+fmtEUR(limit) : '')+'</div></div>';
+      if(limit!=null && limit>0){
+        var pct = Math.min(spent/limit*100, 100);
+        var over = spent>limit;
+        card += '<div class="budget-track"><div class="budget-fill'+(over?' over':'')+'" style="width:'+pct+'%"></div></div>';
+        card += '<div class="budget-foot"><span class="bstatus">'+(over ? 'Budget überschritten' : Math.round(100-pct)+'% übrig')+'</span>';
+        card += '<button class="set-limit-btn" data-cat="'+escapeHtml(cat)+'">ändern</button></div>';
+      } else {
+        card += '<div class="budget-foot"><span class="bstatus">Kein Budget festgelegt</span>';
+        card += '<button class="set-limit-btn" data-cat="'+escapeHtml(cat)+'">festlegen</button></div>';
+      }
+      card += '<div class="edit-limit" style="display:none;"><input type="number" inputmode="decimal" step="0.01" min="0" placeholder="Limit in €" value="'+(limit!=null?limit:'')+'"><button type="button">OK</button></div>';
+      card += '</div>';
+      return card;
+    }).join('') || '<p class="empty">Noch keine Ausgabenkategorien vorhanden.</p>';
+
+    el.querySelectorAll('.set-limit-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = btn.closest('.budget-card');
+        var editRow = card.querySelector('.edit-limit');
+        editRow.style.display = editRow.style.display==='flex' ? 'none' : 'flex';
+        if(editRow.style.display==='flex') editRow.querySelector('input').focus();
+      });
+    });
+    el.querySelectorAll('.edit-limit button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = btn.closest('.budget-card');
+        var cat = card.getAttribute('data-cat');
+        var val = parseFloat(card.querySelector('.edit-limit input').value);
+        if(val>0){
+          state.budgets[cat] = Math.round(val*100)/100;
+        } else {
+          delete state.budgets[cat];
+        }
+        saveState();
+        renderBudget();
+      });
+    });
+  }
+
+  /* ---------- Savings ---------- */
+  function renderSavings(){
+    var el = document.getElementById('goalList');
+    if(state.savings.length===0){
+      el.innerHTML = '<p class="empty">Noch keine Sparziele angelegt.</p>';
+    } else {
+      el.innerHTML = state.savings.map(function(g){
+        var pct = g.target>0 ? Math.min(g.saved/g.target*100,100) : 0;
+        return '<div class="goal-card" data-id="'+g.id+'">'+
+          '<div class="goal-head"><div class="gname">'+escapeHtml(g.name)+'</div><div class="goal-pct">'+Math.round(pct)+'%</div></div>'+
+          '<div class="goal-nums">'+fmtEUR(g.saved)+' von '+fmtEUR(g.target)+'</div>'+
+          '<div class="goal-track"><div class="goal-fill" style="width:'+pct+'%"></div></div>'+
+          '<div class="goal-actions">'+
+            '<button type="button" class="dep-toggle">Einzahlen</button>'+
+            '<button type="button" class="goal-del">Löschen</button>'+
+          '</div>'+
+          '<div class="deposit-row" style="display:none;">'+
+            '<input type="number" inputmode="decimal" step="0.01" min="0" placeholder="Betrag">'+
+            '<button type="button" class="dep-confirm">OK</button>'+
+          '</div>'+
+        '</div>';
+      }).join('');
+    }
+    el.querySelectorAll('.dep-toggle').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var row = btn.closest('.goal-card').querySelector('.deposit-row');
+        row.style.display = row.style.display==='flex' ? 'none' : 'flex';
+        if(row.style.display==='flex') row.querySelector('input').focus();
+      });
+    });
+    el.querySelectorAll('.dep-confirm').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var card = btn.closest('.goal-card');
+        var id = card.getAttribute('data-id');
+        var input = card.querySelector('.deposit-row input');
+        var val = parseFloat(input.value);
+        if(val>0){
+          var goal = state.savings.find(function(g){ return g.id===id; });
+          goal.saved = Math.round((goal.saved+val)*100)/100;
+          saveState();
+          renderSavings();
+        }
+      });
+    });
+    el.querySelectorAll('.goal-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.closest('.goal-card').getAttribute('data-id');
+        state.savings = state.savings.filter(function(g){ return g.id!==id; });
+        saveState();
+        renderSavings();
+      });
+    });
+  }
+
+  document.getElementById('newGoalBtn').addEventListener('click', function(){
+    var form = document.getElementById('newGoalForm');
+    form.style.display = form.style.display==='block' ? 'none' : 'block';
+  });
+  document.getElementById('cancelGoalBtn').addEventListener('click', function(){
+    document.getElementById('newGoalForm').style.display = 'none';
+  });
+  document.getElementById('createGoalBtn').addEventListener('click', function(){
+    var name = document.getElementById('goalName').value.trim();
+    var target = parseFloat(document.getElementById('goalTarget').value);
+    var saved = parseFloat(document.getElementById('goalSaved').value) || 0;
+    if(!name || !target || target<=0) return;
+    state.savings.push({ id: uid(), name: name, target: Math.round(target*100)/100, saved: Math.round(saved*100)/100 });
+    saveState();
+    document.getElementById('goalName').value = '';
+    document.getElementById('goalTarget').value = '';
+    document.getElementById('goalSaved').value = '';
+    document.getElementById('newGoalForm').style.display = 'none';
+    renderSavings();
+  });
+
+  var lastFailureWasLoad = false;
+
+  document.getElementById('retrySaveBtn').addEventListener('click', async function(){
+    if(lastFailureWasLoad){
+      await loadState();
+      renderAll();
+    } else {
+      saveState();
+    }
+  });
+
+  document.getElementById('showBackup').addEventListener('click', function(){
+    var panel = document.getElementById('backupPanel');
+    panel.style.display = panel.style.display==='block' ? 'none' : 'block';
+    if(panel.style.display==='block'){
+      document.getElementById('backupOut').value = JSON.stringify(state);
+    }
+  });
+  document.getElementById('copyBackupBtn').addEventListener('click', async function(){
+    var ta = document.getElementById('backupOut');
+    ta.select();
+    var btn = document.getElementById('copyBackupBtn');
+    try{
+      await navigator.clipboard.writeText(ta.value);
+      btn.textContent = 'Kopiert ✓';
+    } catch(e){
+      btn.textContent = 'Bitte manuell markieren & kopieren';
+    }
+    setTimeout(function(){ btn.textContent = 'In Zwischenablage kopieren'; }, 2200);
+  });
+  document.getElementById('restoreBackupBtn').addEventListener('click', function(){
+    var raw = document.getElementById('backupIn').value.trim();
+    if(!raw) return;
+    try{
+      var parsed = JSON.parse(raw);
+      if(!parsed.transactions || !parsed.categories){ throw new Error('Ungültiges Format'); }
+      state = parsed;
+      if(!state.savings) state.savings = [];
+      if(!state.budgets) state.budgets = {};
+      saveState();
+      renderAll();
+      document.getElementById('backupIn').value = '';
+      document.getElementById('restoreBackupBtn').textContent = 'Wiederhergestellt ✓';
+      setTimeout(function(){ document.getElementById('restoreBackupBtn').textContent = 'Wiederherstellen (überschreibt aktuellen Stand)'; }, 2200);
+    } catch(e){
+      alert('Der eingefügte Text ist kein gültiger Sicherungs-Code.');
+    }
+  });
+
+  document.getElementById('codeSubmitBtn').addEventListener('click', async function(){
+    var val = document.getElementById('codeInput').value.trim();
+    var errEl = document.getElementById('codeError');
+    if(!val){
+      errEl.textContent = 'Bitte einen Code eingeben.';
+      errEl.style.display = 'block';
+      return;
+    }
+    var btn = document.getElementById('codeSubmitBtn');
+    btn.textContent = 'Verbinde…';
+    householdCode = val.toLowerCase().trim().replace(/\s+/g,'-');
+    localStorage.setItem(CODE_KEY, householdCode);
+    document.getElementById('codeGate').style.display = 'none';
+    await startApp();
+  });
+  document.getElementById('codeInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') document.getElementById('codeSubmitBtn').click();
+  });
+
+  document.getElementById('switchHouseholdBtn').addEventListener('click', function(){
+    if(confirm('Haushalt wechseln? Du wirst nach einem neuen Code gefragt, aktuelle Ansicht bleibt auf diesem Gerät ungespeichert, falls nicht gesichert.')){
+      localStorage.removeItem(CODE_KEY);
+      location.reload();
+    }
+  });
+
+  async function startApp(){
+    document.getElementById('app').style.display = 'flex';
+    await loadState();
+    setType('expense');
+    renderAll();
+    subscribeRealtime();
+    startPolling();
+  }
+
+  /* ---------- Init ---------- */
+  (async function init(){
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js').catch(function(e){
+        console.error('Service Worker Registrierung fehlgeschlagen', e);
+      });
+    }
+    var savedCode = localStorage.getItem(CODE_KEY);
+    if(savedCode){
+      householdCode = savedCode;
+      await startApp();
+    } else {
+      document.getElementById('codeGate').style.display = 'flex';
+    }
+  })();
+})();
+</script>
+</body>
+</html>
