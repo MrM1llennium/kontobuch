@@ -502,6 +502,11 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
       Einstellungen
     </button>
+    <div style="flex:1;"></div>
+    <button class="sidebar-item" id="sidebarLogoutBtn" style="border-top:1px solid rgba(255,255,255,.12); color:#D99B8C;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      Abmelden
+    </button>
   </div>
 
   <div id="saveBanner" style="display:none; position:fixed; bottom:calc(64px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 24px); max-width:456px; background:var(--red); color:var(--paper); border-radius:8px; padding:10px 12px; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; z-index:50; box-shadow:0 4px 14px rgba(0,0,0,.3);">
@@ -1281,7 +1286,7 @@
     b.addEventListener('click', openSidebar);
   });
   document.getElementById('sidebarBackdrop').addEventListener('click', closeSidebar);
-  document.querySelectorAll('.sidebar-item').forEach(function(b){
+  document.querySelectorAll('.sidebar-item[data-module]').forEach(function(b){
     b.addEventListener('click', function(){
       var mod = b.getAttribute('data-module');
       closeSidebar();
@@ -1298,7 +1303,7 @@
     document.getElementById('sidebarBackdrop').classList.remove('open');
   }
   function updateSidebarActive(){
-    document.querySelectorAll('.sidebar-item').forEach(function(b){
+    document.querySelectorAll('.sidebar-item[data-module]').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-module')===currentScreen);
     });
   }
@@ -2728,12 +2733,14 @@
     if(e.key === 'Enter') document.getElementById('codeSubmitBtn').click();
   });
 
-  document.getElementById('switchHouseholdBtn').addEventListener('click', function(){
-    if(confirm('Haushalt wechseln? Du wirst nach einem neuen Code gefragt.')){
+  function logoutHousehold(){
+    if(confirm('Abmelden? Du wirst nach dem Haushalts-Code gefragt.')){
       localStorage.removeItem(CODE_KEY);
       location.reload();
     }
-  });
+  }
+  document.getElementById('switchHouseholdBtn').addEventListener('click', logoutHousehold);
+  document.getElementById('sidebarLogoutBtn').addEventListener('click', logoutHousehold);
 
   async function startApp(){
     document.getElementById('app').style.display = 'flex';
