@@ -360,6 +360,19 @@
   .cal-cell.selected .dot{ background:var(--paper); }
   .cal-day-heading{ font-size:13px; color:var(--ink-soft); padding:14px 20px 4px; }
 
+  /* ---------- Essensplan ---------- */
+  .meal-day{ margin:0 20px 14px; padding:14px 16px; background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; }
+  .meal-day-head{ font-size:13.5px; font-weight:600; margin-bottom:8px; }
+  .meal-entry{ display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px dotted var(--line); font-size:13.5px; }
+  .meal-entry:first-of-type{ border-top:none; }
+  .meal-entry span:first-child{ flex:1; min-width:0; }
+  .ingredient-chip{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 10px; background:var(--paper-raised); border:1px solid var(--line);
+    border-radius:6px; margin-bottom:6px; font-size:13.5px;
+  }
+  .ingredient-chip button{ border:none; background:none; color:var(--ink-soft); opacity:.5; font-size:16px; cursor:pointer; }
+
   .push-banner{
     margin:14px 20px; padding:14px 16px; background:var(--brass-soft);
     border-radius:8px; font-size:13px; color:var(--ink);
@@ -470,6 +483,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
       Kalender
     </button>
+    <button class="sidebar-item" data-module="mealplan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v7M4 3v4a3 3 0 0 0 6 0V3M7 10v11M15 13c0-4 2-8 4-9v17M15 13a4 2 0 0 0 4 2"/></svg>
+      Essensplan
+    </button>
     <button class="sidebar-item" data-module="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
       Einstellungen
@@ -517,10 +534,99 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
         <div><div class="tile-name">Kalender</div><div class="tile-sub">Termine</div></div>
       </button>
+      <button class="tile" data-module="mealplan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v7M4 3v4a3 3 0 0 0 6 0V3M7 10v11M15 13c0-4 2-8 4-9v17M15 13a4 2 0 0 0 4 2"/></svg>
+        <div><div class="tile-name">Essensplan</div><div class="tile-sub">Rezepte & Woche</div></div>
+      </button>
       <button class="tile" data-module="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
         <div><div class="tile-name">Einstellungen</div><div class="tile-sub">Nutzer & Daten</div></div>
       </button>
+    </div>
+  </div>
+
+  <!-- ============ MEAL PLAN MODULE ============ -->
+  <div class="screen" id="screen-mealplan">
+    <div class="topbar">
+      <div class="back-row">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="back-btn" data-back>‹ Dashboard</button>
+      </div>
+      <p class="screen-title">Essensplan</p>
+    </div>
+    <div class="module-body">
+
+      <div id="mealListView">
+        <div class="month-nav" style="padding:0 20px 6px;">
+          <button id="mealPrevWeek" aria-label="Vorherige Woche">‹</button>
+          <div class="month-label" id="mealWeekLabel" style="color:var(--ink); font-size:15px;">—</div>
+          <button id="mealNextWeek" aria-label="Nächste Woche">›</button>
+        </div>
+        <div id="mealWeekList"></div>
+
+        <div id="mealAddForm" style="display:none;" class="form-wrap">
+          <p class="section-title" style="padding:0 0 8px;">Essen für <span id="mealAddDateLabel"></span></p>
+          <div class="field">
+            <label for="mealRecipeSelect">Rezept (optional)</label>
+            <select id="mealRecipeSelect"><option value="">— Ohne Rezept —</option></select>
+          </div>
+          <div class="field">
+            <label for="mealNameInput">Bezeichnung</label>
+            <input type="text" id="mealNameInput" placeholder="z. B. Spaghetti Bolognese">
+          </div>
+          <div class="btn-row">
+            <button class="btn ghost" id="cancelMealBtn">Abbrechen</button>
+            <button class="btn" id="saveMealBtn">Speichern</button>
+          </div>
+        </div>
+
+        <p class="section-title">Rezepte</p>
+        <div id="recipeList" style="margin-bottom:10px;"></div>
+        <div class="form-wrap">
+          <button class="btn ghost" id="newRecipeBtn">+ Neues Rezept</button>
+        </div>
+      </div>
+
+      <div id="recipeEditView" style="display:none;">
+        <div class="form-wrap">
+          <div class="field">
+            <label for="recipeNameInput">Name</label>
+            <input type="text" id="recipeNameInput" placeholder="z. B. Spaghetti Bolognese">
+          </div>
+          <div class="field">
+            <label>Zutaten</label>
+            <div id="recipeIngredientsList" style="margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="recipeIngredientInput" placeholder="z. B. 200g Mehl" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+              <button type="button" class="btn" id="addIngredientBtn" style="width:auto; padding:12px 16px;">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="recipeInstructionsInput">Anleitung</label>
+            <textarea id="recipeInstructionsInput" placeholder="Zubereitungsschritte…" style="min-height:130px;"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn ghost" id="cancelRecipeBtn">Zurück</button>
+            <button class="btn" id="saveRecipeBtn">Speichern</button>
+          </div>
+          <button type="button" class="link-btn" id="deleteRecipeBtn" style="margin-top:16px; color:var(--red); display:none;">Rezept löschen</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="ingredientModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 10px;">Zutaten zur Einkaufsliste hinzufügen?</p>
+      <p class="page-sub" style="padding:0 0 12px;">Häkchen entfernen bei allem, was ihr schon zuhause habt.</p>
+      <div id="ingredientCheckList"></div>
+      <div class="btn-row" style="margin-top:18px;">
+        <button class="btn ghost" id="skipIngredientsBtn">Nicht hinzufügen</button>
+        <button class="btn" id="addIngredientsBtn">Hinzufügen</button>
+      </div>
     </div>
   </div>
 
@@ -962,6 +1068,8 @@
     notes: [],
     calendar: [],
     users: [],
+    recipes: [],
+    mealPlan: [],
     categories: {
       income: ["Gehalt","Nebeneinkommen","Sonstige Einnahmen"],
       expense: ["Miete","Lebensmittel","Transport","Freizeit","Versicherung","Sonstiges"]
@@ -1244,6 +1352,8 @@
     if(!state.notes) state.notes = [];
     if(!state.calendar) state.calendar = [];
     if(!state.users) state.users = [];
+    if(!state.recipes) state.recipes = [];
+    if(!state.mealPlan) state.mealPlan = [];
   }
 
   async function saveState(){
@@ -1338,6 +1448,7 @@
     if(name==='todos') renderTodos();
     if(name==='notes') renderNotesList();
     if(name==='calendar'){ document.getElementById('calDateInput').value = selectedDayStr; renderCalendar(); }
+    if(name==='mealplan') renderMealPlan();
     if(name==='settings'){ renderUsers(); renderCategoryManage(); }
   }
   function renderCurrentScreen(){
@@ -1346,6 +1457,7 @@
     renderTodos();
     if(document.getElementById('noteEditView').style.display==='none') renderNotesList();
     renderCalendar();
+    if(document.getElementById('recipeEditView').style.display==='none') renderMealPlan();
     renderUsers();
     renderCategoryManage();
     renderTodayOverview();
@@ -2272,6 +2384,223 @@
     for(var i=0; i<rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
     return outputArray;
   }
+
+  /* ================= Essensplan ================= */
+  var WEEKDAY_NAMES_LONG = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+  var mealWeekStart = mondayOf(new Date());
+  var mealAddDate = null;
+  var editingRecipeId = null;
+  var currentRecipeIngredients = [];
+  var pendingIngredients = [];
+
+  function mondayOf(d){
+    var day = (d.getDay()+6)%7;
+    var m = new Date(d);
+    m.setDate(d.getDate()-day);
+    m.setHours(0,0,0,0);
+    return m;
+  }
+  function dateToISOStr(d){
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+
+  function renderMealPlan(){
+    if(!document.getElementById('mealWeekList')) return;
+    var days = [];
+    for(var i=0;i<7;i++){
+      var d = new Date(mealWeekStart);
+      d.setDate(mealWeekStart.getDate()+i);
+      days.push(d);
+    }
+    var last = days[6];
+    document.getElementById('mealWeekLabel').textContent =
+      String(days[0].getDate()).padStart(2,'0')+'.'+String(days[0].getMonth()+1).padStart(2,'0')+'. – '+
+      String(last.getDate()).padStart(2,'0')+'.'+String(last.getMonth()+1).padStart(2,'0')+'.'+last.getFullYear();
+
+    document.getElementById('mealWeekList').innerHTML = days.map(function(d, idx){
+      var dateStr = dateToISOStr(d);
+      var entries = state.mealPlan.filter(function(m){ return m.date===dateStr; });
+      var entriesHtml = entries.map(function(m){
+        return '<div class="meal-entry"><span>'+escapeHtml(m.name)+'</span>'+avatarHtml(m.createdBy)+'<button class="sdel" data-mealdel="'+m.id+'">×</button></div>';
+      }).join('');
+      return '<div class="meal-day">'+
+        '<div class="meal-day-head">'+WEEKDAY_NAMES_LONG[idx]+', '+String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.</div>'+
+        entriesHtml +
+        '<button type="button" class="link-btn" data-addmeal="'+dateStr+'" style="margin-top:6px;">+ Essen hinzufügen</button>'+
+      '</div>';
+    }).join('');
+
+    document.querySelectorAll('[data-addmeal]').forEach(function(b){
+      b.addEventListener('click', function(){ openMealAddForm(b.getAttribute('data-addmeal')); });
+    });
+    document.querySelectorAll('[data-mealdel]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id = b.getAttribute('data-mealdel');
+        state.mealPlan = state.mealPlan.filter(function(m){ return m.id!==id; });
+        saveState();
+        renderMealPlan();
+      });
+    });
+
+    renderRecipeList();
+  }
+  document.getElementById('mealPrevWeek').addEventListener('click', function(){
+    mealWeekStart.setDate(mealWeekStart.getDate()-7);
+    renderMealPlan();
+  });
+  document.getElementById('mealNextWeek').addEventListener('click', function(){
+    mealWeekStart.setDate(mealWeekStart.getDate()+7);
+    renderMealPlan();
+  });
+
+  function openMealAddForm(dateStr){
+    mealAddDate = dateStr;
+    var d = new Date(dateStr+'T00:00:00');
+    document.getElementById('mealAddDateLabel').textContent = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
+    var sel = document.getElementById('mealRecipeSelect');
+    sel.innerHTML = '<option value="">— Ohne Rezept —</option>' +
+      state.recipes.map(function(r){ return '<option value="'+r.id+'">'+escapeHtml(r.name)+'</option>'; }).join('');
+    document.getElementById('mealNameInput').value = '';
+    document.getElementById('mealAddForm').style.display = 'block';
+    document.getElementById('mealAddForm').scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  document.getElementById('mealRecipeSelect').addEventListener('change', function(){
+    var selectedId = this.value;
+    var r = state.recipes.find(function(x){ return x.id===selectedId; });
+    if(r) document.getElementById('mealNameInput').value = r.name;
+  });
+  document.getElementById('cancelMealBtn').addEventListener('click', function(){
+    document.getElementById('mealAddForm').style.display = 'none';
+  });
+  document.getElementById('saveMealBtn').addEventListener('click', function(){
+    var name = document.getElementById('mealNameInput').value.trim();
+    var recipeId = document.getElementById('mealRecipeSelect').value || null;
+    if(!name && recipeId){
+      var r = state.recipes.find(function(x){ return x.id===recipeId; });
+      name = r ? r.name : '';
+    }
+    if(!name || !mealAddDate) return;
+    state.mealPlan.push({ id: uid(), date: mealAddDate, recipeId: recipeId, name: name, createdBy: currentUserId });
+    saveState();
+    document.getElementById('mealAddForm').style.display = 'none';
+    renderMealPlan();
+    if(recipeId){
+      var recipe = state.recipes.find(function(x){ return x.id===recipeId; });
+      if(recipe && recipe.ingredients && recipe.ingredients.length){
+        openIngredientModal(recipe.ingredients);
+      }
+    }
+  });
+
+  function openIngredientModal(ingredients){
+    pendingIngredients = ingredients;
+    document.getElementById('ingredientCheckList').innerHTML = ingredients.map(function(ing, i){
+      return '<div class="checkbox-row" style="margin:0 0 10px;">'+
+        '<input type="checkbox" checked id="ingcheck'+i+'" data-ing="'+escapeHtml(ing)+'">'+
+        '<label for="ingcheck'+i+'">'+escapeHtml(ing)+'</label>'+
+      '</div>';
+    }).join('');
+    document.getElementById('ingredientModal').style.display = 'flex';
+  }
+  document.getElementById('skipIngredientsBtn').addEventListener('click', function(){
+    document.getElementById('ingredientModal').style.display = 'none';
+  });
+  document.getElementById('addIngredientsBtn').addEventListener('click', function(){
+    var checked = document.querySelectorAll('#ingredientCheckList input:checked');
+    checked.forEach(function(cb){
+      state.shopping.push({ id: uid(), name: cb.getAttribute('data-ing'), checked: false, createdBy: currentUserId });
+    });
+    saveState();
+    document.getElementById('ingredientModal').style.display = 'none';
+    renderShopping();
+  });
+
+  function renderRecipeList(){
+    var el = document.getElementById('recipeList');
+    if(!el) return;
+    if(state.recipes.length===0){
+      el.innerHTML = '<p class="empty">Noch keine Rezepte angelegt.</p>';
+      return;
+    }
+    el.innerHTML = state.recipes.map(function(r){
+      var snippet = (r.ingredients||[]).slice(0,4).join(', ');
+      return '<div class="note-card" data-recipe="'+r.id+'">'+
+        '<div class="ntitle">'+escapeHtml(r.name)+'</div>'+
+        '<div class="nsnippet">'+escapeHtml(snippet)+(r.ingredients && r.ingredients.length>4 ? ' …' : '')+'</div>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-recipe]').forEach(function(c){
+      c.addEventListener('click', function(){ openRecipeEdit(c.getAttribute('data-recipe')); });
+    });
+  }
+  document.getElementById('newRecipeBtn').addEventListener('click', function(){ openRecipeEdit(null); });
+
+  function openRecipeEdit(id){
+    editingRecipeId = id;
+    var r = id ? state.recipes.find(function(x){ return x.id===id; }) : { name:'', ingredients:[], instructions:'' };
+    currentRecipeIngredients = (r.ingredients || []).slice();
+    document.getElementById('recipeNameInput').value = r.name || '';
+    document.getElementById('recipeInstructionsInput').value = r.instructions || '';
+    document.getElementById('recipeIngredientInput').value = '';
+    renderIngredientEditList();
+    document.getElementById('mealListView').style.display = 'none';
+    document.getElementById('recipeEditView').style.display = 'block';
+    document.getElementById('deleteRecipeBtn').style.display = id ? 'block' : 'none';
+  }
+  function closeRecipeEdit(){
+    editingRecipeId = null;
+    document.getElementById('mealListView').style.display = 'block';
+    document.getElementById('recipeEditView').style.display = 'none';
+    renderMealPlan();
+  }
+  function renderIngredientEditList(){
+    var el = document.getElementById('recipeIngredientsList');
+    if(currentRecipeIngredients.length===0){
+      el.innerHTML = '<p class="empty" style="padding:6px 0;">Noch keine Zutaten.</p>';
+      return;
+    }
+    el.innerHTML = currentRecipeIngredients.map(function(ing, i){
+      return '<div class="ingredient-chip"><span>'+escapeHtml(ing)+'</span><button type="button" data-rmidx="'+i+'">×</button></div>';
+    }).join('');
+    el.querySelectorAll('[data-rmidx]').forEach(function(b){
+      b.addEventListener('click', function(){
+        currentRecipeIngredients.splice(parseInt(b.getAttribute('data-rmidx'),10), 1);
+        renderIngredientEditList();
+      });
+    });
+  }
+  document.getElementById('addIngredientBtn').addEventListener('click', function(){
+    var input = document.getElementById('recipeIngredientInput');
+    var val = input.value.trim();
+    if(!val) return;
+    currentRecipeIngredients.push(val);
+    input.value = '';
+    renderIngredientEditList();
+  });
+  document.getElementById('recipeIngredientInput').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); document.getElementById('addIngredientBtn').click(); }
+  });
+  document.getElementById('cancelRecipeBtn').addEventListener('click', closeRecipeEdit);
+  document.getElementById('saveRecipeBtn').addEventListener('click', function(){
+    var name = document.getElementById('recipeNameInput').value.trim();
+    var instructions = document.getElementById('recipeInstructionsInput').value.trim();
+    if(!name){ document.getElementById('recipeNameInput').focus(); return; }
+    if(editingRecipeId){
+      var r = state.recipes.find(function(x){ return x.id===editingRecipeId; });
+      r.name = name; r.ingredients = currentRecipeIngredients.slice(); r.instructions = instructions;
+    } else {
+      state.recipes.push({ id: uid(), name: name, ingredients: currentRecipeIngredients.slice(), instructions: instructions, createdBy: currentUserId });
+    }
+    saveState();
+    closeRecipeEdit();
+  });
+  document.getElementById('deleteRecipeBtn').addEventListener('click', function(){
+    if(!editingRecipeId) return;
+    if(!confirm('Rezept löschen? Bereits geplante Mahlzeiten mit diesem Rezept bleiben als Text erhalten.')) return;
+    state.recipes = state.recipes.filter(function(x){ return x.id!==editingRecipeId; });
+    saveState();
+    closeRecipeEdit();
+  });
 
   function updatePushBanner(){
     var supported = 'serviceWorker' in navigator && 'PushManager' in window;
