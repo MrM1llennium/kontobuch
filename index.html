@@ -2740,7 +2740,9 @@
   (async function init(){
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('service-worker.js').catch(function(e){
+      navigator.serviceWorker.register('service-worker.js').then(function(reg){
+        reg.update(); // erzwingt bei jedem Start eine Prüfung auf eine neuere Version
+      }).catch(function(e){
         console.error('Service Worker Registrierung fehlgeschlagen', e);
       });
     }
