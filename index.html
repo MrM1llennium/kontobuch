@@ -593,22 +593,6 @@
         <button id="mealNextWeek" aria-label="Nächste Woche">›</button>
       </div>
       <div id="mealWeekList"></div>
-
-      <div id="mealAddForm" style="display:none;" class="form-wrap">
-        <p class="section-title" style="padding:0 0 8px;">Essen für <span id="mealAddDateLabel"></span></p>
-        <div class="field">
-          <label for="mealRecipeSelect">Rezept (optional)</label>
-          <select id="mealRecipeSelect"><option value="">— Ohne Rezept —</option></select>
-        </div>
-        <div class="field">
-          <label for="mealNameInput">Bezeichnung</label>
-          <input type="text" id="mealNameInput" placeholder="z. B. Spaghetti Bolognese">
-        </div>
-        <div class="btn-row">
-          <button class="btn ghost" id="cancelMealBtn">Abbrechen</button>
-          <button class="btn" id="saveMealBtn">Speichern</button>
-        </div>
-      </div>
     </main>
 
     <main class="view" id="view-mealrecipes">
@@ -668,6 +652,24 @@
       <div class="btn-row" style="margin-top:18px;">
         <button class="btn ghost" id="promptNoBtn">Nein</button>
         <button class="btn" id="promptYesBtn">Ja</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mealAddModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 12px;">Essen für <span id="mealAddDateLabel"></span></p>
+      <div class="field">
+        <label for="mealRecipeSelect">Rezept (optional)</label>
+        <select id="mealRecipeSelect"><option value="">— Ohne Rezept —</option></select>
+      </div>
+      <div class="field">
+        <label for="mealNameInput">Bezeichnung</label>
+        <input type="text" id="mealNameInput" placeholder="z. B. Spaghetti Bolognese">
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="cancelMealBtn">Abbrechen</button>
+        <button class="btn" id="saveMealBtn">Speichern</button>
       </div>
     </div>
   </div>
@@ -938,12 +940,26 @@
     <div class="module-body">
       <div id="shoppingList"></div>
       <div class="form-wrap">
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="shopAmountInput" placeholder="Menge" style="width:32%; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
-          <input type="text" id="shopNameInput" placeholder="z. B. Milch" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
-          <button class="btn" id="addShopBtn" style="width:auto; padding:12px 18px;">+</button>
-        </div>
+        <button class="btn" id="openShopAddBtn">+ Artikel hinzufügen</button>
         <button type="button" class="link-btn" id="clearCheckedShopBtn" style="margin-top:14px;">Erledigte entfernen</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="shopAddModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
+      <p class="section-title" style="padding:0 0 12px;">Artikel hinzufügen</p>
+      <div class="field">
+        <label for="shopAmountInput">Menge (optional)</label>
+        <input type="text" id="shopAmountInput" placeholder="z. B. 500g">
+      </div>
+      <div class="field">
+        <label for="shopNameInput">Artikel</label>
+        <input type="text" id="shopNameInput" placeholder="z. B. Milch">
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="cancelShopAddBtn">Abbrechen</button>
+        <button class="btn" id="addShopBtn">Hinzufügen</button>
       </div>
     </div>
   </div>
@@ -2207,6 +2223,14 @@
       });
     });
   }
+  document.getElementById('openShopAddBtn').addEventListener('click', function(){
+    document.getElementById('shopAmountInput').value = '';
+    document.getElementById('shopNameInput').value = '';
+    document.getElementById('shopAddModal').style.display = 'flex';
+  });
+  document.getElementById('cancelShopAddBtn').addEventListener('click', function(){
+    document.getElementById('shopAddModal').style.display = 'none';
+  });
   document.getElementById('addShopBtn').addEventListener('click', function(){
     var amountInput = document.getElementById('shopAmountInput');
     var nameInput = document.getElementById('shopNameInput');
@@ -2214,8 +2238,7 @@
     if(!val) return;
     addToShoppingList(val, amountInput.value);
     saveState();
-    amountInput.value = '';
-    nameInput.value = '';
+    document.getElementById('shopAddModal').style.display = 'none';
     renderShopping();
   });
   document.getElementById('shopNameInput').addEventListener('keydown', function(e){
@@ -2614,8 +2637,7 @@
     sel.innerHTML = '<option value="">— Ohne Rezept —</option>' +
       state.recipes.map(function(r){ return '<option value="'+r.id+'">'+escapeHtml(r.name)+'</option>'; }).join('');
     document.getElementById('mealNameInput').value = '';
-    document.getElementById('mealAddForm').style.display = 'block';
-    document.getElementById('mealAddForm').scrollIntoView({behavior:'smooth', block:'center'});
+    document.getElementById('mealAddModal').style.display = 'flex';
   }
   document.getElementById('mealRecipeSelect').addEventListener('change', function(){
     var selectedId = this.value;
@@ -2623,7 +2645,7 @@
     if(r) document.getElementById('mealNameInput').value = r.name;
   });
   document.getElementById('cancelMealBtn').addEventListener('click', function(){
-    document.getElementById('mealAddForm').style.display = 'none';
+    document.getElementById('mealAddModal').style.display = 'none';
   });
   document.getElementById('saveMealBtn').addEventListener('click', function(){
     var name = document.getElementById('mealNameInput').value.trim();
@@ -2635,7 +2657,7 @@
     if(!name || !mealAddDate) return;
     state.mealPlan.push({ id: uid(), date: mealAddDate, recipeId: recipeId, name: name, createdBy: currentUserId });
     saveState();
-    document.getElementById('mealAddForm').style.display = 'none';
+    document.getElementById('mealAddModal').style.display = 'none';
     renderMealWeek();
     if(recipeId){
       var recipe = state.recipes.find(function(x){ return x.id===recipeId; });
