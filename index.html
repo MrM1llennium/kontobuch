@@ -767,6 +767,8 @@
     </div>
   </div>
 
+  <input type="file" id="userPhotoInput" accept="image/*" style="display:none;">
+
   <div id="ingredientModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
       <p class="section-title" style="padding:0 0 10px;">Welche Zutaten?</p>
@@ -1313,6 +1315,26 @@
   var USER_COLORS = ['#A03A2C','#2E6B52','#A8813F','#5C6B8C','#7A4E8C','#3F7A6B','#B0562F','#6E5C9E','#8C4E6B','#4E7A3F'];
   var USER_COLORS_PASTEL = ['#E8A79C','#A8D5BE','#E8CFA0','#AEC0DB','#CDB8DC','#A8D4CB','#F0C4A8','#C6C0E8','#DCB8C8','#C9D4A8'];
   var newUserColor = USER_COLORS[0];
+  var photoTargetUserId = null;
+  document.getElementById('userPhotoInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file || !photoTargetUserId){ photoTargetUserId = null; return; }
+    var targetId = photoTargetUserId;
+    resizeImageFile(file, 128, 0.75).then(function(dataUrl){
+      var user = state.users.find(function(x){ return x.id===targetId; });
+      if(user){
+        user.photo = dataUrl;
+        saveState();
+        renderUsers();
+        renderCurrentScreen();
+      }
+    }).catch(function(){
+      alert('Foto konnte nicht verarbeitet werden. Bitte ein anderes Bild versuchen.');
+    }).finally(function(){
+      photoTargetUserId = null;
+      e.target.value = '';
+    });
+  });
 
   function nextUserColor(){
     var idx = (state.users||[]).length % USER_COLORS.length;
@@ -1323,7 +1345,35 @@
     var u = (state.users||[]).find(function(x){ return x.id===userId; });
     if(!u) return '';
     var s = size || 20;
+    if(u.photo){
+      return '<img src="'+u.photo+'" class="avatar" style="width:'+s+'px;height:'+s+'px;object-fit:cover;" title="'+escapeHtml(u.name)+'">';
+    }
     return '<div class="avatar" style="background:'+u.color+';width:'+s+'px;height:'+s+'px;font-size:'+Math.round(s*0.5)+'px;" title="'+escapeHtml(u.name)+'">'+escapeHtml(u.name.charAt(0).toUpperCase())+'</div>';
+  }
+  // Verkleinert/komprimiert ein hochgeladenes Foto clientseitig zu einem
+  // quadratischen Mini-Bild (Base64), damit es klein genug bleibt, um
+  // einfach im gemeinsamen Datensatz mitgespeichert zu werden.
+  function resizeImageFile(file, maxSize, quality){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){
+        var img = new Image();
+        img.onload = function(){
+          var srcSize = Math.min(img.width, img.height);
+          var sx = (img.width - srcSize)/2;
+          var sy = (img.height - srcSize)/2;
+          var canvas = document.createElement('canvas');
+          canvas.width = maxSize; canvas.height = maxSize;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, maxSize, maxSize);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
   // Farbe der Person, die einen Eintrag angelegt hat — für den farbigen
   // Rand an Buchungen, Notizen, Terminen usw. Ohne bekannten Nutzer leer.
@@ -1378,11 +1428,31 @@
           avatarHtml(u.id, 26)+
           '<div class="stext"><div class="stitle">'+escapeHtml(u.name)+(isMe?' <span style="font-size:11px;color:var(--brass-strong);">(das bist du)</span>':'')+'</div></div>'+
           (!isMe ? '<button type="button" class="link-btn" data-pick="'+u.id+'" style="flex-shrink:0;">Das bin ich</button>' : '')+
+          '<button type="button" class="link-btn" data-photo="'+u.id+'" style="flex-shrink:0;">Foto</button>'+
+          (u.photo ? '<button type="button" class="link-btn" data-removephoto="'+u.id+'" style="flex-shrink:0;">Entfernen</button>' : '')+
           '<button type="button" class="link-btn" data-editcolor="'+u.id+'" style="flex-shrink:0;">Farbe</button>'+
           '<button type="button" class="sdel" data-del="'+u.id+'">×</button>'+
           '<div class="color-palette-group" id="colorpick-'+u.id+'" style="display:none; width:100%;"></div>'+
         '</div>';
       }).join('');
+      el.querySelectorAll('[data-photo]').forEach(function(b){
+        b.addEventListener('click', function(){
+          photoTargetUserId = b.getAttribute('data-photo');
+          document.getElementById('userPhotoInput').click();
+        });
+      });
+      el.querySelectorAll('[data-removephoto]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var userId = b.getAttribute('data-removephoto');
+          var user = state.users.find(function(x){ return x.id===userId; });
+          if(user){
+            delete user.photo;
+            saveState();
+            renderUsers();
+            renderCurrentScreen();
+          }
+        });
+      });
       el.querySelectorAll('[data-pick]').forEach(function(b){
         b.addEventListener('click', function(){
           currentUserId = b.getAttribute('data-pick');
