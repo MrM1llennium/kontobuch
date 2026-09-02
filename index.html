@@ -329,6 +329,12 @@
   .simple-row .check.done{ background:var(--brass); }
   .simple-row .stext{ flex:1; min-width:0; }
   .simple-row .stitle{ font-size:15px; color:var(--ink); }
+  .cat-badge{
+    font-size:10.5px; padding:3px 9px; border-radius:10px; flex-shrink:0;
+    background:var(--paper-dark); color:var(--ink-soft); border:none; cursor:pointer;
+  }
+  .cat-pick-row{ cursor:pointer; }
+  .cat-pick-row.selected{ background:var(--brass-soft); }
   .simple-row .stitle.done{ text-decoration:line-through; color:var(--ink-soft); }
   .simple-row .ssub{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
   .simple-row .sdel{ border:none; background:none; color:var(--ink-soft); opacity:.45; font-size:17px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
@@ -769,6 +775,14 @@
 
   <input type="file" id="userPhotoInput" accept="image/*" style="display:none;">
 
+  <div id="categoryEditModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:75vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 10px;">Kategorie wählen</p>
+      <div id="categoryEditList"></div>
+      <button type="button" class="btn ghost" id="cancelCategoryEditBtn" style="margin-top:14px;">Abbrechen</button>
+    </div>
+  </div>
+
   <div id="ingredientModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
       <p class="section-title" style="padding:0 0 10px;">Welche Zutaten?</p>
@@ -1105,6 +1119,25 @@
             <option value="1440" selected>1 Tag vorher</option>
             <option value="2880">2 Tage vorher</option>
           </select>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="todoRepeatInput">
+          <label for="todoRepeatInput">Wiederkehrend</label>
+        </div>
+        <div class="field" id="todoRepeatWrap" style="display:none;">
+          <label>Wiederholen alle</label>
+          <div style="display:flex; gap:8px;">
+            <input type="number" inputmode="numeric" min="1" id="todoRepeatInterval" value="1" style="width:35%;">
+            <select id="todoRepeatUnit" style="flex:1;">
+              <option value="days">Tage</option>
+              <option value="weeks">Wochen</option>
+              <option value="months">Monate</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Zuweisen an (optional)</label>
+          <div id="todoAssignList"></div>
         </div>
         <button class="btn" id="addTodoBtn">Hinzufügen</button>
       </div>
@@ -1463,6 +1496,9 @@
       el.querySelectorAll('[data-del]').forEach(function(b){
         b.addEventListener('click', function(){
           var id = b.getAttribute('data-del');
+          var user = state.users.find(function(u){ return u.id===id; });
+          var name = user ? user.name : 'diesen Nutzer';
+          if(!confirm('"'+name+'" wirklich löschen? Bereits vorhandene Einträge behalten Farbe/Foto, verlieren aber die Zuordnung zum Namen.')) return;
           state.users = state.users.filter(function(u){ return u.id!==id; });
           if(currentUserId===id){ currentUserId=null; localStorage.removeItem(CURRENT_USER_KEY); }
           saveState();
@@ -2480,10 +2516,41 @@
     return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
       '<div class="check'+(it.checked?' done':'')+'" data-id="'+it.id+'">'+(it.checked?'✓':'')+'</div>'+
       '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+label+'</div></div>'+
+      '<button type="button" class="cat-badge" data-catedit="'+it.id+'">'+escapeHtml(it.category||'Sonstiges')+'</button>'+
       avatarHtml(it.createdBy) +
       '<button class="sdel" data-id="'+it.id+'">×</button>'+
     '</div>';
   }
+
+  var categoryEditTargetId = null;
+  function openCategoryEditModal(itemId){
+    categoryEditTargetId = itemId;
+    var item = state.shopping.find(function(x){ return x.id===itemId; });
+    if(!item) return;
+    var names = GROCERY_CATEGORIES.map(function(c){ return c.name; }).concat(['Sonstiges']);
+    document.getElementById('categoryEditList').innerHTML = names.map(function(n){
+      var isSel = (item.category||'Sonstiges')===n;
+      return '<div class="simple-row cat-pick-row'+(isSel?' selected':'')+'" data-catchoice="'+escapeHtml(n)+'">'+
+        '<div class="stext"><div class="stitle">'+escapeHtml(n)+'</div></div>'+
+        (isSel ? '<span style="color:var(--brass-strong);">✓</span>' : '')+
+      '</div>';
+    }).join('');
+    document.querySelectorAll('#categoryEditList [data-catchoice]').forEach(function(row){
+      row.addEventListener('click', function(){
+        var it = state.shopping.find(function(x){ return x.id===categoryEditTargetId; });
+        if(it){
+          it.category = row.getAttribute('data-catchoice');
+          saveState();
+          renderShopping();
+        }
+        document.getElementById('categoryEditModal').style.display = 'none';
+      });
+    });
+    document.getElementById('categoryEditModal').style.display = 'flex';
+  }
+  document.getElementById('cancelCategoryEditBtn').addEventListener('click', function(){
+    document.getElementById('categoryEditModal').style.display = 'none';
+  });
 
   function renderShopping(){
     var el = document.getElementById('shoppingList');
@@ -2530,6 +2597,9 @@
         renderShopping();
       });
     });
+    el.querySelectorAll('[data-catedit]').forEach(function(b){
+      b.addEventListener('click', function(){ openCategoryEditModal(b.getAttribute('data-catedit')); });
+    });
   }
   document.getElementById('openShopAddBtn').addEventListener('click', function(){
     document.getElementById('shopAmountInput').value = '';
@@ -2565,9 +2635,38 @@
     if(mins < 1440) return Math.round(mins/60)+' Std. vorher';
     return Math.round(mins/1440)+' Tag(e) vorher';
   }
+  function todoRepeatLabel(interval, unit){
+    var unitLabel = { days:'Tag(e)', weeks:'Woche(n)', months:'Monat(e)' }[unit] || unit;
+    return 'Alle '+interval+' '+unitLabel;
+  }
+  function advanceDateStr(dateStr, interval, unit){
+    var d = dateStr ? new Date(dateStr+'T00:00:00') : new Date();
+    if(unit==='weeks') d.setDate(d.getDate()+interval*7);
+    else if(unit==='months') d.setMonth(d.getMonth()+interval);
+    else d.setDate(d.getDate()+interval);
+    return dateToISOStr(d);
+  }
+  function renderTodoAssignList(selectedIds){
+    var el = document.getElementById('todoAssignList');
+    if(!el) return;
+    selectedIds = selectedIds || [];
+    if(!state.users || state.users.length===0){
+      el.innerHTML = '<p class="empty" style="padding:6px 0;">Noch keine Nutzer angelegt (siehe Einstellungen).</p>';
+      return;
+    }
+    el.innerHTML = state.users.map(function(u){
+      var checked = selectedIds.indexOf(u.id)!==-1;
+      return '<label style="display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px dotted var(--line);">'+
+        '<input type="checkbox" value="'+u.id+'" '+(checked?'checked':'')+' style="width:19px;height:19px;">'+
+        avatarHtml(u.id, 22)+
+        '<span style="font-size:14px;">'+escapeHtml(u.name)+'</span>'+
+      '</label>';
+    }).join('');
+  }
   function renderTodos(){
     var el = document.getElementById('todoList');
     if(!el) return;
+    renderTodoAssignList();
     if(state.todos.length===0){
       el.innerHTML = '<p class="empty">Keine Aufgaben.</p>';
       updatePushBanner();
@@ -2580,12 +2679,14 @@
     el.innerHTML = sorted.map(function(t){
       var subParts = [];
       if(t.dueDate) subParts.push('Fällig am '+fmtDate(t.dueDate)+(t.dueTime?', '+t.dueTime+' Uhr':''));
+      if(t.repeatUnit) subParts.push('🔁 '+todoRepeatLabel(t.repeatInterval||1, t.repeatUnit));
       if(t.remind) subParts.push('🔔 '+todoOffsetLabel(t.remindOffset));
+      var assignedAvatars = (t.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
       return '<div class="simple-row"'+personTintStyle(t.createdBy)+'>'+
         '<div class="check'+(t.done?' done':'')+'" data-id="'+t.id+'">'+(t.done?'✓':'')+'</div>'+
         '<div class="stext"><div class="stitle'+(t.done?' done':'')+'">'+escapeHtml(t.text)+'</div>'+
         (subParts.length ? '<div class="ssub">'+subParts.join(' · ')+'</div>' : '')+'</div>'+
-        avatarHtml(t.createdBy) +
+        (assignedAvatars || avatarHtml(t.createdBy)) +
         '<button class="sdel" data-id="'+t.id+'">×</button>'+
       '</div>';
     }).join('');
@@ -2593,7 +2694,12 @@
       c.addEventListener('click', function(){
         var id = c.getAttribute('data-id');
         var t = state.todos.find(function(x){ return x.id===id; });
-        t.done = !t.done;
+        if(t.repeatUnit && !t.done){
+          // Wiederkehrend: statt abzuhaken, Fälligkeit auf die nächste Ausprägung verschieben
+          t.dueDate = advanceDateStr(t.dueDate, t.repeatInterval||1, t.repeatUnit);
+        } else {
+          t.done = !t.done;
+        }
         saveState();
         renderTodos();
       });
@@ -2611,19 +2717,30 @@
   document.getElementById('todoRemindInput').addEventListener('change', function(){
     document.getElementById('todoRemindOffsetWrap').style.display = this.checked ? 'block' : 'none';
   });
+  document.getElementById('todoRepeatInput').addEventListener('change', function(){
+    document.getElementById('todoRepeatWrap').style.display = this.checked ? 'block' : 'none';
+  });
   document.getElementById('addTodoBtn').addEventListener('click', function(){
     var textInput = document.getElementById('todoTextInput');
     var dueInput = document.getElementById('todoDueInput');
     var timeInput = document.getElementById('todoDueTimeInput');
     var remindInput = document.getElementById('todoRemindInput');
     var offsetInput = document.getElementById('todoRemindOffsetInput');
+    var repeatInput = document.getElementById('todoRepeatInput');
+    var repeatIntervalInput = document.getElementById('todoRepeatInterval');
+    var repeatUnitInput = document.getElementById('todoRepeatUnit');
     var val = textInput.value.trim();
     if(!val) return;
     var remind = remindInput.checked && !!dueInput.value;
+    var repeatOn = repeatInput.checked;
+    var assignedTo = Array.prototype.slice.call(document.querySelectorAll('#todoAssignList input:checked')).map(function(cb){ return cb.value; });
     state.todos.push({
       id: uid(), text: val, done: false,
       dueDate: dueInput.value || null, dueTime: timeInput.value || null,
       remind: remind, remindOffset: remind ? parseInt(offsetInput.value,10) : 0,
+      repeatInterval: repeatOn ? Math.max(1, parseInt(repeatIntervalInput.value,10)||1) : null,
+      repeatUnit: repeatOn ? repeatUnitInput.value : null,
+      assignedTo: assignedTo,
       createdBy: currentUserId
     });
     saveState();
@@ -2632,6 +2749,10 @@
     timeInput.value = '';
     remindInput.checked = false;
     document.getElementById('todoRemindOffsetWrap').style.display = 'none';
+    repeatInput.checked = false;
+    document.getElementById('todoRepeatWrap').style.display = 'none';
+    repeatIntervalInput.value = '1';
+    renderTodoAssignList();
     renderTodos();
   });
 
