@@ -94,6 +94,20 @@
     display:grid; grid-template-columns:1fr 1fr; gap:14px;
     padding:20px; flex:1; align-content:start;
   }
+  .today-card{
+    margin:0 20px; background:var(--paper-raised); border:1px solid var(--line);
+    border-radius:10px; overflow:hidden;
+  }
+  .today-card .section-title{ padding:14px 16px 6px !important; }
+  .today-row{
+    display:flex; align-items:center; gap:10px; padding:9px 16px;
+    border-top:1px dotted var(--line); font-size:13.5px;
+  }
+  .today-row svg{ width:16px; height:16px; flex-shrink:0; color:var(--brass-strong); }
+  .today-row .tamt{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .today-row .tamt.income{ color:var(--green); }
+  .today-row .tamt.expense{ color:var(--red); }
+  .today-card .empty{ padding:6px 16px 16px; text-align:left; }
   .tile.tile-hero{ grid-column:1 / span 2; flex-direction:row; align-items:center; padding:22px 18px; }
   .tile.tile-hero svg{ width:34px; height:34px; }
   .tile.tile-hero .tile-name{ font-size:18px; font-weight:600; }
@@ -430,7 +444,7 @@
     <p class="brand">MODULE</p>
     <button class="sidebar-item" data-module="home">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
-      Start
+      Dashboard
     </button>
     <button class="sidebar-item" data-module="finance">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
@@ -472,7 +486,11 @@
         </button>
       </div>
       <p class="brand">HAUSHALT · GEMEINSAM ORGANISIERT</p>
-      <h1>Start</h1>
+      <h1>Dashboard</h1>
+    </div>
+    <div class="today-card">
+      <p class="section-title" style="padding:16px 20px 8px;">Heute</p>
+      <div id="todayOverview"></div>
     </div>
     <div class="tile-grid">
       <button class="tile tile-hero" data-module="finance">
@@ -509,7 +527,7 @@
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <button class="back-btn" data-back>‹ Start</button>
+        <button class="back-btn" data-back>‹ Dashboard</button>
       </div>
       <p class="screen-title">Einstellungen</p>
     </div>
@@ -565,7 +583,7 @@
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <button class="back-btn" data-back>‹ Start</button>
+        <button class="back-btn" data-back>‹ Dashboard</button>
       </div>
       <div class="month-nav">
         <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
@@ -740,7 +758,7 @@
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <button class="back-btn" data-back>‹ Start</button>
+        <button class="back-btn" data-back>‹ Dashboard</button>
       </div>
       <p class="screen-title">Einkaufsliste</p>
     </div>
@@ -763,7 +781,7 @@
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <button class="back-btn" data-back>‹ Start</button>
+        <button class="back-btn" data-back>‹ Dashboard</button>
       </div>
       <p class="screen-title">To-Dos</p>
     </div>
@@ -814,7 +832,7 @@
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <button class="back-btn" data-back>‹ Start</button>
+        <button class="back-btn" data-back>‹ Dashboard</button>
       </div>
       <p class="screen-title">Notizen</p>
     </div>
@@ -852,7 +870,7 @@
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <button class="back-btn" data-back>‹ Start</button>
+        <button class="back-btn" data-back>‹ Dashboard</button>
       </div>
       <p class="screen-title">Kalender</p>
     </div>
@@ -1304,6 +1322,7 @@
     document.getElementById('screen-home').classList.add('active');
     currentScreen = 'home';
     updateSidebarActive();
+    renderTodayOverview();
   }
   function openModule(name){
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
@@ -1325,6 +1344,44 @@
     renderCalendar();
     renderUsers();
     renderCategoryManage();
+    renderTodayOverview();
+  }
+
+  function todayIconSvg(type){
+    if(type==='cal') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>';
+    if(type==='todo') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>';
+    if(type==='income') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>';
+  }
+
+  function renderTodayOverview(){
+    var el = document.getElementById('todayOverview');
+    if(!el || !state) return;
+    var todayStr = todayISO();
+    var rows = [];
+
+    if(typeof eventsForDate === 'function'){
+      eventsForDate(todayStr).forEach(function(ev){
+        rows.push(todayIconSvg('cal') + '<span>'+escapeHtml(ev.title)+(ev.time?' · '+ev.time+' Uhr':'')+'</span>');
+      });
+    }
+
+    state.todos.filter(function(t){ return t.dueDate===todayStr && !t.done; }).forEach(function(t){
+      rows.push(todayIconSvg('todo') + '<span>'+escapeHtml(t.text)+(t.dueTime?' · '+t.dueTime+' Uhr':'')+'</span>');
+    });
+
+    state.transactions.filter(function(t){ return t.auto && t.date===todayStr; }).forEach(function(t){
+      rows.push(
+        todayIconSvg(t.type) + '<span>'+escapeHtml(t.category)+'</span>'+
+        '<span class="tamt '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</span>'
+      );
+    });
+
+    if(rows.length===0){
+      el.innerHTML = '<p class="empty">Heute steht nichts an.</p>';
+      return;
+    }
+    el.innerHTML = rows.map(function(r){ return '<div class="today-row">'+r+'</div>'; }).join('');
   }
 
   /* ================= Finance: Navigation ================= */
