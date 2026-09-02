@@ -382,6 +382,18 @@
     border-radius:6px; margin-bottom:6px; font-size:13.5px;
   }
   .ingredient-chip button{ border:none; background:none; color:var(--ink-soft); opacity:.5; font-size:16px; cursor:pointer; }
+  .ingredient-select-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 0; border-top:1px dotted var(--line);
+  }
+  .ingredient-select-row:first-child{ border-top:none; }
+  .ingredient-select-row label{ display:flex; align-items:center; gap:10px; flex:1; min-width:0; font-size:14.5px; }
+  .ingredient-select-row input[type="checkbox"]{ width:19px; height:19px; flex-shrink:0; }
+  .amount-toggle{
+    flex-shrink:0; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink-soft);
+    border-radius:20px; padding:5px 12px; font-size:12px; font-family:'IBM Plex Mono',monospace; cursor:pointer;
+  }
+  .amount-toggle.active{ background:var(--brass); color:var(--paper); border-color:var(--brass); }
 
   .push-banner{
     margin:14px 20px; padding:14px 16px; background:var(--brass-soft);
@@ -620,7 +632,8 @@
           <label>Zutaten</label>
           <div id="recipeIngredientsList" style="margin-bottom:8px;"></div>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="recipeIngredientInput" placeholder="z. B. 200g Mehl" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+            <input type="text" id="recipeIngredientAmountInput" placeholder="Menge (z. B. 200g)" style="width:38%; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+            <input type="text" id="recipeIngredientInput" placeholder="Zutat (z. B. Mehl)" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
             <button type="button" class="btn" id="addIngredientBtn" style="width:auto; padding:12px 16px;">+</button>
           </div>
         </div>
@@ -648,14 +661,35 @@
     </nav>
   </div>
 
+  <div id="addToListPromptModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
+      <p class="section-title" style="padding:0 0 6px;">Zutaten zur Einkaufsliste hinzufügen?</p>
+      <p class="page-sub" style="padding:0;" id="addToListPromptText"></p>
+      <div class="btn-row" style="margin-top:18px;">
+        <button class="btn ghost" id="promptNoBtn">Nein</button>
+        <button class="btn" id="promptYesBtn">Ja</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addToShoppingConfirm" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:96; align-items:center; justify-content:center;">
+    <div style="background:var(--paper); width:calc(100% - 48px); max-width:400px; border-radius:12px; padding:24px;">
+      <p style="font-size:15.5px; margin:0 0 20px; color:var(--ink);">Zutaten zur Einkaufsliste hinzufügen?</p>
+      <div class="btn-row">
+        <button class="btn ghost" id="confirmAddIngredientsNoBtn">Nein</button>
+        <button class="btn" id="confirmAddIngredientsYesBtn">Ja</button>
+      </div>
+    </div>
+  </div>
+
   <div id="ingredientModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
-      <p class="section-title" style="padding:0 0 10px;">Zutaten zur Einkaufsliste hinzufügen?</p>
-      <p class="page-sub" style="padding:0 0 12px;">Häkchen entfernen bei allem, was ihr schon zuhause habt.</p>
+      <p class="section-title" style="padding:0 0 10px;">Welche Zutaten?</p>
+      <p class="page-sub" style="padding:0 0 12px;">Auswählen, was ihr noch braucht. Mengenangabe antippen, um sie mit aufzunehmen.</p>
       <div id="ingredientCheckList"></div>
       <div class="btn-row" style="margin-top:18px;">
-        <button class="btn ghost" id="skipIngredientsBtn">Nicht hinzufügen</button>
-        <button class="btn" id="addIngredientsBtn">Hinzufügen</button>
+        <button class="btn ghost" id="selectAllIngredientsBtn">Alle auswählen</button>
+        <button class="btn" id="addIngredientsBtn">Zu Einkaufsliste hinzufügen</button>
       </div>
     </div>
   </div>
@@ -2533,28 +2567,53 @@
     if(recipeId){
       var recipe = state.recipes.find(function(x){ return x.id===recipeId; });
       if(recipe && recipe.ingredients && recipe.ingredients.length){
-        openIngredientModal(recipe.ingredients);
+        openAddToShoppingConfirm(recipe.ingredients);
       }
     }
+  });
+
+  var pendingConfirmIngredients = null;
+  function openAddToShoppingConfirm(ingredients){
+    pendingConfirmIngredients = ingredients;
+    document.getElementById('addToShoppingConfirm').style.display = 'flex';
+  }
+  document.getElementById('confirmAddIngredientsNoBtn').addEventListener('click', function(){
+    document.getElementById('addToShoppingConfirm').style.display = 'none';
+    pendingConfirmIngredients = null;
+  });
+  document.getElementById('confirmAddIngredientsYesBtn').addEventListener('click', function(){
+    document.getElementById('addToShoppingConfirm').style.display = 'none';
+    openIngredientModal(pendingConfirmIngredients);
   });
 
   function openIngredientModal(ingredients){
     pendingIngredients = ingredients;
     document.getElementById('ingredientCheckList').innerHTML = ingredients.map(function(ing, i){
-      return '<div class="checkbox-row" style="margin:0 0 10px;">'+
-        '<input type="checkbox" checked id="ingcheck'+i+'" data-ing="'+escapeHtml(ing)+'">'+
-        '<label for="ingcheck'+i+'">'+escapeHtml(ing)+'</label>'+
+      var hasAmount = ing.amount && ing.amount.trim();
+      return '<div class="ingredient-select-row">'+
+        '<label>'+
+          '<input type="checkbox" id="ingcheck'+i+'" data-ing-name="'+escapeHtml(ing.name)+'">'+
+          '<span>'+escapeHtml(ing.name)+'</span>'+
+        '</label>'+
+        (hasAmount ? '<button type="button" class="amount-toggle" data-amount="'+escapeHtml(ing.amount)+'">'+escapeHtml(ing.amount)+'</button>' : '')+
       '</div>';
     }).join('');
+    document.querySelectorAll('#ingredientCheckList .amount-toggle').forEach(function(btn){
+      btn.addEventListener('click', function(){ btn.classList.toggle('active'); });
+    });
     document.getElementById('ingredientModal').style.display = 'flex';
   }
-  document.getElementById('skipIngredientsBtn').addEventListener('click', function(){
-    document.getElementById('ingredientModal').style.display = 'none';
+  document.getElementById('selectAllIngredientsBtn').addEventListener('click', function(){
+    document.querySelectorAll('#ingredientCheckList input[type="checkbox"]').forEach(function(cb){ cb.checked = true; });
   });
   document.getElementById('addIngredientsBtn').addEventListener('click', function(){
-    var checked = document.querySelectorAll('#ingredientCheckList input:checked');
-    checked.forEach(function(cb){
-      state.shopping.push({ id: uid(), name: cb.getAttribute('data-ing'), checked: false, createdBy: currentUserId });
+    document.querySelectorAll('#ingredientCheckList .ingredient-select-row').forEach(function(row){
+      var cb = row.querySelector('input[type="checkbox"]');
+      if(!cb.checked) return;
+      var name = cb.getAttribute('data-ing-name');
+      var amountBtn = row.querySelector('.amount-toggle');
+      var text = (amountBtn && amountBtn.classList.contains('active')) ? amountBtn.getAttribute('data-amount')+' '+name : name;
+      state.shopping.push({ id: uid(), name: text, checked: false, createdBy: currentUserId });
     });
     saveState();
     document.getElementById('ingredientModal').style.display = 'none';
@@ -2571,7 +2630,9 @@
       return;
     }
     el.innerHTML = list.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).map(function(r){
-      var snippet = (r.ingredients||[]).slice(0,4).join(', ');
+      var snippet = (r.ingredients||[]).slice(0,4).map(function(ing){
+        return (ing.amount ? ing.amount+' ' : '') + ing.name;
+      }).join(', ');
       return '<div class="note-card" data-recipe="'+r.id+'">'+
         '<div class="ntitle">'+escapeHtml(r.name)+'</div>'+
         '<div class="nsnippet">'+escapeHtml(snippet)+(r.ingredients && r.ingredients.length>4 ? ' …' : '')+'</div>'+
@@ -2590,6 +2651,7 @@
     currentRecipeIngredients = (r.ingredients || []).slice();
     document.getElementById('recipeNameInput').value = r.name || '';
     document.getElementById('recipeInstructionsInput').value = r.instructions || '';
+    document.getElementById('recipeIngredientAmountInput').value = '';
     document.getElementById('recipeIngredientInput').value = '';
     renderIngredientEditList();
     document.getElementById('view-mealweek').classList.remove('active');
@@ -2611,7 +2673,8 @@
       return;
     }
     el.innerHTML = currentRecipeIngredients.map(function(ing, i){
-      return '<div class="ingredient-chip"><span>'+escapeHtml(ing)+'</span><button type="button" data-rmidx="'+i+'">×</button></div>';
+      var label = (ing.amount ? ing.amount+' ' : '') + ing.name;
+      return '<div class="ingredient-chip"><span>'+escapeHtml(label)+'</span><button type="button" data-rmidx="'+i+'">×</button></div>';
     }).join('');
     el.querySelectorAll('[data-rmidx]').forEach(function(b){
       b.addEventListener('click', function(){
@@ -2621,15 +2684,22 @@
     });
   }
   document.getElementById('addIngredientBtn').addEventListener('click', function(){
-    var input = document.getElementById('recipeIngredientInput');
-    var val = input.value.trim();
-    if(!val) return;
-    currentRecipeIngredients.push(val);
-    input.value = '';
+    var amountInput = document.getElementById('recipeIngredientAmountInput');
+    var nameInput = document.getElementById('recipeIngredientInput');
+    var amountVal = amountInput.value.trim();
+    var nameVal = nameInput.value.trim();
+    if(!nameVal) return;
+    currentRecipeIngredients.push({ amount: amountVal, name: nameVal });
+    amountInput.value = '';
+    nameInput.value = '';
     renderIngredientEditList();
+    amountInput.focus();
   });
   document.getElementById('recipeIngredientInput').addEventListener('keydown', function(e){
     if(e.key==='Enter'){ e.preventDefault(); document.getElementById('addIngredientBtn').click(); }
+  });
+  document.getElementById('recipeIngredientAmountInput').addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); document.getElementById('recipeIngredientInput').focus(); }
   });
   document.getElementById('cancelRecipeBtn').addEventListener('click', closeRecipeEdit);
   document.getElementById('saveRecipeBtn').addEventListener('click', function(){
