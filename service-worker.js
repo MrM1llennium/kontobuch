@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kontobuch-shell-v2';
+const CACHE_NAME = 'kontobuch-shell-v3';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',
@@ -55,6 +55,12 @@ self.addEventListener('activate', function(event){
 // Nur eigene, statische Dateien aus dem Cache bedienen (App-Hülle).
 // Alle anderen Anfragen (insbesondere die Cloud-Datenbank) unangetastet
 // durchreichen, damit Live-Daten nie aus dem Cache kommen.
+//
+// Strategie: NETWORK-FIRST für die App-Hülle. Normalerweise ist eine
+// Verbindung da, dann wird immer die aktuelle Version geladen (kein
+// "einmal öffnen bringt nichts" mehr). Nur wenn das Netzwerk wirklich
+// nicht erreichbar ist, wird auf die zuletzt gespeicherte Version
+// zurückgefallen, damit die App auch offline startet.
 self.addEventListener('fetch', function(event){
   var url = new URL(event.request.url);
   var isOwnOrigin = url.origin === self.location.origin;
@@ -67,16 +73,15 @@ self.addEventListener('fetch', function(event){
   }
 
   event.respondWith(
-    caches.match(event.request).then(function(cached){
-      var networkFetch = fetch(event.request).then(function(response){
-        if(response && response.ok){
-          caches.open(CACHE_NAME).then(function(cache){
-            cache.put(event.request, response.clone());
-          });
-        }
-        return response;
-      }).catch(function(){ return cached; });
-      return cached || networkFetch;
+    fetch(event.request).then(function(response){
+      if(response && response.ok){
+        caches.open(CACHE_NAME).then(function(cache){
+          cache.put(event.request, response.clone());
+        });
+      }
+      return response;
+    }).catch(function(){
+      return caches.match(event.request);
     })
   );
 });
