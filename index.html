@@ -94,6 +94,9 @@
     display:grid; grid-template-columns:1fr 1fr; gap:14px;
     padding:20px; flex:1; align-content:start;
   }
+  .tile.tile-hero{ grid-column:1 / span 2; flex-direction:row; align-items:center; padding:22px 18px; }
+  .tile.tile-hero svg{ width:34px; height:34px; }
+  .tile.tile-hero .tile-name{ font-size:18px; font-weight:600; }
   .tile{
     background:var(--paper-raised); border:1px solid var(--line); border-radius:12px;
     padding:20px 14px; display:flex; flex-direction:column; align-items:flex-start; gap:12px;
@@ -321,6 +324,24 @@
   .cal-bell{ font-size:11px; color:var(--brass-strong); margin-top:4px; }
   .cal-del{ border:none; background:none; color:var(--ink-soft); opacity:.45; font-size:17px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
 
+  .cal-weekdays{
+    display:grid; grid-template-columns:repeat(7,1fr); padding:0 20px;
+    font-size:10.5px; color:var(--ink-soft); text-align:center; margin-bottom:6px;
+  }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; padding:0 20px 6px; }
+  .cal-cell{
+    aspect-ratio:1; border-radius:8px; border:1.5px solid transparent; background:var(--paper-raised);
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:6px;
+    font-size:12.5px; font-family:'IBM Plex Mono',monospace; cursor:pointer; position:relative;
+  }
+  .cal-cell.outside{ opacity:.32; }
+  .cal-cell.today{ border-color:var(--brass); }
+  .cal-cell.selected{ background:var(--ink); color:var(--paper); }
+  .cal-cell .dots{ display:flex; gap:2px; margin-top:3px; }
+  .cal-cell .dot{ width:4px; height:4px; border-radius:50%; background:var(--brass-strong); }
+  .cal-cell.selected .dot{ background:var(--paper); }
+  .cal-day-heading{ font-size:13px; color:var(--ink-soft); padding:14px 20px 4px; }
+
   .push-banner{
     margin:14px 20px; padding:14px 16px; background:var(--brass-soft);
     border-radius:8px; font-size:13px; color:var(--ink);
@@ -351,6 +372,42 @@
   #codeGate .btn{ margin-top:14px; }
   #codeError{ color:#E0A99B; font-size:12px; margin-top:10px; display:none; }
   .settings-links{ display:flex; gap:16px; padding:0 20px; flex-wrap:wrap; }
+
+  /* ---------- Sidebar ---------- */
+  #sidebarBackdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.42); z-index:90;
+    display:none; opacity:0; transition:opacity .2s ease;
+  }
+  #sidebarBackdrop.open{ display:block; opacity:1; }
+  #sidebar{
+    position:fixed; top:0; left:0; height:100%; width:78%; max-width:300px;
+    background:var(--ink); color:var(--paper); z-index:91;
+    transform:translateX(-100%); transition:transform .25s ease;
+    padding-top:calc(20px + var(--safe-top));
+    display:flex; flex-direction:column; box-shadow:2px 0 20px rgba(0,0,0,.3);
+  }
+  #sidebar.open{ transform:translateX(0); }
+  #sidebar .brand{ padding:0 20px; margin-bottom:16px; }
+  .sidebar-item{
+    display:flex; align-items:center; gap:12px; padding:13px 20px;
+    background:none; border:none; color:var(--paper); font-family:'Source Serif 4',serif;
+    font-size:15px; text-align:left; cursor:pointer; width:100%;
+  }
+  .sidebar-item.active{ background:rgba(255,255,255,.08); color:var(--brass-soft); }
+  .sidebar-item svg{ width:19px; height:19px; flex-shrink:0; }
+  .top-controls{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .hamburger-btn{
+    background:none; border:none; color:var(--paper); padding:4px; margin:-4px 0;
+    cursor:pointer; flex-shrink:0; display:flex; align-items:center;
+  }
+  .hamburger-btn svg{ width:21px; height:21px; }
+
+  /* ---------- Avatare ---------- */
+  .avatar{
+    width:20px; height:20px; border-radius:50%; color:#fff; font-size:10px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'IBM Plex Mono',monospace; font-weight:600;
+  }
 </style>
 </head>
 <body>
@@ -368,6 +425,39 @@
 
 <div id="app" style="display:none;">
 
+  <div id="sidebarBackdrop"></div>
+  <div id="sidebar">
+    <p class="brand">MODULE</p>
+    <button class="sidebar-item" data-module="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>
+      Start
+    </button>
+    <button class="sidebar-item" data-module="finance">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+      Finanzen
+    </button>
+    <button class="sidebar-item" data-module="shopping">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h12l-1.5 11a2 2 0 0 1-2 1.7H9.5a2 2 0 0 1-2-1.7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      Einkaufsliste
+    </button>
+    <button class="sidebar-item" data-module="todos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>
+      To-Dos
+    </button>
+    <button class="sidebar-item" data-module="notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M15 3v5h5"/></svg>
+      Notizen
+    </button>
+    <button class="sidebar-item" data-module="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+      Kalender
+    </button>
+    <button class="sidebar-item" data-module="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+      Einstellungen
+    </button>
+  </div>
+
   <div id="saveBanner" style="display:none; position:fixed; bottom:calc(64px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 24px); max-width:456px; background:var(--red); color:var(--paper); border-radius:8px; padding:10px 12px; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; z-index:50; box-shadow:0 4px 14px rgba(0,0,0,.3);">
     <span>Nicht in der Cloud gespeichert. Bitte prüfen.</span>
     <button type="button" id="retrySaveBtn" style="flex-shrink:0; background:var(--paper); color:var(--red); border:none; border-radius:5px; padding:6px 10px; font-size:12px; cursor:pointer;">Erneut</button>
@@ -376,11 +466,16 @@
   <!-- ============ HOME ============ -->
   <div class="screen active" id="screen-home">
     <div class="topbar">
+      <div class="top-controls">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
       <p class="brand">HAUSHALT · GEMEINSAM ORGANISIERT</p>
       <h1>Start</h1>
     </div>
     <div class="tile-grid">
-      <button class="tile" data-module="finance">
+      <button class="tile tile-hero" data-module="finance">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
         <div><div class="tile-name">Finanzen</div><div class="tile-sub">Budget & Sparen</div></div>
       </button>
@@ -396,32 +491,82 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M15 3v5h5"/></svg>
         <div><div class="tile-name">Notizen</div><div class="tile-sub">Festhalten</div></div>
       </button>
-      <button class="tile" data-module="calendar" style="grid-column:1 / span 2;">
+      <button class="tile" data-module="calendar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
-        <div><div class="tile-name">Kalender</div><div class="tile-sub">Termine & Erinnerungen</div></div>
+        <div><div class="tile-name">Kalender</div><div class="tile-sub">Termine</div></div>
+      </button>
+      <button class="tile" data-module="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+        <div><div class="tile-name">Einstellungen</div><div class="tile-sub">Nutzer & Daten</div></div>
       </button>
     </div>
-    <div style="padding:10px 20px 30px;">
-      <div class="settings-links">
-        <button type="button" class="link-btn" id="showBackup">Daten sichern / wiederherstellen</button>
-        <button type="button" class="link-btn" id="switchHouseholdBtn">Haushalt wechseln</button>
+  </div>
+
+  <!-- ============ SETTINGS MODULE ============ -->
+  <div class="screen" id="screen-settings">
+    <div class="topbar">
+      <div class="top-controls">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="back-btn" data-back>‹ Start</button>
       </div>
-      <div id="backupPanel" style="display:none; margin-top:14px;">
-        <p style="font-size:12px; color:var(--ink-soft); margin:0 0 8px;">Text unten kopieren und irgendwo sichern (z. B. Notizen-App). Zum Wiederherstellen den gesicherten Text einfügen und auf „Wiederherstellen" tippen.</p>
-        <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Aktueller Stand (zum Kopieren)</label>
-        <textarea id="backupOut" readonly style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
-        <button type="button" class="btn ghost" id="copyBackupBtn" style="margin-bottom:16px;">In Zwischenablage kopieren</button>
-        <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Gesicherten Text einfügen</label>
-        <textarea id="backupIn" style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
-        <button type="button" class="btn" id="restoreBackupBtn">Wiederherstellen (überschreibt aktuellen Stand)</button>
+      <p class="screen-title">Einstellungen</p>
+    </div>
+    <div class="module-body">
+      <p class="section-title">Nutzer</p>
+      <p class="page-sub" style="margin-top:-4px;">Lege euch beide als Nutzer an, damit an jedem Eintrag erkennbar ist, wer ihn hinzugefügt hat.</p>
+      <div id="userList" style="margin-top:10px;"></div>
+      <div class="form-wrap">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="newUserName" placeholder="Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <button class="btn" id="addUserBtn" style="width:auto; padding:12px 18px;">+</button>
+        </div>
+      </div>
+
+      <p class="section-title">Kategorien</p>
+      <p class="page-sub" style="margin-top:-4px;">Kategorien für Einnahmen und Ausgaben verwalten — Umbenennen überträgt sich auf alle bestehenden Buchungen.</p>
+      <div class="type-switch" style="margin:14px 20px 0;">
+        <button type="button" id="catTypeIncomeBtn" class="income">Einnahmen</button>
+        <button type="button" id="catTypeExpenseBtn" class="expense active">Ausgaben</button>
+      </div>
+      <div id="categoryList" style="margin-top:10px;"></div>
+      <div class="form-wrap" style="padding-top:6px;">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="newCategoryName" placeholder="Neue Kategorie" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <button class="btn" id="addCategoryBtn" style="width:auto; padding:12px 18px;">+</button>
+        </div>
+      </div>
+
+      <p class="section-title">Daten & Haushalt</p>
+      <div class="form-wrap" style="padding-top:6px;">
+        <div class="settings-links" style="padding:0;">
+          <button type="button" class="link-btn" id="showBackup">Daten sichern / wiederherstellen</button>
+          <button type="button" class="link-btn" id="switchHouseholdBtn">Haushalt wechseln</button>
+        </div>
+        <div id="backupPanel" style="display:none; margin-top:14px;">
+          <p style="font-size:12px; color:var(--ink-soft); margin:0 0 8px;">Text unten kopieren und irgendwo sichern (z. B. Notizen-App). Zum Wiederherstellen den gesicherten Text einfügen und auf „Wiederherstellen" tippen.</p>
+          <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Aktueller Stand (zum Kopieren)</label>
+          <textarea id="backupOut" readonly style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
+          <button type="button" class="btn ghost" id="copyBackupBtn" style="margin-bottom:16px;">In Zwischenablage kopieren</button>
+          <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Gesicherten Text einfügen</label>
+          <textarea id="backupIn" style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
+          <button type="button" class="btn" id="restoreBackupBtn">Wiederherstellen (überschreibt aktuellen Stand)</button>
+        </div>
       </div>
     </div>
   </div>
 
+
   <!-- ============ FINANCE MODULE ============ -->
   <div class="screen" id="screen-finance">
     <div class="topbar">
-      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <div class="back-row">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="back-btn" data-back>‹ Start</button>
+      </div>
       <div class="month-nav">
         <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
         <div class="month-label" id="monthLabel">—</div>
@@ -591,7 +736,12 @@
   <!-- ============ SHOPPING MODULE ============ -->
   <div class="screen" id="screen-shopping">
     <div class="topbar">
-      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <div class="back-row">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="back-btn" data-back>‹ Start</button>
+      </div>
       <p class="screen-title">Einkaufsliste</p>
     </div>
     <div class="module-body">
@@ -609,7 +759,12 @@
   <!-- ============ TODOS MODULE ============ -->
   <div class="screen" id="screen-todos">
     <div class="topbar">
-      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <div class="back-row">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="back-btn" data-back>‹ Start</button>
+      </div>
       <p class="screen-title">To-Dos</p>
     </div>
     <div class="module-body">
@@ -631,7 +786,12 @@
   <!-- ============ NOTES MODULE ============ -->
   <div class="screen" id="screen-notes">
     <div class="topbar">
-      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <div class="back-row">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="back-btn" data-back>‹ Start</button>
+      </div>
       <p class="screen-title">Notizen</p>
     </div>
     <div class="module-body">
@@ -664,7 +824,12 @@
   <!-- ============ CALENDAR MODULE ============ -->
   <div class="screen" id="screen-calendar">
     <div class="topbar">
-      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <div class="back-row">
+        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <button class="back-btn" data-back>‹ Start</button>
+      </div>
       <p class="screen-title">Kalender</p>
     </div>
     <div class="module-body">
@@ -672,9 +837,21 @@
         Aktiviere Push-Benachrichtigungen, um an Termine erinnert zu werden — auch wenn die App geschlossen ist.
         <br><button type="button" id="enablePushBtn">Benachrichtigungen aktivieren</button>
       </div>
-      <p class="section-title">Anstehende Termine</p>
-      <div id="calendarList"></div>
+
+      <div class="month-nav" style="padding:0 20px 6px;">
+        <button id="calPrevMonth" aria-label="Vorheriger Monat">‹</button>
+        <div class="month-label" id="calMonthLabel" style="color:var(--ink); font-size:16px;">—</div>
+        <button id="calNextMonth" aria-label="Nächster Monat">›</button>
+      </div>
+      <div class="cal-weekdays">
+        <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div id="calDayPanel"></div>
+
       <div class="form-wrap">
+        <p class="section-title" style="padding:0 0 8px;">Neuer Termin</p>
         <div class="field">
           <label for="calTitleInput">Titel</label>
           <input type="text" id="calTitleInput" placeholder="z. B. Zahnarzt">
@@ -688,12 +865,35 @@
           <input type="time" id="calTimeInput">
         </div>
         <div class="field">
+          <label for="calRepeatInput">Wiederholung</label>
+          <select id="calRepeatInput">
+            <option value="none">Einmalig</option>
+            <option value="daily">Täglich</option>
+            <option value="weekly">Wöchentlich</option>
+            <option value="monthly">Monatlich</option>
+            <option value="yearly">Jährlich</option>
+          </select>
+        </div>
+        <div class="field">
           <label for="calNoteInput">Notiz (optional)</label>
           <input type="text" id="calNoteInput" placeholder="z. B. Praxis Dr. Meyer">
         </div>
         <div class="checkbox-row">
           <input type="checkbox" id="calRemindInput">
-          <label for="calRemindInput">Push-Erinnerung am Termin senden</label>
+          <label for="calRemindInput">Push-Erinnerung senden</label>
+        </div>
+        <div class="field" id="calRemindOffsetWrap" style="display:none;">
+          <label for="calRemindOffsetInput">Wann erinnern?</label>
+          <select id="calRemindOffsetInput">
+            <option value="0">Zum Zeitpunkt des Termins</option>
+            <option value="15">15 Minuten vorher</option>
+            <option value="30">30 Minuten vorher</option>
+            <option value="60">1 Stunde vorher</option>
+            <option value="180">3 Stunden vorher</option>
+            <option value="1440" selected>1 Tag vorher</option>
+            <option value="2880">2 Tage vorher</option>
+            <option value="10080">1 Woche vorher</option>
+          </select>
         </div>
         <button class="btn" id="addCalBtn">Termin hinzufügen</button>
       </div>
@@ -715,6 +915,7 @@
     todos: [],
     notes: [],
     calendar: [],
+    users: [],
     categories: {
       income: ["Gehalt","Nebeneinkommen","Sonstige Einnahmen"],
       expense: ["Miete","Lebensmittel","Transport","Freizeit","Versicherung","Sonstiges"]
@@ -753,6 +954,188 @@
   function fmtDate(dateStr){
     var d = new Date(dateStr+'T00:00:00');
     return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
+  }
+
+  /* ================= Nutzer & Avatare ================= */
+  var CURRENT_USER_KEY = 'kontobuch-current-user-id';
+  var currentUserId = localStorage.getItem(CURRENT_USER_KEY) || null;
+  var USER_COLORS = ['#A03A2C','#2E6B52','#A8813F','#5C6B8C','#7A4E8C','#3F7A6B'];
+
+  function nextUserColor(){
+    var idx = (state.users||[]).length % USER_COLORS.length;
+    return USER_COLORS[idx];
+  }
+  function avatarHtml(userId, size){
+    if(!userId) return '';
+    var u = (state.users||[]).find(function(x){ return x.id===userId; });
+    if(!u) return '';
+    var s = size || 20;
+    return '<div class="avatar" style="background:'+u.color+';width:'+s+'px;height:'+s+'px;font-size:'+Math.round(s*0.5)+'px;" title="'+escapeHtml(u.name)+'">'+escapeHtml(u.name.charAt(0).toUpperCase())+'</div>';
+  }
+
+  function renderUsers(){
+    var el = document.getElementById('userList');
+    if(!el) return;
+    if(!state.users || state.users.length===0){
+      el.innerHTML = '<p class="empty">Noch keine Nutzer angelegt.</p>';
+      return;
+    }
+    el.innerHTML = state.users.map(function(u){
+      var isMe = u.id===currentUserId;
+      return '<div class="simple-row" style="align-items:center;">'+
+        avatarHtml(u.id, 26)+
+        '<div class="stext"><div class="stitle">'+escapeHtml(u.name)+(isMe?' <span style="font-size:11px;color:var(--brass-strong);">(das bist du)</span>':'')+'</div></div>'+
+        (!isMe ? '<button type="button" class="link-btn" data-pick="'+u.id+'" style="flex-shrink:0;">Das bin ich</button>' : '')+
+        '<button type="button" class="sdel" data-del="'+u.id+'">×</button>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-pick]').forEach(function(b){
+      b.addEventListener('click', function(){
+        currentUserId = b.getAttribute('data-pick');
+        localStorage.setItem(CURRENT_USER_KEY, currentUserId);
+        renderUsers();
+      });
+    });
+    el.querySelectorAll('[data-del]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id = b.getAttribute('data-del');
+        state.users = state.users.filter(function(u){ return u.id!==id; });
+        if(currentUserId===id){ currentUserId=null; localStorage.removeItem(CURRENT_USER_KEY); }
+        saveState();
+        renderUsers();
+      });
+    });
+  }
+  document.getElementById('addUserBtn').addEventListener('click', function(){
+    var input = document.getElementById('newUserName');
+    var val = input.value.trim();
+    if(!val) return;
+    var newUser = { id: uid(), name: val, color: nextUserColor() };
+    state.users.push(newUser);
+    var wasFirst = state.users.length===1;
+    saveState();
+    input.value = '';
+    if(wasFirst && !currentUserId){
+      currentUserId = newUser.id;
+      localStorage.setItem(CURRENT_USER_KEY, currentUserId);
+    }
+    renderUsers();
+  });
+
+  /* ================= Kategorien verwalten ================= */
+  var catManageType = 'expense';
+  document.getElementById('catTypeIncomeBtn').addEventListener('click', function(){ setCatManageType('income'); });
+  document.getElementById('catTypeExpenseBtn').addEventListener('click', function(){ setCatManageType('expense'); });
+  function setCatManageType(t){
+    catManageType = t;
+    document.getElementById('catTypeIncomeBtn').classList.toggle('active', t==='income');
+    document.getElementById('catTypeExpenseBtn').classList.toggle('active', t==='expense');
+    renderCategoryManage();
+  }
+  function renderCategoryManage(){
+    var el = document.getElementById('categoryList');
+    if(!el) return;
+    var list = state.categories[catManageType];
+    if(list.length===0){
+      el.innerHTML = '<p class="empty">Keine Kategorien.</p>';
+      return;
+    }
+    el.innerHTML = list.map(function(c){
+      return '<div class="simple-row">'+
+        '<div class="stext"><div class="stitle">'+escapeHtml(c)+'</div></div>'+
+        '<button type="button" class="link-btn" data-rename="'+escapeHtml(c)+'" style="flex-shrink:0;">Umbenennen</button>'+
+        '<button type="button" class="sdel" data-delcat="'+escapeHtml(c)+'">×</button>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-rename]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var oldName = b.getAttribute('data-rename');
+        var newName = prompt('Neuer Name für "'+oldName+'":', oldName);
+        if(newName===null) return;
+        newName = newName.trim();
+        if(!newName || newName===oldName) return;
+        if(state.categories[catManageType].indexOf(newName)!==-1){
+          alert('Diese Kategorie gibt es schon.');
+          return;
+        }
+        renameCategory(catManageType, oldName, newName);
+      });
+    });
+    el.querySelectorAll('[data-delcat]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var name = b.getAttribute('data-delcat');
+        if(confirm('Kategorie "'+name+'" löschen? Bereits gebuchte Einträge behalten den Namen, sie verschwindet nur aus der Auswahl für neue Buchungen.')){
+          deleteCategory(catManageType, name);
+        }
+      });
+    });
+  }
+  function renameCategory(type, oldName, newName){
+    var idx = state.categories[type].indexOf(oldName);
+    if(idx!==-1) state.categories[type][idx] = newName;
+    state.transactions.forEach(function(t){ if(t.type===type && t.category===oldName) t.category = newName; });
+    state.recurring.forEach(function(r){ if(r.type===type && r.category===oldName) r.category = newName; });
+    if(type==='expense' && state.budgets[oldName]!=null){
+      state.budgets[newName] = state.budgets[oldName];
+      delete state.budgets[oldName];
+    }
+    saveState();
+    renderCategoryManage();
+    populateCategorySelect();
+    populateRecCategorySelect();
+    renderOverview();
+    renderBudget();
+    renderStats();
+  }
+  function deleteCategory(type, name){
+    state.categories[type] = state.categories[type].filter(function(c){ return c!==name; });
+    if(type==='expense' && state.budgets[name]!=null) delete state.budgets[name];
+    saveState();
+    renderCategoryManage();
+    populateCategorySelect();
+    populateRecCategorySelect();
+    renderBudget();
+  }
+  document.getElementById('addCategoryBtn').addEventListener('click', function(){
+    var input = document.getElementById('newCategoryName');
+    var val = input.value.trim();
+    if(!val) return;
+    if(state.categories[catManageType].indexOf(val)!==-1){
+      alert('Diese Kategorie gibt es schon.');
+      return;
+    }
+    state.categories[catManageType].push(val);
+    saveState();
+    input.value = '';
+    renderCategoryManage();
+    populateCategorySelect();
+    populateRecCategorySelect();
+  });
+
+  /* ================= Sidebar ================= */  document.querySelectorAll('[data-open-sidebar]').forEach(function(b){
+    b.addEventListener('click', openSidebar);
+  });
+  document.getElementById('sidebarBackdrop').addEventListener('click', closeSidebar);
+  document.querySelectorAll('.sidebar-item').forEach(function(b){
+    b.addEventListener('click', function(){
+      var mod = b.getAttribute('data-module');
+      closeSidebar();
+      if(mod==='home') goHome(); else openModule(mod);
+    });
+  });
+  function openSidebar(){
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebarBackdrop').classList.add('open');
+    updateSidebarActive();
+  }
+  function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('open');
+  }
+  function updateSidebarActive(){
+    document.querySelectorAll('.sidebar-item').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-module')===currentScreen);
+    });
   }
 
   var SUPABASE_URL = 'https://kpugxayvvrzhhhrnibrx.supabase.co';
@@ -794,6 +1177,7 @@
     if(!state.todos) state.todos = [];
     if(!state.notes) state.notes = [];
     if(!state.calendar) state.calendar = [];
+    if(!state.users) state.users = [];
   }
 
   async function saveState(){
@@ -873,16 +1257,19 @@
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('screen-home').classList.add('active');
     currentScreen = 'home';
+    updateSidebarActive();
   }
   function openModule(name){
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('screen-'+name).classList.add('active');
     currentScreen = name;
+    updateSidebarActive();
     if(name==='finance') switchView('overview');
     if(name==='shopping') renderShopping();
     if(name==='todos') renderTodos();
     if(name==='notes') renderNotesList();
-    if(name==='calendar') renderCalendar();
+    if(name==='calendar'){ document.getElementById('calDateInput').value = selectedDayStr; renderCalendar(); }
+    if(name==='settings'){ renderUsers(); renderCategoryManage(); }
   }
   function renderCurrentScreen(){
     renderAll();
@@ -890,6 +1277,8 @@
     renderTodos();
     if(document.getElementById('noteEditView').style.display==='none') renderNotesList();
     renderCalendar();
+    renderUsers();
+    renderCategoryManage();
   }
 
   /* ================= Finance: Navigation ================= */
@@ -1049,6 +1438,7 @@
         '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+'</div>'+
         (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
         '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
+        avatarHtml(t.createdBy) +
         '<button class="rdel" data-id="'+t.id+'" aria-label="Löschen">×</button>'+
       '</div>';
     }).join('');
@@ -1187,7 +1577,7 @@
     var note = document.getElementById('noteInput').value.trim();
     state.transactions.push({
       id: uid(), type: currentType, amount: Math.round(amount*100)/100,
-      category: category, date: date, note: note
+      category: category, date: date, note: note, createdBy: currentUserId
     });
     saveState();
     document.getElementById('amountInput').value = '';
@@ -1441,6 +1831,7 @@
       return '<div class="simple-row">'+
         '<div class="check'+(it.checked?' done':'')+'" data-id="'+it.id+'">'+(it.checked?'✓':'')+'</div>'+
         '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+escapeHtml(it.name)+'</div></div>'+
+        avatarHtml(it.createdBy) +
         '<button class="sdel" data-id="'+it.id+'">×</button>'+
       '</div>';
     }).join('');
@@ -1466,7 +1857,7 @@
     var input = document.getElementById('shopNameInput');
     var val = input.value.trim();
     if(!val) return;
-    state.shopping.push({ id: uid(), name: val, checked: false });
+    state.shopping.push({ id: uid(), name: val, checked: false, createdBy: currentUserId });
     saveState();
     input.value = '';
     renderShopping();
@@ -1497,6 +1888,7 @@
         '<div class="check'+(t.done?' done':'')+'" data-id="'+t.id+'">'+(t.done?'✓':'')+'</div>'+
         '<div class="stext"><div class="stitle'+(t.done?' done':'')+'">'+escapeHtml(t.text)+'</div>'+
         (t.dueDate ? '<div class="ssub">Fällig am '+fmtDate(t.dueDate)+'</div>' : '')+'</div>'+
+        avatarHtml(t.createdBy) +
         '<button class="sdel" data-id="'+t.id+'">×</button>'+
       '</div>';
     }).join('');
@@ -1523,7 +1915,7 @@
     var dueInput = document.getElementById('todoDueInput');
     var val = textInput.value.trim();
     if(!val) return;
-    state.todos.push({ id: uid(), text: val, done: false, dueDate: dueInput.value || null });
+    state.todos.push({ id: uid(), text: val, done: false, dueDate: dueInput.value || null, createdBy: currentUserId });
     saveState();
     textInput.value = '';
     dueInput.value = '';
@@ -1540,8 +1932,9 @@
     }
     var sorted = state.notes.slice().sort(function(a,b){ return (b.updatedAt||'').localeCompare(a.updatedAt||''); });
     el.innerHTML = sorted.map(function(n){
-      return '<div class="note-card" data-id="'+n.id+'">'+
-        '<div class="ntitle">'+escapeHtml(n.title||'Ohne Titel')+'</div>'+
+      return '<div class="note-card" data-id="'+n.id+'" style="position:relative;">'+
+        '<div style="position:absolute; top:14px; right:16px;">'+avatarHtml(n.updatedBy||n.createdBy)+'</div>'+
+        '<div class="ntitle" style="padding-right:26px;">'+escapeHtml(n.title||'Ohne Titel')+'</div>'+
         '<div class="nsnippet">'+escapeHtml(n.text||'')+'</div>'+
       '</div>';
     }).join('');
@@ -1572,9 +1965,9 @@
     if(!title && !text){ closeNoteEdit(); return; }
     if(editingNoteId){
       var n = state.notes.find(function(x){ return x.id===editingNoteId; });
-      n.title = title; n.text = text; n.updatedAt = new Date().toISOString();
+      n.title = title; n.text = text; n.updatedAt = new Date().toISOString(); n.updatedBy = currentUserId;
     } else {
-      state.notes.push({ id: uid(), title: title, text: text, updatedAt: new Date().toISOString() });
+      state.notes.push({ id: uid(), title: title, text: text, updatedAt: new Date().toISOString(), createdBy: currentUserId });
     }
     saveState();
     closeNoteEdit();
@@ -1587,53 +1980,154 @@
   });
 
   /* ================= Kalender ================= */
-  function renderCalendar(){
-    var el = document.getElementById('calendarList');
-    if(!el) return;
+  var calViewDate = new Date(); calViewDate.setDate(1);
+  var selectedDayStr = todayISO();
+
+  function eventOccursOnDate(ev, dateObj, dateStr){
+    var start = new Date(ev.date+'T00:00:00');
+    if(dateObj < start) return false;
+    if(!ev.repeat || ev.repeat==='none') return ev.date === dateStr;
+    if(ev.repeat==='daily') return true;
+    if(ev.repeat==='weekly') return dateObj.getDay()===start.getDay();
+    if(ev.repeat==='monthly') return dateObj.getDate()===start.getDate();
+    if(ev.repeat==='yearly') return dateObj.getDate()===start.getDate() && dateObj.getMonth()===start.getMonth();
+    return false;
+  }
+  function eventsForDate(dateStr){
+    var d = new Date(dateStr+'T00:00:00');
+    return state.calendar.filter(function(ev){ return eventOccursOnDate(ev, d, dateStr); });
+  }
+  function repeatLabel(r){
+    return { none:'', daily:'Täglich', weekly:'Wöchentlich', monthly:'Monatlich', yearly:'Jährlich' }[r] || '';
+  }
+  function offsetLabel(mins){
+    if(!mins) return 'zum Zeitpunkt';
+    if(mins < 60) return mins+' Min. vorher';
+    if(mins < 1440) return Math.round(mins/60)+' Std. vorher';
+    if(mins < 10080) return Math.round(mins/1440)+' Tag(e) vorher';
+    return Math.round(mins/10080)+' Woche(n) vorher';
+  }
+
+  function renderCalendarMonth(){
+    var year = calViewDate.getFullYear(), month = calViewDate.getMonth();
+    document.getElementById('calMonthLabel').textContent = MONTH_NAMES[month] + ' ' + year;
+
+    var firstOfMonth = new Date(year, month, 1);
+    var startOffset = (firstOfMonth.getDay()+6) % 7; // Montag = 0
+    var daysInMonth = new Date(year, month+1, 0).getDate();
+    var prevMonthDays = new Date(year, month, 0).getDate();
+
+    var cells = [];
+    for(var i=0;i<startOffset;i++){
+      cells.push({ dayNum: prevMonthDays - startOffset + 1 + i, outside:true, dateStr:null });
+    }
+    for(var d=1; d<=daysInMonth; d++){
+      var dateStr = year+'-'+String(month+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      cells.push({ dayNum:d, outside:false, dateStr:dateStr });
+    }
+    var remain = (7 - cells.length % 7) % 7;
+    for(var j=1;j<=remain;j++){ cells.push({ dayNum:j, outside:true, dateStr:null }); }
+
     var todayStr = todayISO();
-    var upcoming = state.calendar.filter(function(ev){ return ev.date >= todayStr; })
-      .sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); });
-    if(upcoming.length===0){
-      el.innerHTML = '<p class="empty">Keine anstehenden Termine.</p>';
+    document.getElementById('calGrid').innerHTML = cells.map(function(c){
+      var cls = 'cal-cell';
+      if(c.outside) cls += ' outside';
+      if(c.dateStr===todayStr) cls += ' today';
+      if(c.dateStr===selectedDayStr) cls += ' selected';
+      var evs = c.dateStr ? eventsForDate(c.dateStr) : [];
+      var dots = evs.slice(0,3).map(function(){ return '<span class="dot"></span>'; }).join('');
+      return '<div class="'+cls+'" data-date="'+(c.dateStr||'')+'">'+c.dayNum+(dots?'<div class="dots">'+dots+'</div>':'')+'</div>';
+    }).join('');
+
+    document.querySelectorAll('.cal-cell').forEach(function(cell){
+      cell.addEventListener('click', function(){
+        var ds = cell.getAttribute('data-date');
+        if(!ds) return;
+        selectedDayStr = ds;
+        document.getElementById('calDateInput').value = ds;
+        renderCalendarMonth();
+      });
+    });
+    renderDayPanel();
+    updatePushBanner();
+  }
+
+  function renderDayPanel(){
+    var el = document.getElementById('calDayPanel');
+    var d = new Date(selectedDayStr+'T00:00:00');
+    var label = d.getDate()+'. '+MONTH_NAMES[d.getMonth()]+' '+d.getFullYear();
+    var evs = eventsForDate(selectedDayStr).sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+    var html = '<p class="cal-day-heading">'+label+'</p>';
+    if(evs.length===0){
+      html += '<p class="empty">Keine Termine an diesem Tag.</p>';
     } else {
-      el.innerHTML = upcoming.map(function(ev){
-        var d = new Date(ev.date+'T00:00:00');
+      html += evs.map(function(ev){
         return '<div class="cal-card">'+
-          '<div class="cal-date"><div class="cd-day">'+String(d.getDate()).padStart(2,'0')+'</div><div class="cd-mon">'+MONTH_NAMES[d.getMonth()].slice(0,3)+'</div></div>'+
-          '<div class="cal-info"><div class="ctitle">'+escapeHtml(ev.title)+'</div>'+
+          '<div class="cal-info">'+
+          '<div class="ctitle">'+escapeHtml(ev.title)+'</div>'+
           (ev.time ? '<div class="ctime">'+ev.time+' Uhr</div>' : '')+
+          (ev.repeat && ev.repeat!=='none' ? '<div class="ctime">'+repeatLabel(ev.repeat)+'</div>' : '')+
           (ev.note ? '<div class="cnote">'+escapeHtml(ev.note)+'</div>' : '')+
-          (ev.remind ? '<div class="cal-bell">🔔 Erinnerung aktiv</div>' : '')+
+          (ev.remind ? '<div class="cal-bell">🔔 Erinnerung '+offsetLabel(ev.remindOffset)+'</div>' : '')+
           '</div>'+
+          avatarHtml(ev.createdBy) +
           '<button class="cal-del" data-id="'+ev.id+'">×</button>'+
         '</div>';
       }).join('');
-      el.querySelectorAll('.cal-del').forEach(function(b){
-        b.addEventListener('click', function(){
-          var id = b.getAttribute('data-id');
-          state.calendar = state.calendar.filter(function(x){ return x.id!==id; });
-          saveState();
-          renderCalendar();
-        });
-      });
     }
-    updatePushBanner();
+    el.innerHTML = html;
+    el.querySelectorAll('.cal-del').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id = b.getAttribute('data-id');
+        var ev = state.calendar.find(function(x){ return x.id===id; });
+        var msg = (ev && ev.repeat && ev.repeat!=='none') ? 'Diese Wiederholung komplett löschen?' : 'Termin löschen?';
+        if(!confirm(msg)) return;
+        state.calendar = state.calendar.filter(function(x){ return x.id!==id; });
+        saveState();
+        renderCalendarMonth();
+      });
+    });
   }
+
+  document.getElementById('calPrevMonth').addEventListener('click', function(){
+    calViewDate.setMonth(calViewDate.getMonth()-1);
+    renderCalendarMonth();
+  });
+  document.getElementById('calNextMonth').addEventListener('click', function(){
+    calViewDate.setMonth(calViewDate.getMonth()+1);
+    renderCalendarMonth();
+  });
+  document.getElementById('calRemindInput').addEventListener('change', function(){
+    document.getElementById('calRemindOffsetWrap').style.display = this.checked ? 'block' : 'none';
+  });
+
+  function renderCalendar(){
+    if(!document.getElementById('calGrid')) return;
+    renderCalendarMonth();
+  }
+
   document.getElementById('addCalBtn').addEventListener('click', function(){
     var title = document.getElementById('calTitleInput').value.trim();
-    var date = document.getElementById('calDateInput').value;
+    var date = document.getElementById('calDateInput').value || selectedDayStr;
     var time = document.getElementById('calTimeInput').value;
     var note = document.getElementById('calNoteInput').value.trim();
+    var repeat = document.getElementById('calRepeatInput').value;
     var remind = document.getElementById('calRemindInput').checked;
+    var remindOffset = remind ? parseInt(document.getElementById('calRemindOffsetInput').value, 10) : 0;
     if(!title || !date) return;
-    state.calendar.push({ id: uid(), title: title, date: date, time: time||null, note: note, remind: remind });
+    state.calendar.push({
+      id: uid(), title: title, date: date, time: time||null, note: note,
+      repeat: repeat, remind: remind, remindOffset: remindOffset, createdBy: currentUserId
+    });
     saveState();
     document.getElementById('calTitleInput').value = '';
-    document.getElementById('calDateInput').value = '';
     document.getElementById('calTimeInput').value = '';
     document.getElementById('calNoteInput').value = '';
     document.getElementById('calRemindInput').checked = false;
-    renderCalendar();
+    document.getElementById('calRemindOffsetWrap').style.display = 'none';
+    document.getElementById('calRepeatInput').value = 'none';
+    selectedDayStr = date;
+    renderCalendarMonth();
   });
 
   /* ================= Push-Benachrichtigungen ================= */
