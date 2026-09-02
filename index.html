@@ -939,6 +939,7 @@
       <div id="shoppingList"></div>
       <div class="form-wrap">
         <div style="display:flex; gap:8px;">
+          <input type="text" id="shopAmountInput" placeholder="Menge" style="width:32%; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
           <input type="text" id="shopNameInput" placeholder="z. B. Milch" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
           <button class="btn" id="addShopBtn" style="width:auto; padding:12px 18px;">+</button>
         </div>
@@ -2102,6 +2103,75 @@
   });
 
   /* ================= Einkaufsliste ================= */
+
+  /* -- Mengen-Zusammenführung -- */
+  function parseAmount(str){
+    if(!str) return null;
+    var s = str.trim().replace(',', '.');
+    var m = s.match(/^(\d+(?:\.\d+)?)\s*(kg|g|l|ml|stück|stk|st|el|tl|prise|bund|dose|packung|pck)?$/i);
+    if(!m) return null;
+    var unit = m[2] ? m[2].toLowerCase() : null;
+    if(unit==='stk' || unit==='st') unit = 'stück';
+    if(unit==='pck') unit = 'packung';
+    return { value: parseFloat(m[1]), unit: unit };
+  }
+  function baseUnitOf(unit){
+    if(unit==='kg' || unit==='g') return 'g';
+    if(unit==='l' || unit==='ml') return 'ml';
+    return unit;
+  }
+  function toBaseValue(parsed){
+    if(parsed.unit==='kg') return parsed.value*1000;
+    if(parsed.unit==='l') return parsed.value*1000;
+    return parsed.value;
+  }
+  function trimNum(n){
+    return (Math.round(n*100)/100).toString();
+  }
+  function formatFromBase(value, baseU){
+    if(baseU==='g'){
+      return value>=1000 ? trimNum(value/1000)+'kg' : trimNum(value)+'g';
+    }
+    if(baseU==='ml'){
+      return value>=1000 ? trimNum(value/1000)+'l' : trimNum(value)+'ml';
+    }
+    var UNIT_LABELS = { 'stück':'Stück', 'el':'EL', 'tl':'TL', 'prise':'Prise', 'bund':'Bund', 'dose':'Dose', 'packung':'Packung' };
+    if(baseU) return trimNum(value)+' '+(UNIT_LABELS[baseU] || baseU);
+    return trimNum(value);
+  }
+  function combineAmounts(a1, a2){
+    var p1 = parseAmount(a1), p2 = parseAmount(a2);
+    if(!p1 || !p2) return null;
+    if(baseUnitOf(p1.unit) !== baseUnitOf(p2.unit)) return null;
+    return formatFromBase(toBaseValue(p1)+toBaseValue(p2), baseUnitOf(p1.unit));
+  }
+
+  // Fügt eine Zutat/einen Artikel zur Einkaufsliste hinzu. Gibt es schon einen
+  // offenen (nicht abgehakten) Eintrag mit demselben Namen, wird nicht doppelt
+  // hinzugefügt — bei erkennbaren, kompatiblen Mengen werden diese addiert
+  // (z. B. 500g + 500g -> 1kg), sonst als eigener Zusatzeintrag angelegt.
+  function addToShoppingList(name, amount){
+    name = (name||'').trim();
+    if(!name) return;
+    amount = (amount||'').trim() || null;
+    var existing = state.shopping.find(function(it){
+      return !it.checked && it.name.trim().toLowerCase()===name.toLowerCase();
+    });
+    if(existing){
+      if(!existing.amount && !amount) return; // exakt gleicher, mengenloser Eintrag schon da
+      if(existing.amount && amount){
+        var combined = combineAmounts(existing.amount, amount);
+        if(combined){ existing.amount = combined; return; }
+        // unterschiedliche/inkompatible Einheiten -> als eigene Zeile ergänzen
+      } else if(!existing.amount && amount){
+        existing.amount = amount; return;
+      } else if(existing.amount && !amount){
+        return; // bestehender Eintrag hat schon eine Menge, nichts Neues dazu
+      }
+    }
+    state.shopping.push({ id: uid(), name: name, amount: amount, checked: false, createdBy: currentUserId });
+  }
+
   function renderShopping(){
     var el = document.getElementById('shoppingList');
     if(!el) return;
@@ -2111,9 +2181,10 @@
     }
     var sorted = state.shopping.slice().sort(function(a,b){ return (a.checked===b.checked) ? 0 : (a.checked?1:-1); });
     el.innerHTML = sorted.map(function(it){
+      var label = (it.amount ? escapeHtml(it.amount)+' ' : '') + escapeHtml(it.name);
       return '<div class="simple-row">'+
         '<div class="check'+(it.checked?' done':'')+'" data-id="'+it.id+'">'+(it.checked?'✓':'')+'</div>'+
-        '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+escapeHtml(it.name)+'</div></div>'+
+        '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+label+'</div></div>'+
         avatarHtml(it.createdBy) +
         '<button class="sdel" data-id="'+it.id+'">×</button>'+
       '</div>';
@@ -2137,12 +2208,14 @@
     });
   }
   document.getElementById('addShopBtn').addEventListener('click', function(){
-    var input = document.getElementById('shopNameInput');
-    var val = input.value.trim();
+    var amountInput = document.getElementById('shopAmountInput');
+    var nameInput = document.getElementById('shopNameInput');
+    var val = nameInput.value.trim();
     if(!val) return;
-    state.shopping.push({ id: uid(), name: val, checked: false, createdBy: currentUserId });
+    addToShoppingList(val, amountInput.value);
     saveState();
-    input.value = '';
+    amountInput.value = '';
+    nameInput.value = '';
     renderShopping();
   });
   document.getElementById('shopNameInput').addEventListener('keydown', function(e){
@@ -2612,8 +2685,8 @@
       if(!cb.checked) return;
       var name = cb.getAttribute('data-ing-name');
       var amountBtn = row.querySelector('.amount-toggle');
-      var text = (amountBtn && amountBtn.classList.contains('active')) ? amountBtn.getAttribute('data-amount')+' '+name : name;
-      state.shopping.push({ id: uid(), name: text, checked: false, createdBy: currentUserId });
+      var amount = (amountBtn && amountBtn.classList.contains('active')) ? amountBtn.getAttribute('data-amount') : null;
+      addToShoppingList(name, amount);
     });
     saveState();
     document.getElementById('ingredientModal').style.display = 'none';
