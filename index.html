@@ -464,6 +464,14 @@
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     font-family:'IBM Plex Mono',monospace; font-weight:600;
   }
+  .color-palette-group{ margin-top:6px; }
+  .color-palette-label{ font-size:11px; color:var(--ink-soft); margin:8px 0 0; letter-spacing:.02em; }
+  .color-palette{ display:flex; flex-wrap:wrap; gap:9px; margin-top:6px; }
+  .color-swatch{
+    width:28px; height:28px; border-radius:50%; cursor:pointer;
+    border:2px solid transparent; box-shadow:0 0 0 1px var(--line);
+  }
+  .color-swatch.selected{ border-color:var(--ink); }
   /* ============================================================
      THEME: MODERN (Apple-artiger, cleaner Stil)
      Aktiviert über html[data-theme="modern"], per Einstellungen wählbar.
@@ -791,6 +799,7 @@
           <input type="text" id="newUserName" placeholder="Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
           <button class="btn" id="addUserBtn" style="width:auto; padding:12px 18px;">+</button>
         </div>
+        <div id="newUserColorPicker" class="color-palette-group"></div>
       </div>
 
       <p class="section-title">Kategorien</p>
@@ -1300,7 +1309,9 @@
   applyTheme(localStorage.getItem(THEME_KEY) || 'ledger');
 
   var currentUserId = localStorage.getItem(CURRENT_USER_KEY) || null;
-  var USER_COLORS = ['#A03A2C','#2E6B52','#A8813F','#5C6B8C','#7A4E8C','#3F7A6B'];
+  var USER_COLORS = ['#A03A2C','#2E6B52','#A8813F','#5C6B8C','#7A4E8C','#3F7A6B','#B0562F','#6E5C9E','#8C4E6B','#4E7A3F'];
+  var USER_COLORS_PASTEL = ['#E8A79C','#A8D5BE','#E8CFA0','#AEC0DB','#CDB8DC','#A8D4CB','#F0C4A8','#C6C0E8','#DCB8C8','#C9D4A8'];
+  var newUserColor = USER_COLORS[0];
 
   function nextUserColor(){
     var idx = (state.users||[]).length % USER_COLORS.length;
@@ -1313,45 +1324,114 @@
     var s = size || 20;
     return '<div class="avatar" style="background:'+u.color+';width:'+s+'px;height:'+s+'px;font-size:'+Math.round(s*0.5)+'px;" title="'+escapeHtml(u.name)+'">'+escapeHtml(u.name.charAt(0).toUpperCase())+'</div>';
   }
+  // Farbe der Person, die einen Eintrag angelegt hat — für den farbigen
+  // Rand an Buchungen, Notizen, Terminen usw. Ohne bekannten Nutzer leer.
+  function userColorOf(userId){
+    if(!userId) return null;
+    var u = (state.users||[]).find(function(x){ return x.id===userId; });
+    return u ? u.color : null;
+  }
+  function hexToRgba(hex, alpha){
+    hex = (hex||'').replace('#','');
+    if(hex.length!==6) return null;
+    var r = parseInt(hex.substring(0,2),16);
+    var g = parseInt(hex.substring(2,4),16);
+    var b = parseInt(hex.substring(4,6),16);
+    return 'rgba('+r+','+g+','+b+','+alpha+')';
+  }
+  function personTintBg(userId){
+    var c = userColorOf(userId);
+    if(!c) return '';
+    var bg = hexToRgba(c, 0.16);
+    return bg ? 'background:'+bg+';' : '';
+  }
+  function personTintStyle(userId){
+    var bg = personTintBg(userId);
+    return bg ? ' style="'+bg+'"' : '';
+  }
+  function renderColorPalette(containerEl, selectedColor, onPick){
+    function swatchRow(colors){
+      return colors.map(function(c){
+        return '<div class="color-swatch'+(c===selectedColor?' selected':'')+'" style="background:'+c+'" data-color="'+c+'"></div>';
+      }).join('');
+    }
+    containerEl.innerHTML =
+      '<p class="color-palette-label">Normal</p>'+
+      '<div class="color-palette">'+swatchRow(USER_COLORS)+'</div>'+
+      '<p class="color-palette-label">Pastell</p>'+
+      '<div class="color-palette">'+swatchRow(USER_COLORS_PASTEL)+'</div>';
+    containerEl.querySelectorAll('.color-swatch').forEach(function(sw){
+      sw.addEventListener('click', function(){ onPick(sw.getAttribute('data-color')); });
+    });
+  }
 
   function renderUsers(){
     var el = document.getElementById('userList');
     if(!el) return;
     if(!state.users || state.users.length===0){
       el.innerHTML = '<p class="empty">Noch keine Nutzer angelegt.</p>';
-      return;
+    } else {
+      el.innerHTML = state.users.map(function(u){
+        var isMe = u.id===currentUserId;
+        return '<div class="simple-row" style="align-items:center; flex-wrap:wrap; border-left:4px solid '+u.color+';">'+
+          avatarHtml(u.id, 26)+
+          '<div class="stext"><div class="stitle">'+escapeHtml(u.name)+(isMe?' <span style="font-size:11px;color:var(--brass-strong);">(das bist du)</span>':'')+'</div></div>'+
+          (!isMe ? '<button type="button" class="link-btn" data-pick="'+u.id+'" style="flex-shrink:0;">Das bin ich</button>' : '')+
+          '<button type="button" class="link-btn" data-editcolor="'+u.id+'" style="flex-shrink:0;">Farbe</button>'+
+          '<button type="button" class="sdel" data-del="'+u.id+'">×</button>'+
+          '<div class="color-palette-group" id="colorpick-'+u.id+'" style="display:none; width:100%;"></div>'+
+        '</div>';
+      }).join('');
+      el.querySelectorAll('[data-pick]').forEach(function(b){
+        b.addEventListener('click', function(){
+          currentUserId = b.getAttribute('data-pick');
+          localStorage.setItem(CURRENT_USER_KEY, currentUserId);
+          renderUsers();
+        });
+      });
+      el.querySelectorAll('[data-del]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var id = b.getAttribute('data-del');
+          state.users = state.users.filter(function(u){ return u.id!==id; });
+          if(currentUserId===id){ currentUserId=null; localStorage.removeItem(CURRENT_USER_KEY); }
+          saveState();
+          renderUsers();
+        });
+      });
+      el.querySelectorAll('[data-editcolor]').forEach(function(b){
+        b.addEventListener('click', function(){
+          var userId = b.getAttribute('data-editcolor');
+          var wrap = document.getElementById('colorpick-'+userId);
+          var willOpen = wrap.style.display!=='block';
+          el.querySelectorAll('.color-palette-group').forEach(function(p){ p.style.display='none'; });
+          if(!willOpen) return;
+          var user = state.users.find(function(x){ return x.id===userId; });
+          renderColorPalette(wrap, user.color, function(color){
+            user.color = color;
+            saveState();
+            renderUsers();
+            renderCurrentScreen();
+          });
+          wrap.style.display = 'block';
+        });
+      });
     }
-    el.innerHTML = state.users.map(function(u){
-      var isMe = u.id===currentUserId;
-      return '<div class="simple-row" style="align-items:center;">'+
-        avatarHtml(u.id, 26)+
-        '<div class="stext"><div class="stitle">'+escapeHtml(u.name)+(isMe?' <span style="font-size:11px;color:var(--brass-strong);">(das bist du)</span>':'')+'</div></div>'+
-        (!isMe ? '<button type="button" class="link-btn" data-pick="'+u.id+'" style="flex-shrink:0;">Das bin ich</button>' : '')+
-        '<button type="button" class="sdel" data-del="'+u.id+'">×</button>'+
-      '</div>';
-    }).join('');
-    el.querySelectorAll('[data-pick]').forEach(function(b){
-      b.addEventListener('click', function(){
-        currentUserId = b.getAttribute('data-pick');
-        localStorage.setItem(CURRENT_USER_KEY, currentUserId);
-        renderUsers();
-      });
-    });
-    el.querySelectorAll('[data-del]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var id = b.getAttribute('data-del');
-        state.users = state.users.filter(function(u){ return u.id!==id; });
-        if(currentUserId===id){ currentUserId=null; localStorage.removeItem(CURRENT_USER_KEY); }
-        saveState();
-        renderUsers();
-      });
+    newUserColor = USER_COLORS[(state.users||[]).length % USER_COLORS.length];
+    renderNewUserColorPicker();
+  }
+  function renderNewUserColorPicker(){
+    var newPickerEl = document.getElementById('newUserColorPicker');
+    if(!newPickerEl) return;
+    renderColorPalette(newPickerEl, newUserColor, function(color){
+      newUserColor = color;
+      renderNewUserColorPicker();
     });
   }
   document.getElementById('addUserBtn').addEventListener('click', function(){
     var input = document.getElementById('newUserName');
     var val = input.value.trim();
     if(!val) return;
-    var newUser = { id: uid(), name: val, color: nextUserColor() };
+    var newUser = { id: uid(), name: val, color: newUserColor };
     state.users.push(newUser);
     var wasFirst = state.users.length===1;
     saveState();
@@ -1840,7 +1920,7 @@
     ledgerEl.innerHTML = list.map(function(t){
       var d = new Date(t.date);
       var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
-      return '<div class="row">'+
+      return '<div class="row"'+personTintStyle(t.createdBy)+'>'+
         '<div class="rdate num">'+dd+'</div>'+
         '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+'</div>'+
         (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
@@ -2305,7 +2385,7 @@
     var sorted = state.shopping.slice().sort(function(a,b){ return (a.checked===b.checked) ? 0 : (a.checked?1:-1); });
     el.innerHTML = sorted.map(function(it){
       var label = (it.amount ? escapeHtml(it.amount)+' ' : '') + escapeHtml(it.name);
-      return '<div class="simple-row">'+
+      return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
         '<div class="check'+(it.checked?' done':'')+'" data-id="'+it.id+'">'+(it.checked?'✓':'')+'</div>'+
         '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+label+'</div></div>'+
         avatarHtml(it.createdBy) +
@@ -2380,7 +2460,7 @@
       var subParts = [];
       if(t.dueDate) subParts.push('Fällig am '+fmtDate(t.dueDate)+(t.dueTime?', '+t.dueTime+' Uhr':''));
       if(t.remind) subParts.push('🔔 '+todoOffsetLabel(t.remindOffset));
-      return '<div class="simple-row">'+
+      return '<div class="simple-row"'+personTintStyle(t.createdBy)+'>'+
         '<div class="check'+(t.done?' done':'')+'" data-id="'+t.id+'">'+(t.done?'✓':'')+'</div>'+
         '<div class="stext"><div class="stitle'+(t.done?' done':'')+'">'+escapeHtml(t.text)+'</div>'+
         (subParts.length ? '<div class="ssub">'+subParts.join(' · ')+'</div>' : '')+'</div>'+
@@ -2444,7 +2524,7 @@
     }
     var sorted = state.notes.slice().sort(function(a,b){ return (b.updatedAt||'').localeCompare(a.updatedAt||''); });
     el.innerHTML = sorted.map(function(n){
-      return '<div class="note-card" data-id="'+n.id+'" style="position:relative;">'+
+      return '<div class="note-card" data-id="'+n.id+'" style="position:relative;'+personTintBg(n.updatedBy||n.createdBy)+'">'+
         '<div style="position:absolute; top:14px; right:16px;">'+avatarHtml(n.updatedBy||n.createdBy)+'</div>'+
         '<div class="ntitle" style="padding-right:26px;">'+escapeHtml(n.title||'Ohne Titel')+'</div>'+
         '<div class="nsnippet">'+escapeHtml(n.text||'')+'</div>'+
@@ -2547,7 +2627,10 @@
       if(c.dateStr===todayStr) cls += ' today';
       if(c.dateStr===selectedDayStr) cls += ' selected';
       var evs = c.dateStr ? eventsForDate(c.dateStr) : [];
-      var dots = evs.slice(0,3).map(function(){ return '<span class="dot"></span>'; }).join('');
+      var dots = evs.slice(0,3).map(function(ev){
+        var color = userColorOf(ev.createdBy);
+        return '<span class="dot" style="'+(color?'background:'+color+';':'')+'"></span>';
+      }).join('');
       return '<div class="'+cls+'" data-date="'+(c.dateStr||'')+'">'+c.dayNum+(dots?'<div class="dots">'+dots+'</div>':'')+'</div>';
     }).join('');
 
@@ -2574,7 +2657,7 @@
       html += '<p class="empty">Keine Termine an diesem Tag.</p>';
     } else {
       html += evs.map(function(ev){
-        return '<div class="cal-card">'+
+        return '<div class="cal-card"'+personTintStyle(ev.createdBy)+'>'+
           '<div class="cal-info">'+
           '<div class="ctitle">'+escapeHtml(ev.title)+'</div>'+
           (ev.time ? '<div class="ctime">'+ev.time+' Uhr</div>' : '')+
@@ -2688,7 +2771,7 @@
       var dateStr = dateToISOStr(d);
       var entries = state.mealPlan.filter(function(m){ return m.date===dateStr; });
       var entriesHtml = entries.map(function(m){
-        return '<div class="meal-entry"><span>'+escapeHtml(m.name)+'</span>'+avatarHtml(m.createdBy)+'<button class="sdel" data-mealdel="'+m.id+'">×</button></div>';
+        return '<div class="meal-entry"'+personTintStyle(m.createdBy)+'><span>'+escapeHtml(m.name)+'</span>'+avatarHtml(m.createdBy)+'<button class="sdel" data-mealdel="'+m.id+'">×</button></div>';
       }).join('');
       return '<div class="meal-day">'+
         '<div class="meal-day-head">'+WEEKDAY_NAMES_LONG[idx]+', '+String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.</div>'+
