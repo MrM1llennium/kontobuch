@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kontobuch-shell-v1';
+const CACHE_NAME = 'kontobuch-shell-v2';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',
@@ -13,6 +13,30 @@ self.addEventListener('install', function(event){
       return cache.addAll(SHELL_FILES);
     }).then(function(){
       return self.skipWaiting();
+    })
+  );
+});
+
+self.addEventListener('push', function(event){
+  var payload = { title: 'Haushalt', body: 'Neue Erinnerung' };
+  try{ if(event.data) payload = event.data.json(); } catch(e){}
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'Haushalt', {
+      body: payload.body || '',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png'
+    })
+  );
+});
+
+self.addEventListener('notificationclick', function(event){
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(function(clientList){
+      for(var i=0; i<clientList.length; i++){
+        if('focus' in clientList[i]) return clientList[i].focus();
+      }
+      if(clients.openWindow) return clients.openWindow('./index.html');
     })
   );
 });

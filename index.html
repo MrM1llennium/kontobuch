@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Kontobuch">
+<meta name="apple-mobile-web-app-title" content="Haushalt">
 <meta name="theme-color" content="#1F2420">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png" type="image/png">
-<title>Kontobuch</title>
+<title>Haushalt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -53,6 +53,9 @@
   }
   .num{ font-family:'IBM Plex Mono', monospace; }
 
+  .screen{ display:none; flex-direction:column; min-height:100vh; }
+  .screen.active{ display:flex; }
+
   /* ---------- Topbar ---------- */
   .topbar{
     padding:calc(18px + var(--safe-top)) 20px 14px;
@@ -66,6 +69,11 @@
     color:var(--brass-soft);
     margin:0 0 10px;
   }
+  .back-row{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .back-btn{
+    background:none; border:none; color:var(--brass-soft); font-size:14px;
+    padding:2px 0; cursor:pointer; font-family:'Source Serif 4',serif;
+  }
   .month-nav{
     display:flex;
     align-items:center;
@@ -77,10 +85,29 @@
     font-family:'IBM Plex Mono',monospace;
   }
   .month-label{ font-size:19px; font-weight:600; letter-spacing:.01em; }
+  .screen-title{ font-size:21px; font-weight:600; margin:0; }
+
+  /* ---------- Home ---------- */
+  #screen-home .topbar{ padding-bottom:20px; }
+  #screen-home h1{ font-size:24px; margin:0; font-weight:600; }
+  .tile-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+    padding:20px; flex:1; align-content:start;
+  }
+  .tile{
+    background:var(--paper-raised); border:1px solid var(--line); border-radius:12px;
+    padding:20px 14px; display:flex; flex-direction:column; align-items:flex-start; gap:12px;
+    cursor:pointer; text-align:left; font-family:'Source Serif 4',serif;
+  }
+  .tile:active{ background:var(--paper-dark); }
+  .tile svg{ width:26px; height:26px; color:var(--brass-strong); }
+  .tile-name{ font-size:15.5px; color:var(--ink); }
+  .tile-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:-8px; }
 
   /* ---------- Views ---------- */
   .view{ display:none; flex:1; overflow-y:auto; padding-bottom:96px; }
   .view.active{ display:block; }
+  .module-body{ flex:1; overflow-y:auto; padding-bottom:30px; }
 
   /* ---------- Hero ---------- */
   .hero{
@@ -151,15 +178,25 @@
   .type-switch button.active.income{ background:var(--green); color:var(--paper); }
   .type-switch button.active.expense{ background:var(--red); color:var(--paper); }
 
+  .mode-switch{
+    display:flex; border:1px solid var(--ink); border-radius:6px; overflow:hidden; margin-bottom:6px;
+  }
+  .mode-switch button{
+    flex:1; padding:12px; border:none; background:var(--paper);
+    font-family:'Source Serif 4',serif; font-size:14.5px; color:var(--ink); cursor:pointer;
+  }
+  .mode-switch button.active{ background:var(--ink); color:var(--paper); }
+
   .field{ margin-bottom:18px; }
   .field label{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; letter-spacing:.02em; }
-  .field input, .field select{
+  .field input, .field select, .field textarea{
     width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:6px;
     background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif; color:var(--ink);
   }
+  .field textarea{ resize:vertical; min-height:90px; }
   .field input.num-input{ font-family:'IBM Plex Mono',monospace; font-size:20px; }
   .field select{ font-family:'Source Serif 4',serif; }
-  .field input:focus, .field select:focus{ outline:2px solid var(--brass); outline-offset:1px; }
+  .field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--brass); outline-offset:1px; }
 
   .btn{
     display:block; width:100%; padding:14px; border:none; border-radius:6px;
@@ -176,15 +213,6 @@
   .new-cat-row{ display:flex; gap:8px; margin-top:8px; }
   .new-cat-row input{ flex:1; }
   .link-btn{ background:none; border:none; color:var(--brass-strong); font-size:13px; padding:4px 0; cursor:pointer; text-decoration:underline; }
-
-  .mode-switch{
-    display:flex; border:1px solid var(--ink); border-radius:6px; overflow:hidden; margin-bottom:6px;
-  }
-  .mode-switch button{
-    flex:1; padding:12px; border:none; background:var(--paper);
-    font-family:'Source Serif 4',serif; font-size:14.5px; color:var(--ink); cursor:pointer;
-  }
-  .mode-switch button.active{ background:var(--ink); color:var(--paper); }
 
   .rec-card{
     margin:0 20px 10px; padding:14px 16px; background:var(--paper-raised);
@@ -254,6 +282,57 @@
   h2.page-title{ font-size:16px; padding:18px 20px 4px; margin:0; color:var(--ink); }
   p.page-sub{ font-size:12.5px; color:var(--ink-soft); padding:0 20px; margin:0 0 6px; }
 
+  /* ---------- Simple list modules: shopping / todos / notes / calendar ---------- */
+  .simple-row{
+    display:flex; align-items:flex-start; gap:12px;
+    padding:13px 20px; border-bottom:1px dotted var(--line);
+  }
+  .simple-row .check{
+    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--brass);
+    flex-shrink:0; margin-top:1px; cursor:pointer; background:var(--paper);
+    display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--paper);
+  }
+  .simple-row .check.done{ background:var(--brass); }
+  .simple-row .stext{ flex:1; min-width:0; }
+  .simple-row .stitle{ font-size:15px; color:var(--ink); }
+  .simple-row .stitle.done{ text-decoration:line-through; color:var(--ink-soft); }
+  .simple-row .ssub{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .simple-row .sdel{ border:none; background:none; color:var(--ink-soft); opacity:.45; font-size:17px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
+
+  .note-card{
+    margin:0 20px 12px; padding:14px 16px; background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:8px; cursor:pointer;
+  }
+  .note-card .ntitle{ font-size:15px; margin-bottom:4px; }
+  .note-card .nsnippet{ font-size:12.5px; color:var(--ink-soft); line-height:1.4;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+
+  .cal-card{
+    margin:0 20px 12px; padding:14px 16px; background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:8px; display:flex; gap:14px; align-items:flex-start;
+  }
+  .cal-date{ text-align:center; flex-shrink:0; width:44px; }
+  .cal-date .cd-day{ font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; }
+  .cal-date .cd-mon{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
+  .cal-info{ flex:1; min-width:0; }
+  .cal-info .ctitle{ font-size:15px; }
+  .cal-info .ctime{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .cal-info .cnote{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .cal-bell{ font-size:11px; color:var(--brass-strong); margin-top:4px; }
+  .cal-del{ border:none; background:none; color:var(--ink-soft); opacity:.45; font-size:17px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
+
+  .push-banner{
+    margin:14px 20px; padding:14px 16px; background:var(--brass-soft);
+    border-radius:8px; font-size:13px; color:var(--ink);
+  }
+  .push-banner button{
+    margin-top:10px; padding:9px 14px; border:none; border-radius:5px;
+    background:var(--ink); color:var(--paper); font-size:13px; cursor:pointer;
+  }
+  .checkbox-row{ display:flex; align-items:center; gap:8px; margin:-6px 0 18px; }
+  .checkbox-row input{ width:18px; height:18px; }
+  .checkbox-row label{ font-size:13.5px; color:var(--ink-soft); }
+
   /* ---------- Code gate ---------- */
   #codeGate{
     display:none; min-height:100vh; width:100%; max-width:480px; margin:0 auto;
@@ -271,16 +350,16 @@
   #codeGate input:focus{ outline:2px solid var(--brass); }
   #codeGate .btn{ margin-top:14px; }
   #codeError{ color:#E0A99B; font-size:12px; margin-top:10px; display:none; }
-  .settings-links{ display:flex; gap:16px; padding:0 20px; }
+  .settings-links{ display:flex; gap:16px; padding:0 20px; flex-wrap:wrap; }
 </style>
 </head>
 <body>
 
 <div id="codeGate">
   <div class="gate-inner">
-    <p class="brand">KONTOBUCH · HAUSHALTSFÜHRUNG</p>
+    <p class="brand">HAUSHALT · GEMEINSAM ORGANISIERT</p>
     <h2>Haushalts-Code</h2>
-    <p>Denkt euch gemeinsam einen Code aus (frei wählbar, z. B. euer Nachname). Wer denselben Code eingibt, sieht dieselben Buchungen — auf beliebig vielen Geräten.</p>
+    <p>Denkt euch gemeinsam einen Code aus (frei wählbar, z. B. euer Nachname). Wer denselben Code eingibt, sieht dieselben Daten — auf beliebig vielen Geräten.</p>
     <input type="text" id="codeInput" placeholder="z. B. mueller-budget" autocapitalize="off" autocorrect="off">
     <button class="btn" id="codeSubmitBtn">Starten</button>
     <p id="codeError"></p>
@@ -290,48 +369,45 @@
 <div id="app" style="display:none;">
 
   <div id="saveBanner" style="display:none; position:fixed; bottom:calc(64px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 24px); max-width:456px; background:var(--red); color:var(--paper); border-radius:8px; padding:10px 12px; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; z-index:50; box-shadow:0 4px 14px rgba(0,0,0,.3);">
-    <span>Nicht auf dem Gerät gespeichert. Daten bleiben nur in dieser Sitzung erhalten.</span>
+    <span>Nicht in der Cloud gespeichert. Bitte prüfen.</span>
     <button type="button" id="retrySaveBtn" style="flex-shrink:0; background:var(--paper); color:var(--red); border:none; border-radius:5px; padding:6px 10px; font-size:12px; cursor:pointer;">Erneut</button>
   </div>
 
-  <div class="topbar">
-    <p class="brand">KONTOBUCH · HAUSHALTSFÜHRUNG</p>
-    <div class="month-nav">
-      <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
-      <div class="month-label" id="monthLabel">—</div>
-      <button id="nextMonth" aria-label="Nächster Monat">›</button>
+  <!-- ============ HOME ============ -->
+  <div class="screen active" id="screen-home">
+    <div class="topbar">
+      <p class="brand">HAUSHALT · GEMEINSAM ORGANISIERT</p>
+      <h1>Start</h1>
     </div>
-  </div>
-
-  <!-- OVERVIEW -->
-  <main class="view active" id="view-overview">
-    <div class="hero">
-      <p class="label">Saldo diesen Monat</p>
-      <p class="balance num" id="heroBalance">0,00 €</p>
-      <div class="delta" id="heroDelta"></div>
-      <p id="heroForecast" style="font-size:12.5px;color:var(--ink-soft);margin:10px 0 0;display:none;line-height:1.5;"></p>
+    <div class="tile-grid">
+      <button class="tile" data-module="finance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+        <div><div class="tile-name">Finanzen</div><div class="tile-sub">Budget & Sparen</div></div>
+      </button>
+      <button class="tile" data-module="shopping">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h12l-1.5 11a2 2 0 0 1-2 1.7H9.5a2 2 0 0 1-2-1.7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <div><div class="tile-name">Einkaufsliste</div><div class="tile-sub">Gemeinsam einkaufen</div></div>
+      </button>
+      <button class="tile" data-module="todos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>
+        <div><div class="tile-name">To-Dos</div><div class="tile-sub">Aufgaben</div></div>
+      </button>
+      <button class="tile" data-module="notes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M15 3v5h5"/></svg>
+        <div><div class="tile-name">Notizen</div><div class="tile-sub">Festhalten</div></div>
+      </button>
+      <button class="tile" data-module="calendar" style="grid-column:1 / span 2;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+        <div><div class="tile-name">Kalender</div><div class="tile-sub">Termine & Erinnerungen</div></div>
+      </button>
     </div>
-    <div class="flow">
-      <div class="flow-col">
-        <div class="flabel"><span>Einnahmen</span><span class="num" id="incVal"></span></div>
-        <div class="fval num" id="incValBig"></div>
-        <div class="bar-track"><div class="bar-fill income" id="incBar"></div></div>
-      </div>
-      <div class="flow-col">
-        <div class="flabel"><span>Ausgaben</span><span class="num" id="expVal"></span></div>
-        <div class="fval num" id="expValBig"></div>
-        <div class="bar-track"><div class="bar-fill expense" id="expBar"></div></div>
-      </div>
-    </div>
-    <p class="section-title">Buchungen</p>
-    <div class="ledger" id="ledgerList"></div>
-    <div style="padding:22px 20px 10px;">
+    <div style="padding:10px 20px 30px;">
       <div class="settings-links">
         <button type="button" class="link-btn" id="showBackup">Daten sichern / wiederherstellen</button>
         <button type="button" class="link-btn" id="switchHouseholdBtn">Haushalt wechseln</button>
       </div>
       <div id="backupPanel" style="display:none; margin-top:14px;">
-        <p style="font-size:12px; color:var(--ink-soft); margin:0 0 8px;">Solange die automatische Speicherung nicht funktioniert: Text unten kopieren und irgendwo sichern (z. B. Notizen-App). Zum Wiederherstellen den gesicherten Text einfügen und auf „Wiederherstellen" tippen.</p>
+        <p style="font-size:12px; color:var(--ink-soft); margin:0 0 8px;">Text unten kopieren und irgendwo sichern (z. B. Notizen-App). Zum Wiederherstellen den gesicherten Text einfügen und auf „Wiederherstellen" tippen.</p>
         <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Aktueller Stand (zum Kopieren)</label>
         <textarea id="backupOut" readonly style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
         <button type="button" class="btn ghost" id="copyBackupBtn" style="margin-bottom:16px;">In Zwischenablage kopieren</button>
@@ -340,148 +416,289 @@
         <button type="button" class="btn" id="restoreBackupBtn">Wiederherstellen (überschreibt aktuellen Stand)</button>
       </div>
     </div>
-  </main>
+  </div>
 
-  <!-- ADD -->
-  <main class="view" id="view-add">
-    <h2 class="page-title">Buchen</h2>
-    <div class="form-wrap" style="padding-bottom:0;">
-      <div class="mode-switch">
-        <button type="button" id="modeOnetimeBtn" class="active">Einmalig</button>
-        <button type="button" id="modeRecurringBtn">Wiederkehrend</button>
+  <!-- ============ FINANCE MODULE ============ -->
+  <div class="screen" id="screen-finance">
+    <div class="topbar">
+      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <div class="month-nav">
+        <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
+        <div class="month-label" id="monthLabel">—</div>
+        <button id="nextMonth" aria-label="Nächster Monat">›</button>
       </div>
     </div>
 
-    <div id="addOnetime">
-      <div class="form-wrap" style="padding-top:0;">
-        <div class="type-switch">
-          <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
-          <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
+    <main class="view active" id="view-overview">
+      <div class="hero">
+        <p class="label">Saldo diesen Monat</p>
+        <p class="balance num" id="heroBalance">0,00 €</p>
+        <div class="delta" id="heroDelta"></div>
+        <p id="heroForecast" style="font-size:12.5px;color:var(--ink-soft);margin:10px 0 0;display:none;line-height:1.5;"></p>
+      </div>
+      <div class="flow">
+        <div class="flow-col">
+          <div class="flabel"><span>Einnahmen</span><span class="num" id="incVal"></span></div>
+          <div class="fval num" id="incValBig"></div>
+          <div class="bar-track"><div class="bar-fill income" id="incBar"></div></div>
         </div>
-        <div class="field">
-          <label for="amountInput">Betrag</label>
-          <input type="number" inputmode="decimal" step="0.01" min="0" id="amountInput" class="num-input" placeholder="0,00">
+        <div class="flow-col">
+          <div class="flabel"><span>Ausgaben</span><span class="num" id="expVal"></span></div>
+          <div class="fval num" id="expValBig"></div>
+          <div class="bar-track"><div class="bar-fill expense" id="expBar"></div></div>
         </div>
-        <div class="field">
-          <label for="categorySelect">Kategorie</label>
-          <select id="categorySelect"></select>
-          <button type="button" class="link-btn" id="showNewCat">+ neue Kategorie</button>
-          <div class="new-cat-row" id="newCatRow" style="display:none;">
-            <input type="text" id="newCatInput" placeholder="Kategoriename">
-            <button type="button" class="btn" style="width:auto;padding:10px 14px;" id="addCatBtn">OK</button>
+      </div>
+      <p class="section-title">Buchungen</p>
+      <div class="ledger" id="ledgerList"></div>
+    </main>
+
+    <main class="view" id="view-add">
+      <h2 class="page-title">Buchen</h2>
+      <div class="form-wrap" style="padding-bottom:0;">
+        <div class="mode-switch">
+          <button type="button" id="modeOnetimeBtn" class="active">Einmalig</button>
+          <button type="button" id="modeRecurringBtn">Wiederkehrend</button>
+        </div>
+      </div>
+      <div id="addOnetime">
+        <div class="form-wrap" style="padding-top:0;">
+          <div class="type-switch">
+            <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
+            <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
+          </div>
+          <div class="field">
+            <label for="amountInput">Betrag</label>
+            <input type="number" inputmode="decimal" step="0.01" min="0" id="amountInput" class="num-input" placeholder="0,00">
+          </div>
+          <div class="field">
+            <label for="categorySelect">Kategorie</label>
+            <select id="categorySelect"></select>
+            <button type="button" class="link-btn" id="showNewCat">+ neue Kategorie</button>
+            <div class="new-cat-row" id="newCatRow" style="display:none;">
+              <input type="text" id="newCatInput" placeholder="Kategoriename">
+              <button type="button" class="btn" style="width:auto;padding:10px 14px;" id="addCatBtn">OK</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="dateInput">Datum</label>
+            <input type="date" id="dateInput">
+          </div>
+          <div class="field">
+            <label for="noteInput">Notiz (optional)</label>
+            <input type="text" id="noteInput" placeholder="z. B. Wocheneinkauf">
+          </div>
+          <button class="btn" id="saveEntryBtn">Buchen</button>
+        </div>
+      </div>
+      <div id="addRecurring" style="display:none;">
+        <p class="page-sub">Wird ab jetzt automatisch am gewählten Tag jeden Monat gebucht — z. B. Gehalt, Miete, Strom, Versicherungen.</p>
+        <div id="recurringList" style="margin-top:14px;"></div>
+        <div class="form-wrap" style="padding-top:6px;">
+          <div class="type-switch" style="margin-bottom:20px;">
+            <button type="button" id="recTypeIncomeBtn" class="income">Einnahme</button>
+            <button type="button" id="recTypeExpenseBtn" class="expense active">Ausgabe</button>
+          </div>
+          <div class="field">
+            <label for="recName">Bezeichnung</label>
+            <input type="text" id="recName" placeholder="z. B. Gehalt, Miete, Netflix">
+          </div>
+          <div class="field">
+            <label for="recAmount">Betrag</label>
+            <input type="number" inputmode="decimal" step="0.01" min="0" id="recAmount" class="num-input" placeholder="0,00">
+          </div>
+          <div class="field">
+            <label for="recCategory">Kategorie</label>
+            <select id="recCategory"></select>
+          </div>
+          <div class="field">
+            <label for="recDay">Tag im Monat</label>
+            <input type="number" inputmode="numeric" min="1" max="31" id="recDay" placeholder="z. B. 1">
+          </div>
+          <button class="btn" id="saveRecurringBtn">Wiederkehrende Buchung anlegen</button>
+        </div>
+      </div>
+    </main>
+
+    <main class="view" id="view-stats">
+      <h2 class="page-title">Statistik</h2>
+      <p class="page-sub">Verlauf der letzten 6 Monate und Ausgaben nach Kategorie.</p>
+      <div id="statsChart" style="padding:14px 20px 6px;"></div>
+      <p class="section-title">Ausgaben nach Kategorie — <span id="statsMonthLabel"></span></p>
+      <div id="statsCategoryList" style="padding:0 20px 30px;"></div>
+    </main>
+
+    <main class="view" id="view-budget">
+      <h2 class="page-title">Ausgabenplan</h2>
+      <p class="page-sub">Budgets je Kategorie für den angezeigten Monat.</p>
+      <div id="budgetList" style="margin-top:14px;"></div>
+    </main>
+
+    <main class="view" id="view-savings">
+      <h2 class="page-title">Sparpläne</h2>
+      <p class="page-sub">Ziele anlegen und Einzahlungen verfolgen.</p>
+      <div id="goalList" style="margin-top:14px;"></div>
+      <div class="form-wrap" style="padding-top:6px;">
+        <button class="btn ghost" id="newGoalBtn">+ Neues Sparziel</button>
+        <div id="newGoalForm" style="display:none; margin-top:16px;">
+          <div class="field">
+            <label for="goalName">Name</label>
+            <input type="text" id="goalName" placeholder="z. B. Urlaub 2027">
+          </div>
+          <div class="field">
+            <label for="goalTarget">Zielbetrag</label>
+            <input type="number" inputmode="decimal" step="0.01" min="0" id="goalTarget" class="num-input" placeholder="0,00">
+          </div>
+          <div class="field">
+            <label for="goalSaved">Bereits gespart (optional)</label>
+            <input type="number" inputmode="decimal" step="0.01" min="0" id="goalSaved" class="num-input" placeholder="0,00">
+          </div>
+          <div class="field">
+            <label for="goalDeadline">Zieldatum (optional)</label>
+            <input type="date" id="goalDeadline">
+          </div>
+          <div class="btn-row">
+            <button class="btn ghost" id="cancelGoalBtn">Abbrechen</button>
+            <button class="btn" id="createGoalBtn">Anlegen</button>
           </div>
         </div>
-        <div class="field">
-          <label for="dateInput">Datum</label>
-          <input type="date" id="dateInput">
+      </div>
+    </main>
+
+    <nav class="tabbar">
+      <button data-view="overview" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+        Übersicht
+      </button>
+      <button data-view="add">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        Buchen
+      </button>
+      <button data-view="stats">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17l5-6 4 3 6-8"/><path d="M3 20h18"/></svg>
+        Statistik
+      </button>
+      <button data-view="budget">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+        Budget
+      </button>
+      <button data-view="savings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 13c0-3.3 3.1-6 7.5-6 3 0 4.7 1 5.7 2h2.3l-1 2.5 1.5 1v2l-2 .5-1 2h-2l-.5-1.5h-3L10 18H8l-.5-1.8C5.5 15.6 4 14.5 4 13Z"/><circle cx="8.5" cy="12" r=".6" fill="currentColor" stroke="none"/></svg>
+        Sparen
+      </button>
+    </nav>
+  </div>
+
+  <!-- ============ SHOPPING MODULE ============ -->
+  <div class="screen" id="screen-shopping">
+    <div class="topbar">
+      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <p class="screen-title">Einkaufsliste</p>
+    </div>
+    <div class="module-body">
+      <div id="shoppingList"></div>
+      <div class="form-wrap">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="shopNameInput" placeholder="z. B. Milch" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <button class="btn" id="addShopBtn" style="width:auto; padding:12px 18px;">+</button>
         </div>
-        <div class="field">
-          <label for="noteInput">Notiz (optional)</label>
-          <input type="text" id="noteInput" placeholder="z. B. Wocheneinkauf">
-        </div>
-        <button class="btn" id="saveEntryBtn">Buchen</button>
+        <button type="button" class="link-btn" id="clearCheckedShopBtn" style="margin-top:14px;">Erledigte entfernen</button>
       </div>
     </div>
+  </div>
 
-    <div id="addRecurring" style="display:none;">
-      <p class="page-sub">Wird ab jetzt automatisch am gewählten Tag jeden Monat gebucht — z. B. Gehalt, Miete, Strom, Versicherungen.</p>
-      <div id="recurringList" style="margin-top:14px;"></div>
-      <div class="form-wrap" style="padding-top:6px;">
-        <div class="type-switch" style="margin-bottom:20px;">
-          <button type="button" id="recTypeIncomeBtn" class="income">Einnahme</button>
-          <button type="button" id="recTypeExpenseBtn" class="expense active">Ausgabe</button>
+  <!-- ============ TODOS MODULE ============ -->
+  <div class="screen" id="screen-todos">
+    <div class="topbar">
+      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <p class="screen-title">To-Dos</p>
+    </div>
+    <div class="module-body">
+      <div id="todoList"></div>
+      <div class="form-wrap">
+        <div class="field">
+          <label for="todoTextInput">Aufgabe</label>
+          <input type="text" id="todoTextInput" placeholder="z. B. Müll rausbringen">
         </div>
         <div class="field">
-          <label for="recName">Bezeichnung</label>
-          <input type="text" id="recName" placeholder="z. B. Gehalt, Miete, Netflix">
+          <label for="todoDueInput">Fällig am (optional)</label>
+          <input type="date" id="todoDueInput">
         </div>
-        <div class="field">
-          <label for="recAmount">Betrag</label>
-          <input type="number" inputmode="decimal" step="0.01" min="0" id="recAmount" class="num-input" placeholder="0,00">
-        </div>
-        <div class="field">
-          <label for="recCategory">Kategorie</label>
-          <select id="recCategory"></select>
-        </div>
-        <div class="field">
-          <label for="recDay">Tag im Monat</label>
-          <input type="number" inputmode="numeric" min="1" max="31" id="recDay" placeholder="z. B. 1">
-        </div>
-        <button class="btn" id="saveRecurringBtn">Wiederkehrende Buchung anlegen</button>
+        <button class="btn" id="addTodoBtn">Hinzufügen</button>
       </div>
     </div>
-  </main>
+  </div>
 
-  <!-- BUDGET -->
-  <main class="view" id="view-budget">
-    <h2 class="page-title">Ausgabenplan</h2>
-    <p class="page-sub">Budgets je Kategorie für den angezeigten Monat.</p>
-    <div id="budgetList" style="margin-top:14px;"></div>
-  </main>
-
-  <!-- SAVINGS -->
-  <main class="view" id="view-savings">
-    <h2 class="page-title">Sparpläne</h2>
-    <p class="page-sub">Ziele anlegen und Einzahlungen verfolgen.</p>
-    <div id="goalList" style="margin-top:14px;"></div>
-    <div class="form-wrap" style="padding-top:6px;">
-      <button class="btn ghost" id="newGoalBtn">+ Neues Sparziel</button>
-      <div id="newGoalForm" style="display:none; margin-top:16px;">
-        <div class="field">
-          <label for="goalName">Name</label>
-          <input type="text" id="goalName" placeholder="z. B. Urlaub 2027">
+  <!-- ============ NOTES MODULE ============ -->
+  <div class="screen" id="screen-notes">
+    <div class="topbar">
+      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <p class="screen-title">Notizen</p>
+    </div>
+    <div class="module-body">
+      <div id="notesListView">
+        <div id="noteList" style="padding-top:16px;"></div>
+        <div class="form-wrap">
+          <button class="btn" id="newNoteBtn">+ Neue Notiz</button>
         </div>
-        <div class="field">
-          <label for="goalTarget">Zielbetrag</label>
-          <input type="number" inputmode="decimal" step="0.01" min="0" id="goalTarget" class="num-input" placeholder="0,00">
-        </div>
-        <div class="field">
-          <label for="goalSaved">Bereits gespart (optional)</label>
-          <input type="number" inputmode="decimal" step="0.01" min="0" id="goalSaved" class="num-input" placeholder="0,00">
-        </div>
-        <div class="field">
-          <label for="goalDeadline">Zieldatum (optional)</label>
-          <input type="date" id="goalDeadline">
-        </div>
-        <div class="btn-row">
-          <button class="btn ghost" id="cancelGoalBtn">Abbrechen</button>
-          <button class="btn" id="createGoalBtn">Anlegen</button>
+      </div>
+      <div id="noteEditView" style="display:none;">
+        <div class="form-wrap">
+          <div class="field">
+            <label for="noteTitleInput">Titel</label>
+            <input type="text" id="noteTitleInput" placeholder="Titel">
+          </div>
+          <div class="field">
+            <label for="noteTextInput">Text</label>
+            <textarea id="noteTextInput" placeholder="Notiz…"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn ghost" id="cancelNoteBtn">Zurück</button>
+            <button class="btn" id="saveNoteBtn">Speichern</button>
+          </div>
+          <button type="button" class="link-btn" id="deleteNoteBtn" style="margin-top:16px; color:var(--red);">Notiz löschen</button>
         </div>
       </div>
     </div>
-  </main>
+  </div>
 
-  <!-- STATISTIK -->
-  <main class="view" id="view-stats">
-    <h2 class="page-title">Statistik</h2>
-    <p class="page-sub">Verlauf der letzten 6 Monate und Ausgaben nach Kategorie.</p>
-    <div id="statsChart" style="padding:14px 20px 6px;"></div>
-    <p class="section-title">Ausgaben nach Kategorie — <span id="statsMonthLabel"></span></p>
-    <div id="statsCategoryList" style="padding:0 20px 30px;"></div>
-  </main>
-
-  <nav class="tabbar">
-    <button data-view="overview" class="active">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
-      Übersicht
-    </button>
-    <button data-view="add">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
-      Buchen
-    </button>
-    <button data-view="stats">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17l5-6 4 3 6-8"/><path d="M3 20h18"/></svg>
-      Statistik
-    </button>
-    <button data-view="budget">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
-      Budget
-    </button>
-    <button data-view="savings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 13c0-3.3 3.1-6 7.5-6 3 0 4.7 1 5.7 2h2.3l-1 2.5 1.5 1v2l-2 .5-1 2h-2l-.5-1.5h-3L10 18H8l-.5-1.8C5.5 15.6 4 14.5 4 13Z"/><circle cx="8.5" cy="12" r=".6" fill="currentColor" stroke="none"/></svg>
-      Sparen
-    </button>
-  </nav>
+  <!-- ============ CALENDAR MODULE ============ -->
+  <div class="screen" id="screen-calendar">
+    <div class="topbar">
+      <div class="back-row"><button class="back-btn" data-back>‹ Start</button></div>
+      <p class="screen-title">Kalender</p>
+    </div>
+    <div class="module-body">
+      <div id="pushPromptBanner" class="push-banner" style="display:none;">
+        Aktiviere Push-Benachrichtigungen, um an Termine erinnert zu werden — auch wenn die App geschlossen ist.
+        <br><button type="button" id="enablePushBtn">Benachrichtigungen aktivieren</button>
+      </div>
+      <p class="section-title">Anstehende Termine</p>
+      <div id="calendarList"></div>
+      <div class="form-wrap">
+        <div class="field">
+          <label for="calTitleInput">Titel</label>
+          <input type="text" id="calTitleInput" placeholder="z. B. Zahnarzt">
+        </div>
+        <div class="field">
+          <label for="calDateInput">Datum</label>
+          <input type="date" id="calDateInput">
+        </div>
+        <div class="field">
+          <label for="calTimeInput">Uhrzeit (optional)</label>
+          <input type="time" id="calTimeInput">
+        </div>
+        <div class="field">
+          <label for="calNoteInput">Notiz (optional)</label>
+          <input type="text" id="calNoteInput" placeholder="z. B. Praxis Dr. Meyer">
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="calRemindInput">
+          <label for="calRemindInput">Push-Erinnerung am Termin senden</label>
+        </div>
+        <button class="btn" id="addCalBtn">Termin hinzufügen</button>
+      </div>
+    </div>
+  </div>
 
 </div>
 
@@ -494,6 +711,10 @@
     budgets: {},
     savings: [],
     recurring: [],
+    shopping: [],
+    todos: [],
+    notes: [],
+    calendar: [],
     categories: {
       income: ["Gehalt","Nebeneinkommen","Sonstige Einnahmen"],
       expense: ["Miete","Lebensmittel","Transport","Freizeit","Versicherung","Sonstiges"]
@@ -504,6 +725,7 @@
   var viewingDate = new Date();
   viewingDate.setDate(1);
   var currentType = "expense";
+  var editingNoteId = null;
 
   var MONTH_NAMES = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
@@ -523,8 +745,191 @@
   function uid(){
     return Date.now().toString(36)+Math.random().toString(36).slice(2,7);
   }
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function fmtDate(dateStr){
+    var d = new Date(dateStr+'T00:00:00');
+    return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
+  }
 
-  /* ---------- Wiederkehrende Buchungen ---------- */
+  var SUPABASE_URL = 'https://kpugxayvvrzhhhrnibrx.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwdWd4YXl2dnJ6aGhocm5pYnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTM5MzMsImV4cCI6MjEwMzg4OTkzM30.DV70QpWt6J4-GuwFkrY5UHTw-dKFMv5_p_08V8euiNc';
+  var VAPID_PUBLIC_KEY = 'BKC6QxSalbAS_17SFaxvFduYMpIsHxhDdq9LiblpFT-N3ntHOvgyVRJsKULXwHUsPA3N4Dx-UEuTWFzxGxvmL1s';
+  var CODE_KEY = 'kontobuch-household-code';
+  var sb = null;
+  var householdCode = null;
+  var realtimeChannel = null;
+  var savePending = false;
+  var lastFailureWasLoad = false;
+
+  /* ================= Persistenz ================= */
+  async function loadState(){
+    try{
+      var res = await sb.from('households').select('data').eq('code', householdCode).maybeSingle();
+      if(res.error) throw res.error;
+      if(res.data && res.data.data){
+        state = res.data.data;
+        applyDefaults();
+      } else {
+        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        var ins = await sb.from('households').insert({ code: householdCode, data: state });
+        if(ins.error) throw ins.error;
+      }
+    } catch(e){
+      console.error("Laden fehlgeschlagen", e);
+      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+      lastFailureWasLoad = true;
+      showSaveBanner("Verbindung zur Cloud fehlgeschlagen. Prüfe deine Internetverbindung und tippe auf Erneut.");
+    }
+  }
+  function applyDefaults(){
+    if(!state.categories) state.categories = DEFAULT_STATE.categories;
+    if(!state.savings) state.savings = [];
+    if(!state.budgets) state.budgets = {};
+    if(!state.recurring) state.recurring = [];
+    if(!state.shopping) state.shopping = [];
+    if(!state.todos) state.todos = [];
+    if(!state.notes) state.notes = [];
+    if(!state.calendar) state.calendar = [];
+  }
+
+  async function saveState(){
+    savePending = true;
+    try{
+      var res = await sb.from('households').upsert(
+        { code: householdCode, data: state, updated_at: new Date().toISOString() },
+        { onConflict: 'code' }
+      );
+      if(res.error) throw res.error;
+      savePending = false;
+      lastFailureWasLoad = false;
+      hideSaveBanner();
+      return true;
+    } catch(e){
+      savePending = false;
+      console.error("Speichern fehlgeschlagen", e);
+      lastFailureWasLoad = false;
+      showSaveBanner("Nicht in der Cloud gespeichert. Bitte Daten unten sichern.");
+      return false;
+    }
+  }
+
+  function applyRemoteState(newData){
+    if(!newData) return;
+    var newStr = JSON.stringify(newData);
+    if(newStr === JSON.stringify(state)) return;
+    state = newData;
+    applyDefaults();
+    renderCurrentScreen();
+  }
+
+  function subscribeRealtime(){
+    if(!sb || !householdCode) return;
+    if(realtimeChannel){ sb.removeChannel(realtimeChannel); }
+    realtimeChannel = sb.channel('household-'+householdCode)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'households', filter: 'code=eq.'+householdCode },
+        function(payload){
+          if(payload.new && payload.new.data){ applyRemoteState(payload.new.data); }
+        }
+      )
+      .subscribe();
+  }
+
+  function startPolling(){
+    setInterval(async function(){
+      if(!householdCode || savePending) return;
+      try{
+        var res = await sb.from('households').select('data').eq('code', householdCode).maybeSingle();
+        if(!res.error && res.data){ applyRemoteState(res.data.data); }
+      } catch(e){ /* stiller Fallback */ }
+    }, 15000);
+  }
+
+  function showSaveBanner(msg){
+    var b = document.getElementById('saveBanner');
+    if(!b) return;
+    if(msg) b.querySelector('span').textContent = msg;
+    b.style.display = 'flex';
+  }
+  function hideSaveBanner(){
+    var b = document.getElementById('saveBanner');
+    if(!b) return;
+    b.style.display = 'none';
+  }
+
+  /* ================= Navigation: Home <-> Module ================= */
+  var currentScreen = 'home';
+  document.querySelectorAll('.tile').forEach(function(t){
+    t.addEventListener('click', function(){ openModule(t.getAttribute('data-module')); });
+  });
+  document.querySelectorAll('[data-back]').forEach(function(b){
+    b.addEventListener('click', goHome);
+  });
+  function goHome(){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('screen-home').classList.add('active');
+    currentScreen = 'home';
+  }
+  function openModule(name){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('screen-'+name).classList.add('active');
+    currentScreen = name;
+    if(name==='finance') switchView('overview');
+    if(name==='shopping') renderShopping();
+    if(name==='todos') renderTodos();
+    if(name==='notes') renderNotesList();
+    if(name==='calendar') renderCalendar();
+  }
+  function renderCurrentScreen(){
+    renderAll();
+    renderShopping();
+    renderTodos();
+    if(document.getElementById('noteEditView').style.display==='none') renderNotesList();
+    renderCalendar();
+  }
+
+  /* ================= Finance: Navigation ================= */
+  document.querySelectorAll('.tabbar button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      switchView(btn.getAttribute('data-view'));
+    });
+  });
+  function switchView(name){
+    document.querySelectorAll('#screen-finance .view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById('view-'+name).classList.add('active');
+    document.querySelectorAll('.tabbar button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-view')===name);
+    });
+    if(name==='overview') renderOverview();
+    if(name==='budget') renderBudget();
+    if(name==='savings') renderSavings();
+    if(name==='stats') renderStats();
+  }
+
+  document.getElementById('prevMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()-1);
+    renderAll();
+  });
+  document.getElementById('nextMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()+1);
+    renderAll();
+  });
+
+  function renderAll(){
+    document.getElementById('monthLabel').textContent = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
+    renderOverview();
+    renderBudget();
+    renderSavings();
+    renderStats();
+    populateCategorySelect();
+    populateRecCategorySelect();
+  }
+
+  /* ================= Wiederkehrende Buchungen ================= */
   async function generateDueRecurring(){
     if(!state.recurring || state.recurring.length===0) return;
     var today = new Date();
@@ -567,144 +972,7 @@
     return { pendingInc: pendingInc, pendingExp: pendingExp };
   }
 
-  var SUPABASE_URL = 'https://kpugxayvvrzhhhrnibrx.supabase.co';
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwdWd4YXl2dnJ6aGhocm5pYnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTM5MzMsImV4cCI6MjEwMzg4OTkzM30.DV70QpWt6J4-GuwFkrY5UHTw-dKFMv5_p_08V8euiNc';
-  var CODE_KEY = 'kontobuch-household-code';
-  var sb = null;
-  var householdCode = null;
-  var realtimeChannel = null;
-  var saveRetryTimer = null;
-  var savePending = false;
-
-  async function loadState(){
-    try{
-      var res = await sb.from('households').select('data').eq('code', householdCode).maybeSingle();
-      if(res.error) throw res.error;
-      if(res.data && res.data.data){
-        state = res.data.data;
-        if(!state.categories) state.categories = DEFAULT_STATE.categories;
-        if(!state.savings) state.savings = [];
-        if(!state.budgets) state.budgets = {};
-        if(!state.recurring) state.recurring = [];
-      } else {
-        state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-        var ins = await sb.from('households').insert({ code: householdCode, data: state });
-        if(ins.error) throw ins.error;
-      }
-    } catch(e){
-      console.error("Laden fehlgeschlagen", e);
-      state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-      lastFailureWasLoad = true;
-      showSaveBanner("Verbindung zur Cloud fehlgeschlagen. Prüfe deine Internetverbindung und tippe auf Erneut.");
-    }
-  }
-
-  async function saveState(){
-    savePending = true;
-    try{
-      var res = await sb.from('households').upsert(
-        { code: householdCode, data: state, updated_at: new Date().toISOString() },
-        { onConflict: 'code' }
-      );
-      if(res.error) throw res.error;
-      savePending = false;
-      lastFailureWasLoad = false;
-      hideSaveBanner();
-      return true;
-    } catch(e){
-      savePending = false;
-      console.error("Speichern fehlgeschlagen", e);
-      lastFailureWasLoad = false;
-      showSaveBanner("Nicht in der Cloud gespeichert. Bitte Daten unten manuell sichern.");
-      return false;
-    }
-  }
-
-  function applyRemoteState(newData){
-    if(!newData) return;
-    var newStr = JSON.stringify(newData);
-    if(newStr === JSON.stringify(state)) return;
-    state = newData;
-    if(!state.categories) state.categories = DEFAULT_STATE.categories;
-    if(!state.savings) state.savings = [];
-    if(!state.budgets) state.budgets = {};
-    if(!state.recurring) state.recurring = [];
-    renderAll();
-  }
-
-  function subscribeRealtime(){
-    if(!sb || !householdCode) return;
-    if(realtimeChannel){ sb.removeChannel(realtimeChannel); }
-    realtimeChannel = sb.channel('household-'+householdCode)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'households', filter: 'code=eq.'+householdCode },
-        function(payload){
-          if(payload.new && payload.new.data){ applyRemoteState(payload.new.data); }
-        }
-      )
-      .subscribe();
-  }
-
-  function startPolling(){
-    setInterval(async function(){
-      if(!householdCode || savePending) return;
-      try{
-        var res = await sb.from('households').select('data').eq('code', householdCode).maybeSingle();
-        if(!res.error && res.data){ applyRemoteState(res.data.data); }
-      } catch(e){ /* stiller Fallback, nächster Versuch folgt */ }
-    }, 15000);
-  }
-
-  function showSaveBanner(msg){
-    var b = document.getElementById('saveBanner');
-    if(!b) return;
-    if(msg) b.querySelector('span').textContent = msg;
-    b.style.display = 'flex';
-  }
-  function hideSaveBanner(){
-    var b = document.getElementById('saveBanner');
-    if(!b) return;
-    b.style.display = 'none';
-  }
-
-  /* ---------- Navigation ---------- */
-  document.querySelectorAll('.tabbar button').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      switchView(btn.getAttribute('data-view'));
-    });
-  });
-  function switchView(name){
-    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
-    document.getElementById('view-'+name).classList.add('active');
-    document.querySelectorAll('.tabbar button').forEach(function(b){
-      b.classList.toggle('active', b.getAttribute('data-view')===name);
-    });
-    if(name==='overview') renderOverview();
-    if(name==='budget') renderBudget();
-    if(name==='savings') renderSavings();
-    if(name==='stats') renderStats();
-  }
-
-  document.getElementById('prevMonth').addEventListener('click', function(){
-    viewingDate.setMonth(viewingDate.getMonth()-1);
-    renderAll();
-  });
-  document.getElementById('nextMonth').addEventListener('click', function(){
-    viewingDate.setMonth(viewingDate.getMonth()+1);
-    renderAll();
-  });
-
-  function renderAll(){
-    document.getElementById('monthLabel').textContent = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
-    renderOverview();
-    renderBudget();
-    renderSavings();
-    renderStats();
-    populateCategorySelect();
-    populateRecCategorySelect();
-  }
-
-  /* ---------- Overview ---------- */
+  /* ================= Overview ================= */
   function sumsForMonth(key){
     var inc=0, exp=0;
     state.transactions.forEach(function(t){
@@ -795,13 +1063,8 @@
       });
     });
   }
-  function escapeHtml(s){
-    return s.replace(/[&<>"']/g, function(c){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
-  }
 
-  /* ---------- Add form ---------- */
+  /* ================= Add form ================= */
   document.getElementById('modeOnetimeBtn').addEventListener('click', function(){
     document.getElementById('modeOnetimeBtn').classList.add('active');
     document.getElementById('modeRecurringBtn').classList.remove('active');
@@ -932,7 +1195,7 @@
     switchView('overview');
   });
 
-  /* ---------- Statistik ---------- */
+  /* ================= Statistik ================= */
   function buildLineChartSVG(months, sums){
     var w = 400, h = 170, padL = 8, padR = 8, padT = 14, padB = 26;
     var maxVal = 1;
@@ -1006,7 +1269,7 @@
     }
   }
 
-  /* ---------- Budget ---------- */
+  /* ================= Budget ================= */
   function renderBudget(){
     var key = monthKey(viewingDate);
     var spentByCat = {};
@@ -1064,17 +1327,13 @@
     });
   }
 
-  /* ---------- Savings ---------- */
+  /* ================= Savings ================= */
   function monthsUntil(deadlineStr){
     var today = new Date(); today.setHours(0,0,0,0);
     var deadline = new Date(deadlineStr+'T00:00:00');
     var months = (deadline.getFullYear()-today.getFullYear())*12 + (deadline.getMonth()-today.getMonth());
     if(deadline.getDate() < today.getDate()) months -= 1;
     return months;
-  }
-  function fmtDate(dateStr){
-    var d = new Date(dateStr+'T00:00:00');
-    return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
   }
 
   function renderSavings(){
@@ -1169,12 +1428,276 @@
     renderSavings();
   });
 
-  var lastFailureWasLoad = false;
+  /* ================= Einkaufsliste ================= */
+  function renderShopping(){
+    var el = document.getElementById('shoppingList');
+    if(!el) return;
+    if(state.shopping.length===0){
+      el.innerHTML = '<p class="empty">Die Liste ist leer.</p>';
+      return;
+    }
+    var sorted = state.shopping.slice().sort(function(a,b){ return (a.checked===b.checked) ? 0 : (a.checked?1:-1); });
+    el.innerHTML = sorted.map(function(it){
+      return '<div class="simple-row">'+
+        '<div class="check'+(it.checked?' done':'')+'" data-id="'+it.id+'">'+(it.checked?'✓':'')+'</div>'+
+        '<div class="stext"><div class="stitle'+(it.checked?' done':'')+'">'+escapeHtml(it.name)+'</div></div>'+
+        '<button class="sdel" data-id="'+it.id+'">×</button>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('.check').forEach(function(c){
+      c.addEventListener('click', function(){
+        var id = c.getAttribute('data-id');
+        var it = state.shopping.find(function(x){ return x.id===id; });
+        it.checked = !it.checked;
+        saveState();
+        renderShopping();
+      });
+    });
+    el.querySelectorAll('.sdel').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id = b.getAttribute('data-id');
+        state.shopping = state.shopping.filter(function(x){ return x.id!==id; });
+        saveState();
+        renderShopping();
+      });
+    });
+  }
+  document.getElementById('addShopBtn').addEventListener('click', function(){
+    var input = document.getElementById('shopNameInput');
+    var val = input.value.trim();
+    if(!val) return;
+    state.shopping.push({ id: uid(), name: val, checked: false });
+    saveState();
+    input.value = '';
+    renderShopping();
+  });
+  document.getElementById('shopNameInput').addEventListener('keydown', function(e){
+    if(e.key==='Enter') document.getElementById('addShopBtn').click();
+  });
+  document.getElementById('clearCheckedShopBtn').addEventListener('click', function(){
+    state.shopping = state.shopping.filter(function(x){ return !x.checked; });
+    saveState();
+    renderShopping();
+  });
 
+  /* ================= To-Dos ================= */
+  function renderTodos(){
+    var el = document.getElementById('todoList');
+    if(!el) return;
+    if(state.todos.length===0){
+      el.innerHTML = '<p class="empty">Keine Aufgaben.</p>';
+      return;
+    }
+    var sorted = state.todos.slice().sort(function(a,b){
+      if(a.done!==b.done) return a.done?1:-1;
+      return (a.dueDate||'9999').localeCompare(b.dueDate||'9999');
+    });
+    el.innerHTML = sorted.map(function(t){
+      return '<div class="simple-row">'+
+        '<div class="check'+(t.done?' done':'')+'" data-id="'+t.id+'">'+(t.done?'✓':'')+'</div>'+
+        '<div class="stext"><div class="stitle'+(t.done?' done':'')+'">'+escapeHtml(t.text)+'</div>'+
+        (t.dueDate ? '<div class="ssub">Fällig am '+fmtDate(t.dueDate)+'</div>' : '')+'</div>'+
+        '<button class="sdel" data-id="'+t.id+'">×</button>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('.check').forEach(function(c){
+      c.addEventListener('click', function(){
+        var id = c.getAttribute('data-id');
+        var t = state.todos.find(function(x){ return x.id===id; });
+        t.done = !t.done;
+        saveState();
+        renderTodos();
+      });
+    });
+    el.querySelectorAll('.sdel').forEach(function(b){
+      b.addEventListener('click', function(){
+        var id = b.getAttribute('data-id');
+        state.todos = state.todos.filter(function(x){ return x.id!==id; });
+        saveState();
+        renderTodos();
+      });
+    });
+  }
+  document.getElementById('addTodoBtn').addEventListener('click', function(){
+    var textInput = document.getElementById('todoTextInput');
+    var dueInput = document.getElementById('todoDueInput');
+    var val = textInput.value.trim();
+    if(!val) return;
+    state.todos.push({ id: uid(), text: val, done: false, dueDate: dueInput.value || null });
+    saveState();
+    textInput.value = '';
+    dueInput.value = '';
+    renderTodos();
+  });
+
+  /* ================= Notizen ================= */
+  function renderNotesList(){
+    var el = document.getElementById('noteList');
+    if(!el) return;
+    if(state.notes.length===0){
+      el.innerHTML = '<p class="empty">Noch keine Notizen.</p>';
+      return;
+    }
+    var sorted = state.notes.slice().sort(function(a,b){ return (b.updatedAt||'').localeCompare(a.updatedAt||''); });
+    el.innerHTML = sorted.map(function(n){
+      return '<div class="note-card" data-id="'+n.id+'">'+
+        '<div class="ntitle">'+escapeHtml(n.title||'Ohne Titel')+'</div>'+
+        '<div class="nsnippet">'+escapeHtml(n.text||'')+'</div>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('.note-card').forEach(function(c){
+      c.addEventListener('click', function(){ openNoteEdit(c.getAttribute('data-id')); });
+    });
+  }
+  function openNoteEdit(id){
+    editingNoteId = id;
+    var n = id ? state.notes.find(function(x){ return x.id===id; }) : { title:'', text:'' };
+    document.getElementById('noteTitleInput').value = n.title || '';
+    document.getElementById('noteTextInput').value = n.text || '';
+    document.getElementById('notesListView').style.display = 'none';
+    document.getElementById('noteEditView').style.display = 'block';
+    document.getElementById('deleteNoteBtn').style.display = id ? 'block' : 'none';
+  }
+  function closeNoteEdit(){
+    editingNoteId = null;
+    document.getElementById('notesListView').style.display = 'block';
+    document.getElementById('noteEditView').style.display = 'none';
+    renderNotesList();
+  }
+  document.getElementById('newNoteBtn').addEventListener('click', function(){ openNoteEdit(null); });
+  document.getElementById('cancelNoteBtn').addEventListener('click', closeNoteEdit);
+  document.getElementById('saveNoteBtn').addEventListener('click', function(){
+    var title = document.getElementById('noteTitleInput').value.trim();
+    var text = document.getElementById('noteTextInput').value.trim();
+    if(!title && !text){ closeNoteEdit(); return; }
+    if(editingNoteId){
+      var n = state.notes.find(function(x){ return x.id===editingNoteId; });
+      n.title = title; n.text = text; n.updatedAt = new Date().toISOString();
+    } else {
+      state.notes.push({ id: uid(), title: title, text: text, updatedAt: new Date().toISOString() });
+    }
+    saveState();
+    closeNoteEdit();
+  });
+  document.getElementById('deleteNoteBtn').addEventListener('click', function(){
+    if(!editingNoteId) return;
+    state.notes = state.notes.filter(function(x){ return x.id!==editingNoteId; });
+    saveState();
+    closeNoteEdit();
+  });
+
+  /* ================= Kalender ================= */
+  function renderCalendar(){
+    var el = document.getElementById('calendarList');
+    if(!el) return;
+    var todayStr = todayISO();
+    var upcoming = state.calendar.filter(function(ev){ return ev.date >= todayStr; })
+      .sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); });
+    if(upcoming.length===0){
+      el.innerHTML = '<p class="empty">Keine anstehenden Termine.</p>';
+    } else {
+      el.innerHTML = upcoming.map(function(ev){
+        var d = new Date(ev.date+'T00:00:00');
+        return '<div class="cal-card">'+
+          '<div class="cal-date"><div class="cd-day">'+String(d.getDate()).padStart(2,'0')+'</div><div class="cd-mon">'+MONTH_NAMES[d.getMonth()].slice(0,3)+'</div></div>'+
+          '<div class="cal-info"><div class="ctitle">'+escapeHtml(ev.title)+'</div>'+
+          (ev.time ? '<div class="ctime">'+ev.time+' Uhr</div>' : '')+
+          (ev.note ? '<div class="cnote">'+escapeHtml(ev.note)+'</div>' : '')+
+          (ev.remind ? '<div class="cal-bell">🔔 Erinnerung aktiv</div>' : '')+
+          '</div>'+
+          '<button class="cal-del" data-id="'+ev.id+'">×</button>'+
+        '</div>';
+      }).join('');
+      el.querySelectorAll('.cal-del').forEach(function(b){
+        b.addEventListener('click', function(){
+          var id = b.getAttribute('data-id');
+          state.calendar = state.calendar.filter(function(x){ return x.id!==id; });
+          saveState();
+          renderCalendar();
+        });
+      });
+    }
+    updatePushBanner();
+  }
+  document.getElementById('addCalBtn').addEventListener('click', function(){
+    var title = document.getElementById('calTitleInput').value.trim();
+    var date = document.getElementById('calDateInput').value;
+    var time = document.getElementById('calTimeInput').value;
+    var note = document.getElementById('calNoteInput').value.trim();
+    var remind = document.getElementById('calRemindInput').checked;
+    if(!title || !date) return;
+    state.calendar.push({ id: uid(), title: title, date: date, time: time||null, note: note, remind: remind });
+    saveState();
+    document.getElementById('calTitleInput').value = '';
+    document.getElementById('calDateInput').value = '';
+    document.getElementById('calTimeInput').value = '';
+    document.getElementById('calNoteInput').value = '';
+    document.getElementById('calRemindInput').checked = false;
+    renderCalendar();
+  });
+
+  /* ================= Push-Benachrichtigungen ================= */
+  function urlBase64ToUint8Array(base64String){
+    var padding = '='.repeat((4 - base64String.length % 4) % 4);
+    var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    var rawData = atob(base64);
+    var outputArray = new Uint8Array(rawData.length);
+    for(var i=0; i<rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray;
+  }
+
+  function updatePushBanner(){
+    var banner = document.getElementById('pushPromptBanner');
+    if(!banner) return;
+    var hasReminders = state.calendar.some(function(ev){ return ev.remind; });
+    var supported = 'serviceWorker' in navigator && 'PushManager' in window;
+    if(!supported){
+      banner.style.display = 'none';
+      return;
+    }
+    if(Notification.permission === 'granted'){
+      banner.style.display = 'none';
+      return;
+    }
+    banner.style.display = hasReminders ? 'block' : 'none';
+  }
+
+  document.getElementById('enablePushBtn').addEventListener('click', async function(){
+    var btn = document.getElementById('enablePushBtn');
+    try{
+      if(!('serviceWorker' in navigator) || !('PushManager' in window)){
+        alert('Push-Benachrichtigungen werden auf diesem Gerät/Browser nicht unterstützt.');
+        return;
+      }
+      var permission = await Notification.requestPermission();
+      if(permission !== 'granted'){
+        alert('Ohne Erlaubnis kann ich dich leider nicht benachrichtigen.');
+        return;
+      }
+      btn.textContent = 'Aktiviere…';
+      var reg = await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      await sb.from('push_subscriptions').upsert({
+        code: householdCode,
+        endpoint: sub.endpoint,
+        subscription: sub.toJSON()
+      }, { onConflict: 'endpoint' });
+      document.getElementById('pushPromptBanner').style.display = 'none';
+    } catch(e){
+      console.error('Push-Anmeldung fehlgeschlagen', e);
+      alert('Push-Anmeldung hat nicht geklappt. Bitte später erneut versuchen.');
+      btn.textContent = 'Benachrichtigungen aktivieren';
+    }
+  });
+
+  /* ================= Backup / Haushalt ================= */
   document.getElementById('retrySaveBtn').addEventListener('click', async function(){
     if(lastFailureWasLoad){
       await loadState();
-      renderAll();
+      renderCurrentScreen();
     } else {
       saveState();
     }
@@ -1206,11 +1729,9 @@
       var parsed = JSON.parse(raw);
       if(!parsed.transactions || !parsed.categories){ throw new Error('Ungültiges Format'); }
       state = parsed;
-      if(!state.savings) state.savings = [];
-      if(!state.budgets) state.budgets = {};
-      if(!state.recurring) state.recurring = [];
+      applyDefaults();
       saveState();
-      renderAll();
+      renderCurrentScreen();
       document.getElementById('backupIn').value = '';
       document.getElementById('restoreBackupBtn').textContent = 'Wiederhergestellt ✓';
       setTimeout(function(){ document.getElementById('restoreBackupBtn').textContent = 'Wiederherstellen (überschreibt aktuellen Stand)'; }, 2200);
@@ -1239,7 +1760,7 @@
   });
 
   document.getElementById('switchHouseholdBtn').addEventListener('click', function(){
-    if(confirm('Haushalt wechseln? Du wirst nach einem neuen Code gefragt, aktuelle Ansicht bleibt auf diesem Gerät ungespeichert, falls nicht gesichert.')){
+    if(confirm('Haushalt wechseln? Du wirst nach einem neuen Code gefragt.')){
       localStorage.removeItem(CODE_KEY);
       location.reload();
     }
@@ -1251,12 +1772,13 @@
     await generateDueRecurring();
     setType('expense');
     setRecType('expense');
-    renderAll();
+    renderCurrentScreen();
+    document.getElementById('monthLabel').textContent = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
     subscribeRealtime();
     startPolling();
   }
 
-  /* ---------- Init ---------- */
+  /* ================= Init ================= */
   (async function init(){
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     if('serviceWorker' in navigator){
