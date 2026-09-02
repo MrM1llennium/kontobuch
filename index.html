@@ -177,6 +177,30 @@
   .new-cat-row input{ flex:1; }
   .link-btn{ background:none; border:none; color:var(--brass-strong); font-size:13px; padding:4px 0; cursor:pointer; text-decoration:underline; }
 
+  .mode-switch{
+    display:flex; border:1px solid var(--ink); border-radius:6px; overflow:hidden; margin-bottom:6px;
+  }
+  .mode-switch button{
+    flex:1; padding:12px; border:none; background:var(--paper);
+    font-family:'Source Serif 4',serif; font-size:14.5px; color:var(--ink); cursor:pointer;
+  }
+  .mode-switch button.active{ background:var(--ink); color:var(--paper); }
+
+  .rec-card{
+    margin:0 20px 10px; padding:14px 16px; background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:8px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .rec-card .rec-info{ min-width:0; }
+  .rec-card .rec-name{ font-size:14.5px; }
+  .rec-card .rec-meta{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .rec-card .rec-amt{ font-family:'IBM Plex Mono',monospace; font-size:14.5px; white-space:nowrap; }
+  .rec-card .rec-amt.income{ color:var(--green); }
+  .rec-card .rec-amt.expense{ color:var(--red); }
+  .rec-card .rec-del{ border:none; background:none; color:var(--ink-soft); opacity:.5; font-size:16px; padding:4px; cursor:pointer; flex-shrink:0; }
+
+  .goal-deadline{ font-size:12px; color:var(--brass-strong); margin:-2px 0 8px; }
+
   /* ---------- Budget ---------- */
   .budget-card{
     margin:0 20px 16px; padding:16px; background:var(--paper-raised);
@@ -285,6 +309,7 @@
       <p class="label">Saldo diesen Monat</p>
       <p class="balance num" id="heroBalance">0,00 €</p>
       <div class="delta" id="heroDelta"></div>
+      <p id="heroForecast" style="font-size:12.5px;color:var(--ink-soft);margin:10px 0 0;display:none;line-height:1.5;"></p>
     </div>
     <div class="flow">
       <div class="flow-col">
@@ -319,34 +344,71 @@
 
   <!-- ADD -->
   <main class="view" id="view-add">
-    <h2 class="page-title">Neue Buchung</h2>
-    <div class="form-wrap">
-      <div class="type-switch">
-        <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
-        <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
+    <h2 class="page-title">Buchen</h2>
+    <div class="form-wrap" style="padding-bottom:0;">
+      <div class="mode-switch">
+        <button type="button" id="modeOnetimeBtn" class="active">Einmalig</button>
+        <button type="button" id="modeRecurringBtn">Wiederkehrend</button>
       </div>
-      <div class="field">
-        <label for="amountInput">Betrag</label>
-        <input type="number" inputmode="decimal" step="0.01" min="0" id="amountInput" class="num-input" placeholder="0,00">
-      </div>
-      <div class="field">
-        <label for="categorySelect">Kategorie</label>
-        <select id="categorySelect"></select>
-        <button type="button" class="link-btn" id="showNewCat">+ neue Kategorie</button>
-        <div class="new-cat-row" id="newCatRow" style="display:none;">
-          <input type="text" id="newCatInput" placeholder="Kategoriename">
-          <button type="button" class="btn" style="width:auto;padding:10px 14px;" id="addCatBtn">OK</button>
+    </div>
+
+    <div id="addOnetime">
+      <div class="form-wrap" style="padding-top:0;">
+        <div class="type-switch">
+          <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
+          <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
         </div>
+        <div class="field">
+          <label for="amountInput">Betrag</label>
+          <input type="number" inputmode="decimal" step="0.01" min="0" id="amountInput" class="num-input" placeholder="0,00">
+        </div>
+        <div class="field">
+          <label for="categorySelect">Kategorie</label>
+          <select id="categorySelect"></select>
+          <button type="button" class="link-btn" id="showNewCat">+ neue Kategorie</button>
+          <div class="new-cat-row" id="newCatRow" style="display:none;">
+            <input type="text" id="newCatInput" placeholder="Kategoriename">
+            <button type="button" class="btn" style="width:auto;padding:10px 14px;" id="addCatBtn">OK</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="dateInput">Datum</label>
+          <input type="date" id="dateInput">
+        </div>
+        <div class="field">
+          <label for="noteInput">Notiz (optional)</label>
+          <input type="text" id="noteInput" placeholder="z. B. Wocheneinkauf">
+        </div>
+        <button class="btn" id="saveEntryBtn">Buchen</button>
       </div>
-      <div class="field">
-        <label for="dateInput">Datum</label>
-        <input type="date" id="dateInput">
+    </div>
+
+    <div id="addRecurring" style="display:none;">
+      <p class="page-sub">Wird ab jetzt automatisch am gewählten Tag jeden Monat gebucht — z. B. Gehalt, Miete, Strom, Versicherungen.</p>
+      <div id="recurringList" style="margin-top:14px;"></div>
+      <div class="form-wrap" style="padding-top:6px;">
+        <div class="type-switch" style="margin-bottom:20px;">
+          <button type="button" id="recTypeIncomeBtn" class="income">Einnahme</button>
+          <button type="button" id="recTypeExpenseBtn" class="expense active">Ausgabe</button>
+        </div>
+        <div class="field">
+          <label for="recName">Bezeichnung</label>
+          <input type="text" id="recName" placeholder="z. B. Gehalt, Miete, Netflix">
+        </div>
+        <div class="field">
+          <label for="recAmount">Betrag</label>
+          <input type="number" inputmode="decimal" step="0.01" min="0" id="recAmount" class="num-input" placeholder="0,00">
+        </div>
+        <div class="field">
+          <label for="recCategory">Kategorie</label>
+          <select id="recCategory"></select>
+        </div>
+        <div class="field">
+          <label for="recDay">Tag im Monat</label>
+          <input type="number" inputmode="numeric" min="1" max="31" id="recDay" placeholder="z. B. 1">
+        </div>
+        <button class="btn" id="saveRecurringBtn">Wiederkehrende Buchung anlegen</button>
       </div>
-      <div class="field">
-        <label for="noteInput">Notiz (optional)</label>
-        <input type="text" id="noteInput" placeholder="z. B. Wocheneinkauf">
-      </div>
-      <button class="btn" id="saveEntryBtn">Buchen</button>
     </div>
   </main>
 
@@ -377,12 +439,25 @@
           <label for="goalSaved">Bereits gespart (optional)</label>
           <input type="number" inputmode="decimal" step="0.01" min="0" id="goalSaved" class="num-input" placeholder="0,00">
         </div>
+        <div class="field">
+          <label for="goalDeadline">Zieldatum (optional)</label>
+          <input type="date" id="goalDeadline">
+        </div>
         <div class="btn-row">
           <button class="btn ghost" id="cancelGoalBtn">Abbrechen</button>
           <button class="btn" id="createGoalBtn">Anlegen</button>
         </div>
       </div>
     </div>
+  </main>
+
+  <!-- STATISTIK -->
+  <main class="view" id="view-stats">
+    <h2 class="page-title">Statistik</h2>
+    <p class="page-sub">Verlauf der letzten 6 Monate und Ausgaben nach Kategorie.</p>
+    <div id="statsChart" style="padding:14px 20px 6px;"></div>
+    <p class="section-title">Ausgaben nach Kategorie — <span id="statsMonthLabel"></span></p>
+    <div id="statsCategoryList" style="padding:0 20px 30px;"></div>
   </main>
 
   <nav class="tabbar">
@@ -393,6 +468,10 @@
     <button data-view="add">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
       Buchen
+    </button>
+    <button data-view="stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17l5-6 4 3 6-8"/><path d="M3 20h18"/></svg>
+      Statistik
     </button>
     <button data-view="budget">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
@@ -414,6 +493,7 @@
     transactions: [],
     budgets: {},
     savings: [],
+    recurring: [],
     categories: {
       income: ["Gehalt","Nebeneinkommen","Sonstige Einnahmen"],
       expense: ["Miete","Lebensmittel","Transport","Freizeit","Versicherung","Sonstiges"]
@@ -444,6 +524,49 @@
     return Date.now().toString(36)+Math.random().toString(36).slice(2,7);
   }
 
+  /* ---------- Wiederkehrende Buchungen ---------- */
+  async function generateDueRecurring(){
+    if(!state.recurring || state.recurring.length===0) return;
+    var today = new Date();
+    var y = today.getFullYear(), m = today.getMonth();
+    var todayKey = monthKey(today);
+    var todayDate = today.getDate();
+    var daysInMonth = new Date(y, m+1, 0).getDate();
+    var changed = false;
+    state.recurring.forEach(function(r){
+      if(!r.active) return;
+      var bookDay = Math.min(r.day, daysInMonth);
+      if(todayDate < bookDay) return;
+      var already = state.transactions.some(function(t){ return t.recurringId===r.id && dateToKey(t.date)===todayKey; });
+      if(already) return;
+      var dateStr = y+'-'+String(m+1).padStart(2,'0')+'-'+String(bookDay).padStart(2,'0');
+      state.transactions.push({
+        id: uid(), type: r.type, amount: r.amount, category: r.category,
+        date: dateStr, note: r.name, recurringId: r.id, auto: true
+      });
+      changed = true;
+    });
+    if(changed) await saveState();
+  }
+
+  function pendingRecurringForCurrentMonth(){
+    var today = new Date();
+    var todayKey = monthKey(today);
+    var todayDate = today.getDate();
+    var daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+    var pendingInc = 0, pendingExp = 0;
+    (state.recurring||[]).forEach(function(r){
+      if(!r.active) return;
+      var already = state.transactions.some(function(t){ return t.recurringId===r.id && dateToKey(t.date)===todayKey; });
+      if(already) return;
+      var bookDay = Math.min(r.day, daysInMonth);
+      if(bookDay > todayDate){
+        if(r.type==='income') pendingInc += r.amount; else pendingExp += r.amount;
+      }
+    });
+    return { pendingInc: pendingInc, pendingExp: pendingExp };
+  }
+
   var SUPABASE_URL = 'https://kpugxayvvrzhhhrnibrx.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtwdWd4YXl2dnJ6aGhocm5pYnJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzMTM5MzMsImV4cCI6MjEwMzg4OTkzM30.DV70QpWt6J4-GuwFkrY5UHTw-dKFMv5_p_08V8euiNc';
   var CODE_KEY = 'kontobuch-household-code';
@@ -462,6 +585,7 @@
         if(!state.categories) state.categories = DEFAULT_STATE.categories;
         if(!state.savings) state.savings = [];
         if(!state.budgets) state.budgets = {};
+        if(!state.recurring) state.recurring = [];
       } else {
         state = JSON.parse(JSON.stringify(DEFAULT_STATE));
         var ins = await sb.from('households').insert({ code: householdCode, data: state });
@@ -504,6 +628,7 @@
     if(!state.categories) state.categories = DEFAULT_STATE.categories;
     if(!state.savings) state.savings = [];
     if(!state.budgets) state.budgets = {};
+    if(!state.recurring) state.recurring = [];
     renderAll();
   }
 
@@ -557,6 +682,7 @@
     if(name==='overview') renderOverview();
     if(name==='budget') renderBudget();
     if(name==='savings') renderSavings();
+    if(name==='stats') renderStats();
   }
 
   document.getElementById('prevMonth').addEventListener('click', function(){
@@ -573,7 +699,9 @@
     renderOverview();
     renderBudget();
     renderSavings();
+    renderStats();
     populateCategorySelect();
+    populateRecCategorySelect();
   }
 
   /* ---------- Overview ---------- */
@@ -610,6 +738,24 @@
       deltaEl.innerHTML = '<span class="tag '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+fmtEUR(Math.abs(diff))+'</span><span>ggü. '+MONTH_NAMES[prev.getMonth()]+'</span>';
     }
 
+    var forecastEl = document.getElementById('heroForecast');
+    var todayRealKey = monthKey(new Date());
+    if(key === todayRealKey){
+      var pending = pendingRecurringForCurrentMonth();
+      if(pending.pendingInc>0 || pending.pendingExp>0){
+        var forecastBalance = balance + pending.pendingInc - pending.pendingExp;
+        var parts = [];
+        if(pending.pendingInc>0) parts.push('+'+fmtEUR(pending.pendingInc)+' erwartet');
+        if(pending.pendingExp>0) parts.push('−'+fmtEUR(pending.pendingExp)+' fällig');
+        forecastEl.style.display = 'block';
+        forecastEl.innerHTML = 'Nach geplanten Buchungen: <span class="num" style="color:var(--ink);">'+fmtEUR(forecastBalance)+'</span><br>'+parts.join(' · ');
+      } else {
+        forecastEl.style.display = 'none';
+      }
+    } else {
+      forecastEl.style.display = 'none';
+    }
+
     document.getElementById('incVal').textContent = fmtEUR(cur.inc);
     document.getElementById('expVal').textContent = fmtEUR(cur.exp);
     document.getElementById('incValBig').textContent = fmtEUR(cur.inc);
@@ -632,7 +778,7 @@
       var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
       return '<div class="row">'+
         '<div class="rdate num">'+dd+'</div>'+
-        '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+'</div>'+
+        '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+'</div>'+
         (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
         '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
         '<button class="rdel" data-id="'+t.id+'" aria-label="Löschen">×</button>'+
@@ -656,6 +802,21 @@
   }
 
   /* ---------- Add form ---------- */
+  document.getElementById('modeOnetimeBtn').addEventListener('click', function(){
+    document.getElementById('modeOnetimeBtn').classList.add('active');
+    document.getElementById('modeRecurringBtn').classList.remove('active');
+    document.getElementById('addOnetime').style.display = 'block';
+    document.getElementById('addRecurring').style.display = 'none';
+  });
+  document.getElementById('modeRecurringBtn').addEventListener('click', function(){
+    document.getElementById('modeRecurringBtn').classList.add('active');
+    document.getElementById('modeOnetimeBtn').classList.remove('active');
+    document.getElementById('addRecurring').style.display = 'block';
+    document.getElementById('addOnetime').style.display = 'none';
+    renderRecurring();
+    populateRecCategorySelect();
+  });
+
   document.getElementById('typeIncomeBtn').addEventListener('click', function(){ setType('income'); });
   document.getElementById('typeExpenseBtn').addEventListener('click', function(){ setType('expense'); });
   function setType(t){
@@ -669,6 +830,70 @@
     var list = state.categories[currentType];
     sel.innerHTML = list.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
   }
+
+  var recCurrentType = 'expense';
+  document.getElementById('recTypeIncomeBtn').addEventListener('click', function(){ setRecType('income'); });
+  document.getElementById('recTypeExpenseBtn').addEventListener('click', function(){ setRecType('expense'); });
+  function setRecType(t){
+    recCurrentType = t;
+    document.getElementById('recTypeIncomeBtn').classList.toggle('active', t==='income');
+    document.getElementById('recTypeExpenseBtn').classList.toggle('active', t==='expense');
+    populateRecCategorySelect();
+  }
+  function populateRecCategorySelect(){
+    var sel = document.getElementById('recCategory');
+    var list = state.categories[recCurrentType];
+    sel.innerHTML = list.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
+  }
+
+  function renderRecurring(){
+    var el = document.getElementById('recurringList');
+    if(!state.recurring || state.recurring.length===0){
+      el.innerHTML = '<p class="empty">Noch keine wiederkehrenden Buchungen.</p>';
+      return;
+    }
+    var sorted = state.recurring.slice().sort(function(a,b){ return a.day-b.day; });
+    el.innerHTML = sorted.map(function(r){
+      return '<div class="rec-card">'+
+        '<div class="rec-info"><div class="rec-name">'+escapeHtml(r.name)+'</div>'+
+        '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'. · '+(r.type==='income'?'Einnahme':'Ausgabe')+'</div></div>'+
+        '<div class="rec-amt '+r.type+'">'+(r.type==='income'?'+':'−')+fmtEUR(r.amount)+'</div>'+
+        '<button class="rec-del" data-id="'+r.id+'" aria-label="Löschen">×</button>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('.rec-del').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-id');
+        state.recurring = state.recurring.filter(function(r){ return r.id!==id; });
+        saveState();
+        renderRecurring();
+      });
+    });
+  }
+
+  document.getElementById('saveRecurringBtn').addEventListener('click', async function(){
+    var name = document.getElementById('recName').value.trim();
+    var amount = parseFloat(document.getElementById('recAmount').value);
+    var category = document.getElementById('recCategory').value;
+    var day = parseInt(document.getElementById('recDay').value, 10);
+    if(!name || !amount || amount<=0 || !day || day<1 || day>31){
+      alert('Bitte Bezeichnung, Betrag und einen gültigen Tag (1–31) angeben.');
+      return;
+    }
+    state.recurring.push({
+      id: uid(), type: recCurrentType, category: category,
+      amount: Math.round(amount*100)/100, day: day, name: name, active: true
+    });
+    await generateDueRecurring();
+    await saveState();
+    document.getElementById('recName').value = '';
+    document.getElementById('recAmount').value = '';
+    document.getElementById('recDay').value = '';
+    renderRecurring();
+    renderOverview();
+    renderBudget();
+  });
+
   document.getElementById('showNewCat').addEventListener('click', function(){
     document.getElementById('newCatRow').style.display = 'flex';
     document.getElementById('newCatInput').focus();
@@ -681,6 +906,7 @@
       saveState();
     }
     populateCategorySelect();
+    populateRecCategorySelect();
     document.getElementById('categorySelect').value = val;
     document.getElementById('newCatInput').value = '';
     document.getElementById('newCatRow').style.display = 'none';
@@ -705,6 +931,80 @@
     document.getElementById('noteInput').value = '';
     switchView('overview');
   });
+
+  /* ---------- Statistik ---------- */
+  function buildLineChartSVG(months, sums){
+    var w = 400, h = 170, padL = 8, padR = 8, padT = 14, padB = 26;
+    var maxVal = 1;
+    sums.forEach(function(s){ maxVal = Math.max(maxVal, s.inc, s.exp); });
+    var stepX = (w-padL-padR) / Math.max(months.length-1, 1);
+    function xy(i, val){
+      var x = padL + i*stepX;
+      var y = padT + (1 - val/maxVal) * (h-padT-padB);
+      return [x,y];
+    }
+    function pathFor(key){
+      return sums.map(function(s,i){
+        var p = xy(i, s[key]);
+        return (i===0?'M':'L')+p[0].toFixed(1)+','+p[1].toFixed(1);
+      }).join(' ');
+    }
+    var dots = sums.map(function(s,i){
+      var pi = xy(i, s.inc), pe = xy(i, s.exp);
+      return '<circle cx="'+pi[0].toFixed(1)+'" cy="'+pi[1].toFixed(1)+'" r="2.6" fill="#2E6B52"/>'+
+             '<circle cx="'+pe[0].toFixed(1)+'" cy="'+pe[1].toFixed(1)+'" r="2.6" fill="#A03A2C"/>';
+    }).join('');
+    var labels = months.map(function(d,i){
+      var p = xy(i,0);
+      return '<text x="'+p[0].toFixed(1)+'" y="'+(h-8)+'" font-size="9.5" fill="#6B6B5E" text-anchor="middle" font-family="IBM Plex Mono, monospace">'+MONTH_NAMES[d.getMonth()].slice(0,3)+'</text>';
+    }).join('');
+    return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%; height:auto; display:block;">'+
+      '<path d="'+pathFor('inc')+'" fill="none" stroke="#2E6B52" stroke-width="2"/>'+
+      '<path d="'+pathFor('exp')+'" fill="none" stroke="#A03A2C" stroke-width="2"/>'+
+      dots + labels +
+      '</svg>'+
+      '<div style="display:flex; gap:16px; margin-top:8px; font-size:11.5px; color:var(--ink-soft);">'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2E6B52;margin-right:5px;"></span>Einnahmen</span>'+
+        '<span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#A03A2C;margin-right:5px;"></span>Ausgaben</span>'+
+      '</div>';
+  }
+
+  function renderStats(){
+    var chartEl = document.getElementById('statsChart');
+    if(!chartEl) return;
+    document.getElementById('statsMonthLabel').textContent = MONTH_NAMES[viewingDate.getMonth()] + ' ' + viewingDate.getFullYear();
+
+    var months = [];
+    for(var i=5; i>=0; i--){
+      var d = new Date(viewingDate);
+      d.setMonth(d.getMonth()-i);
+      months.push(d);
+    }
+    var sums = months.map(function(d){ return sumsForMonth(monthKey(d)); });
+    chartEl.innerHTML = buildLineChartSVG(months, sums);
+
+    var key = monthKey(viewingDate);
+    var byCat = {};
+    state.transactions.forEach(function(t){
+      if(t.type==='expense' && dateToKey(t.date)===key){
+        byCat[t.category] = (byCat[t.category]||0) + t.amount;
+      }
+    });
+    var entries = Object.keys(byCat).map(function(c){ return {cat:c, amt:byCat[c]}; }).sort(function(a,b){ return b.amt-a.amt; });
+    var maxAmt = entries.length ? entries[0].amt : 1;
+    var listEl = document.getElementById('statsCategoryList');
+    if(entries.length===0){
+      listEl.innerHTML = '<p class="empty">Keine Ausgaben in diesem Monat.</p>';
+    } else {
+      listEl.innerHTML = entries.map(function(e){
+        var pct = (e.amt/maxAmt*100);
+        return '<div style="margin-bottom:12px;">'+
+          '<div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:4px;"><span>'+escapeHtml(e.cat)+'</span><span class="num">'+fmtEUR(e.amt)+'</span></div>'+
+          '<div class="bar-track"><div class="bar-fill expense" style="width:'+pct+'%"></div></div>'+
+        '</div>';
+      }).join('');
+    }
+  }
 
   /* ---------- Budget ---------- */
   function renderBudget(){
@@ -765,6 +1065,18 @@
   }
 
   /* ---------- Savings ---------- */
+  function monthsUntil(deadlineStr){
+    var today = new Date(); today.setHours(0,0,0,0);
+    var deadline = new Date(deadlineStr+'T00:00:00');
+    var months = (deadline.getFullYear()-today.getFullYear())*12 + (deadline.getMonth()-today.getMonth());
+    if(deadline.getDate() < today.getDate()) months -= 1;
+    return months;
+  }
+  function fmtDate(dateStr){
+    var d = new Date(dateStr+'T00:00:00');
+    return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
+  }
+
   function renderSavings(){
     var el = document.getElementById('goalList');
     if(state.savings.length===0){
@@ -772,9 +1084,25 @@
     } else {
       el.innerHTML = state.savings.map(function(g){
         var pct = g.target>0 ? Math.min(g.saved/g.target*100,100) : 0;
+        var remaining = Math.max(g.target-g.saved, 0);
+        var deadlineHtml = '';
+        if(g.deadline){
+          if(remaining<=0){
+            deadlineHtml = '<div class="goal-deadline">Ziel erreicht 🎉</div>';
+          } else {
+            var m = monthsUntil(g.deadline);
+            if(m<=0){
+              deadlineHtml = '<div class="goal-deadline">Fällig bis '+fmtDate(g.deadline)+' — noch '+fmtEUR(remaining)+' nötig</div>';
+            } else {
+              var perMonth = remaining/m;
+              deadlineHtml = '<div class="goal-deadline">Bis '+fmtDate(g.deadline)+' — ca. '+fmtEUR(perMonth)+' / Monat nötig</div>';
+            }
+          }
+        }
         return '<div class="goal-card" data-id="'+g.id+'">'+
           '<div class="goal-head"><div class="gname">'+escapeHtml(g.name)+'</div><div class="goal-pct">'+Math.round(pct)+'%</div></div>'+
           '<div class="goal-nums">'+fmtEUR(g.saved)+' von '+fmtEUR(g.target)+'</div>'+
+          deadlineHtml +
           '<div class="goal-track"><div class="goal-fill" style="width:'+pct+'%"></div></div>'+
           '<div class="goal-actions">'+
             '<button type="button" class="dep-toggle">Einzahlen</button>'+
@@ -829,12 +1157,14 @@
     var name = document.getElementById('goalName').value.trim();
     var target = parseFloat(document.getElementById('goalTarget').value);
     var saved = parseFloat(document.getElementById('goalSaved').value) || 0;
+    var deadline = document.getElementById('goalDeadline').value || null;
     if(!name || !target || target<=0) return;
-    state.savings.push({ id: uid(), name: name, target: Math.round(target*100)/100, saved: Math.round(saved*100)/100 });
+    state.savings.push({ id: uid(), name: name, target: Math.round(target*100)/100, saved: Math.round(saved*100)/100, deadline: deadline });
     saveState();
     document.getElementById('goalName').value = '';
     document.getElementById('goalTarget').value = '';
     document.getElementById('goalSaved').value = '';
+    document.getElementById('goalDeadline').value = '';
     document.getElementById('newGoalForm').style.display = 'none';
     renderSavings();
   });
@@ -878,6 +1208,7 @@
       state = parsed;
       if(!state.savings) state.savings = [];
       if(!state.budgets) state.budgets = {};
+      if(!state.recurring) state.recurring = [];
       saveState();
       renderAll();
       document.getElementById('backupIn').value = '';
@@ -917,7 +1248,9 @@
   async function startApp(){
     document.getElementById('app').style.display = 'flex';
     await loadState();
+    await generateDueRecurring();
     setType('expense');
+    setRecType('expense');
     renderAll();
     subscribeRealtime();
     startPolling();
