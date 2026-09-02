@@ -1471,7 +1471,8 @@
 
   function renderTodayOverview(){
     var el = document.getElementById('todayOverview');
-    if(!el || !state) return;
+    if(!el) return;
+    if(!state){ el.innerHTML = '<p class="empty">Lädt…</p>'; return; }
     var todayStr = todayISO();
     var rows = [];
 
