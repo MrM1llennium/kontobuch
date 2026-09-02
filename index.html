@@ -461,6 +461,78 @@
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     font-family:'IBM Plex Mono',monospace; font-weight:600;
   }
+  /* ============================================================
+     THEME: MODERN (Apple-artiger, cleaner Stil)
+     Aktiviert über html[data-theme="modern"], per Einstellungen wählbar.
+     Überschreibt Farben, Schrift und die ledger-typischen Verzierungen
+     (Doppellinien, gepunktete Trenner), ohne das Ledger-Theme selbst
+     anzufassen.
+     ============================================================ */
+  html[data-theme="modern"]{
+    --paper:#F5F5F7;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#E8E8ED;
+    --ink:#1D1D1F;
+    --ink-soft:#6E6E73;
+    --line:#E3E3E7;
+    --red:#FF3B30;
+    --red-soft:#FFE3E1;
+    --green:#34C759;
+    --green-soft:#DEF7E4;
+    --brass:#0071E3;
+    --brass-soft:#D9EAFC;
+    --brass-strong:#0066CC;
+  }
+  html[data-theme="modern"] body{
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  }
+  html[data-theme="modern"] .num{
+    font-family:-apple-system, BlinkMacSystemFont, "SF Mono", Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  html[data-theme="modern"] .tile-name,
+  html[data-theme="modern"] .screen-title,
+  html[data-theme="modern"] h1,
+  html[data-theme="modern"] .page-title,
+  html[data-theme="modern"] .brand{
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  }
+  html[data-theme="modern"] .topbar{
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  html[data-theme="modern"] .tabbar,
+  html[data-theme="modern"] #topbarBackdrop{
+    border-top:1px solid rgba(255,255,255,.12);
+  }
+  html[data-theme="modern"] .tile,
+  html[data-theme="modern"] .today-card,
+  html[data-theme="modern"] .budget-card,
+  html[data-theme="modern"] .goal-card,
+  html[data-theme="modern"] .note-card,
+  html[data-theme="modern"] .cal-card,
+  html[data-theme="modern"] .rec-card,
+  html[data-theme="modern"] .meal-day,
+  html[data-theme="modern"] .simple-row,
+  html[data-theme="modern"] .push-banner{
+    border:none;
+    border-radius:16px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.06);
+  }
+  html[data-theme="modern"] .simple-row{ border-radius:0; box-shadow:none; }
+  html[data-theme="modern"] .btn{ border-radius:12px; }
+  html[data-theme="modern"] .type-switch,
+  html[data-theme="modern"] .mode-switch{ border-radius:12px; overflow:hidden; border-color:var(--line); }
+  html[data-theme="modern"] .field input,
+  html[data-theme="modern"] .field select,
+  html[data-theme="modern"] .field textarea{ border-radius:10px; }
+  html[data-theme="modern"] .row,
+  html[data-theme="modern"] .today-row,
+  html[data-theme="modern"] .meal-entry,
+  html[data-theme="modern"] .ingredient-select-row{
+    border-top-style:solid;
+  }
+  html[data-theme="modern"] .rdate{ font-weight:400; }
+  html[data-theme="modern"] .check{ border-radius:50%; }
 </style>
 </head>
 <body>
@@ -729,6 +801,15 @@
         <div style="display:flex; gap:8px;">
           <input type="text" id="newCategoryName" placeholder="Neue Kategorie" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
           <button class="btn" id="addCategoryBtn" style="width:auto; padding:12px 18px;">+</button>
+        </div>
+      </div>
+
+      <p class="section-title">Design</p>
+      <p class="page-sub" style="margin-top:-4px;">Wählt einen Stil — gilt pro Gerät.</p>
+      <div class="form-wrap" style="padding-top:10px;">
+        <div class="mode-switch" id="themeSwitch" style="margin-bottom:0;">
+          <button type="button" data-theme-choice="ledger" class="active">Ledger</button>
+          <button type="button" data-theme-choice="modern">Modern</button>
         </div>
       </div>
 
@@ -1192,6 +1273,29 @@
 
   /* ================= Nutzer & Avatare ================= */
   var CURRENT_USER_KEY = 'kontobuch-current-user-id';
+
+  /* ================= Design/Theme ================= */
+  var THEME_KEY = 'kontobuch-theme';
+  function applyTheme(theme){
+    if(theme==='modern'){
+      document.documentElement.setAttribute('data-theme', 'modern');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      theme = 'ledger';
+    }
+    document.querySelectorAll('#themeSwitch button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-theme-choice')===theme);
+    });
+  }
+  document.querySelectorAll('#themeSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var theme = b.getAttribute('data-theme-choice');
+      localStorage.setItem(THEME_KEY, theme);
+      applyTheme(theme);
+    });
+  });
+  applyTheme(localStorage.getItem(THEME_KEY) || 'ledger');
+
   var currentUserId = localStorage.getItem(CURRENT_USER_KEY) || null;
   var USER_COLORS = ['#A03A2C','#2E6B52','#A8813F','#5C6B8C','#7A4E8C','#3F7A6B'];
 
