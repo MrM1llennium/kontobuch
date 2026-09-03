@@ -170,6 +170,12 @@
   .flow-col .flabel{ font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; display:flex; justify-content:space-between; }
   .flow-col .fval{ font-family:'IBM Plex Mono',monospace; font-size:15px; margin-bottom:6px; }
   .bar-track{ height:6px; background:var(--paper-dark); border-radius:3px; overflow:hidden; }
+  .ratio-bar-track{
+    display:flex; height:10px; border-radius:5px; overflow:hidden;
+    background:var(--paper-dark); margin:2px 20px 20px;
+  }
+  .ratio-bar-inc{ background:var(--green); height:100%; }
+  .ratio-bar-exp{ background:var(--red); height:100%; }
   .bar-fill{ height:100%; border-radius:3px; }
   .bar-fill.income{ background:var(--green); }
   .bar-fill.expense{ background:var(--red); }
@@ -897,26 +903,26 @@
 
     <main class="view active" id="view-overview">
       <div class="hero">
-        <p class="label">Saldo diesen Monat</p>
-        <p class="balance num" id="heroBalance">0,00 €</p>
-        <div class="delta" id="heroDelta"></div>
-        <p id="heroForecast" style="font-size:12.5px;color:var(--ink-soft);margin:10px 0 0;display:none;line-height:1.5;"></p>
+        <p class="label">Gesamtguthaben <span id="cumulativeAsOf" style="font-weight:400;"></span></p>
+        <p class="balance num" id="heroCumulative">0,00 €</p>
         <div style="margin-top:14px; padding-top:14px; border-top:1px dotted var(--line);">
-          <p class="label" style="margin-bottom:4px;">Gesamtguthaben <span id="cumulativeAsOf" style="font-weight:400;"></span></p>
-          <p class="num" id="heroCumulative" style="font-size:22px; font-weight:600; margin:0;">0,00 €</p>
+          <p class="label" style="margin-bottom:4px;">Saldo diesen Monat</p>
+          <p class="num" id="heroBalance" style="font-size:22px; font-weight:600; margin:0;">0,00 €</p>
+          <div class="delta" id="heroDelta" style="margin-top:6px;"></div>
         </div>
+        <p id="heroForecast" style="font-size:12.5px;color:var(--ink-soft);margin:14px 0 0;display:none;line-height:1.6;"></p>
       </div>
       <div class="flow">
         <div class="flow-col">
           <div class="flabel"><span>Einnahmen</span><span class="num" id="incVal"></span></div>
-          <div class="fval num" id="incValBig"></div>
-          <div class="bar-track"><div class="bar-fill income" id="incBar"></div></div>
         </div>
-        <div class="flow-col">
-          <div class="flabel"><span>Ausgaben</span><span class="num" id="expVal"></span></div>
-          <div class="fval num" id="expValBig"></div>
-          <div class="bar-track"><div class="bar-fill expense" id="expBar"></div></div>
+        <div class="flow-col" style="text-align:right;">
+          <div class="flabel" style="justify-content:flex-end;"><span class="num" id="expVal"></span><span>Ausgaben</span></div>
         </div>
+      </div>
+      <div class="ratio-bar-track">
+        <div id="ratioIncBar" class="ratio-bar-inc"></div>
+        <div id="ratioExpBar" class="ratio-bar-exp"></div>
       </div>
       <p class="section-title">Buchungen</p>
       <div class="ledger" id="ledgerList"></div>
@@ -2023,21 +2029,31 @@
     if(changed) await saveState();
   }
 
-  function pendingRecurringForCurrentMonth(){
+  function pendingRecurringForMonth(viewDate){
     var today = new Date();
     var todayKey = monthKey(today);
-    var todayDate = today.getDate();
-    var daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+    var viewedKey = monthKey(viewDate);
+    if(viewedKey < todayKey) return null; // Vergangenheit: keine Prognose
     var pendingInc = 0, pendingExp = 0;
-    (state.recurring||[]).forEach(function(r){
-      if(!r.active) return;
-      var already = state.transactions.some(function(t){ return t.recurringId===r.id && dateToKey(t.date)===todayKey; });
-      if(already) return;
-      var bookDay = Math.min(r.day, daysInMonth);
-      if(bookDay > todayDate){
+    if(viewedKey === todayKey){
+      var todayDate = today.getDate();
+      var daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+      (state.recurring||[]).forEach(function(r){
+        if(!r.active) return;
+        var already = state.transactions.some(function(t){ return t.recurringId===r.id && dateToKey(t.date)===todayKey; });
+        if(already) return;
+        var bookDay = Math.min(r.day, daysInMonth);
+        if(bookDay > todayDate){
+          if(r.type==='income') pendingInc += r.amount; else pendingExp += r.amount;
+        }
+      });
+    } else {
+      // Künftiger Monat: alle aktiven, wiederkehrenden Regeln einmal komplett einrechnen
+      (state.recurring||[]).forEach(function(r){
+        if(!r.active) return;
         if(r.type==='income') pendingInc += r.amount; else pendingExp += r.amount;
-      }
-    });
+      });
+    }
     return { pendingInc: pendingInc, pendingExp: pendingExp };
   }
 
@@ -2089,15 +2105,32 @@
     var balance = cur.inc - cur.exp;
     var prevBalance = prv.inc - prv.exp;
 
-    var heroEl = document.getElementById('heroBalance');
-    heroEl.textContent = fmtEUR(balance);
-    heroEl.className = 'balance num ' + (balance<0 ? 'neg':'pos');
+    var todayRealKey = monthKey(new Date());
+    var isFuture = key > todayRealKey;
+    var isPast = key < todayRealKey;
 
-    var cumulative = cumulativeBalanceThroughMonth(key);
+    // --- Gesamtguthaben (groß, oben) ---
+    var cumulative, cumLabel;
+    if(isFuture){
+      cumulative = cumulativeBalanceThroughMonth(todayRealKey);
+      var now = new Date();
+      cumLabel = '(Stand '+MONTH_NAMES[now.getMonth()]+' '+now.getFullYear()+')';
+    } else if(!isPast){
+      cumulative = cumulativeBalanceThroughMonth(key);
+      cumLabel = '(Aktuell)';
+    } else {
+      cumulative = cumulativeBalanceThroughMonth(key);
+      cumLabel = '(Stand Ende '+MONTH_NAMES[viewingDate.getMonth()]+')';
+    }
     var cumEl = document.getElementById('heroCumulative');
     cumEl.textContent = fmtEUR(cumulative);
-    cumEl.style.color = cumulative<0 ? 'var(--red)' : 'var(--ink)';
-    document.getElementById('cumulativeAsOf').textContent = '(Stand Ende '+MONTH_NAMES[viewingDate.getMonth()]+')';
+    cumEl.className = 'balance num ' + (cumulative<0 ? 'neg':'pos');
+    document.getElementById('cumulativeAsOf').textContent = cumLabel;
+
+    // --- Saldo diesen Monat (kleiner, mit Farbe) ---
+    var balEl = document.getElementById('heroBalance');
+    balEl.textContent = fmtEUR(balance);
+    balEl.style.color = balance<0 ? 'var(--red)' : (balance>0 ? 'var(--green)' : 'var(--ink)');
 
     var deltaEl = document.getElementById('heroDelta');
     var diff = balance - prevBalance;
@@ -2109,30 +2142,29 @@
     }
 
     var forecastEl = document.getElementById('heroForecast');
-    var todayRealKey = monthKey(new Date());
-    if(key === todayRealKey){
-      var pending = pendingRecurringForCurrentMonth();
-      if(pending.pendingInc>0 || pending.pendingExp>0){
-        var forecastBalance = balance + pending.pendingInc - pending.pendingExp;
-        var parts = [];
-        if(pending.pendingInc>0) parts.push('+'+fmtEUR(pending.pendingInc)+' erwartet');
-        if(pending.pendingExp>0) parts.push('−'+fmtEUR(pending.pendingExp)+' fällig');
-        forecastEl.style.display = 'block';
-        forecastEl.innerHTML = 'Nach geplanten Buchungen: <span class="num" style="color:var(--ink);">'+fmtEUR(forecastBalance)+'</span><br>'+parts.join(' · ');
-      } else {
-        forecastEl.style.display = 'none';
-      }
+    var pending = pendingRecurringForMonth(viewingDate);
+    if(pending && (pending.pendingInc>0 || pending.pendingExp>0)){
+      var forecastBalance = balance + pending.pendingInc - pending.pendingExp;
+      var forecastCumulative = cumulative + pending.pendingInc - pending.pendingExp;
+      var parts = [];
+      if(pending.pendingInc>0) parts.push('+'+fmtEUR(pending.pendingInc)+' erwartet');
+      if(pending.pendingExp>0) parts.push('−'+fmtEUR(pending.pendingExp)+' fällig');
+      forecastEl.style.display = 'block';
+      forecastEl.innerHTML =
+        'Monat nach geplanten Buchungen: <span class="num" style="color:var(--ink);">'+fmtEUR(forecastBalance)+'</span><br>'+
+        'Guthaben nach geplanten Buchungen: <span class="num" style="color:var(--ink);">'+fmtEUR(forecastCumulative)+'</span><br>'+
+        parts.join(' · ');
     } else {
       forecastEl.style.display = 'none';
     }
 
     document.getElementById('incVal').textContent = fmtEUR(cur.inc);
     document.getElementById('expVal').textContent = fmtEUR(cur.exp);
-    document.getElementById('incValBig').textContent = fmtEUR(cur.inc);
-    document.getElementById('expValBig').textContent = fmtEUR(cur.exp);
-    var max = Math.max(cur.inc, cur.exp, 1);
-    document.getElementById('incBar').style.width = (cur.inc/max*100)+'%';
-    document.getElementById('expBar').style.width = (cur.exp/max*100)+'%';
+    var totalFlow = cur.inc + cur.exp;
+    var incPct = totalFlow>0 ? (cur.inc/totalFlow*100) : 50;
+    var expPct = totalFlow>0 ? (cur.exp/totalFlow*100) : 50;
+    document.getElementById('ratioIncBar').style.width = incPct+'%';
+    document.getElementById('ratioExpBar').style.width = expPct+'%';
 
     var list = state.transactions
       .filter(function(t){ return effectiveMonthKey(t)===key; })
