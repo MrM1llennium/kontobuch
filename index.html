@@ -263,7 +263,10 @@
     margin:0 20px 10px; padding:14px 16px; background:var(--paper-raised);
     border:1px solid var(--line); border-radius:8px;
     display:flex; align-items:center; justify-content:space-between; gap:10px;
+    cursor:pointer;
   }
+  .rec-card.paused{ opacity:.55; }
+  .rec-card .pause-tag{ font-size:10px; color:var(--ink-soft); background:var(--paper-dark); padding:2px 7px; border-radius:8px; margin-top:4px; display:inline-block; }
   .rec-card .rec-info{ min-width:0; }
   .rec-card .rec-name{ font-size:14.5px; }
   .rec-card .rec-meta{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
@@ -781,6 +784,45 @@
         <button class="btn ghost" id="cancelMealBtn">Abbrechen</button>
         <button class="btn" id="saveMealBtn">Speichern</button>
       </div>
+    </div>
+  </div>
+
+  <div id="editRecurringModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 12px;">Wiederkehrende Buchung bearbeiten</p>
+      <div class="type-switch" style="margin-bottom:20px;">
+        <button type="button" id="editRecTypeIncomeBtn" class="income">Einnahme</button>
+        <button type="button" id="editRecTypeExpenseBtn" class="expense active">Ausgabe</button>
+      </div>
+      <div class="field">
+        <label for="editRecName">Bezeichnung</label>
+        <input type="text" id="editRecName" placeholder="z. B. Gehalt, Miete, Netflix">
+      </div>
+      <div class="field">
+        <label for="editRecAmount">Betrag</label>
+        <input type="number" inputmode="decimal" step="0.01" min="0" id="editRecAmount" class="num-input" placeholder="0,00">
+      </div>
+      <div class="field">
+        <label for="editRecCategory">Kategorie</label>
+        <select id="editRecCategory"></select>
+      </div>
+      <div class="field">
+        <label for="editRecDay">Tag im Monat</label>
+        <input type="number" inputmode="numeric" min="1" max="31" id="editRecDay" placeholder="z. B. 1">
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="editRecBelongsNextMonthInput">
+        <label for="editRecBelongsNextMonthInput">Gehört zum nächsten Monat</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="editRecActiveInput" checked>
+        <label for="editRecActiveInput">Aktiv (bei Abwahl wird pausiert, ohne zu löschen)</label>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="cancelEditRecurringBtn">Abbrechen</button>
+        <button class="btn" id="saveEditRecurringBtn">Speichern</button>
+      </div>
+      <button type="button" class="link-btn" id="deleteEditRecurringBtn" style="margin-top:16px; color:var(--red);">Endgültig löschen</button>
     </div>
   </div>
 
@@ -2275,22 +2317,97 @@
     }
     var sorted = state.recurring.slice().sort(function(a,b){ return a.day-b.day; });
     el.innerHTML = sorted.map(function(r){
-      return '<div class="rec-card">'+
+      var paused = r.active===false;
+      return '<div class="rec-card'+(paused?' paused':'')+'" data-editrec="'+r.id+'">'+
         '<div class="rec-info"><div class="rec-name">'+escapeHtml(r.name)+'</div>'+
-        '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'. · '+(r.type==='income'?'Einnahme':'Ausgabe')+'</div></div>'+
+        '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'. · '+(r.type==='income'?'Einnahme':'Ausgabe')+'</div>'+
+        (paused ? '<span class="pause-tag">Pausiert</span>' : '')+
+        '</div>'+
         '<div class="rec-amt '+r.type+'">'+(r.type==='income'?'+':'−')+fmtEUR(r.amount)+'</div>'+
-        '<button class="rec-del" data-id="'+r.id+'" aria-label="Löschen">×</button>'+
+        '<button class="rec-del" data-id="'+r.id+'" aria-label="Löschen" onclick="event.stopPropagation()">×</button>'+
       '</div>';
     }).join('');
     el.querySelectorAll('.rec-del').forEach(function(btn){
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-id');
+        if(!confirm('Wiederkehrende Buchung wirklich endgültig löschen?')) return;
         state.recurring = state.recurring.filter(function(r){ return r.id!==id; });
         saveState();
         renderRecurring();
       });
     });
+    el.querySelectorAll('[data-editrec]').forEach(function(card){
+      card.addEventListener('click', function(){ openEditRecurring(card.getAttribute('data-editrec')); });
+    });
   }
+
+  var editingRecurringId = null;
+  var editRecCurrentType = 'expense';
+  function populateEditRecCategorySelect(){
+    var sel = document.getElementById('editRecCategory');
+    sel.innerHTML = state.categories[editRecCurrentType].map(function(c){
+      return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>';
+    }).join('');
+  }
+  document.getElementById('editRecTypeIncomeBtn').addEventListener('click', function(){ setEditRecType('income'); });
+  document.getElementById('editRecTypeExpenseBtn').addEventListener('click', function(){ setEditRecType('expense'); });
+  function setEditRecType(t){
+    editRecCurrentType = t;
+    document.getElementById('editRecTypeIncomeBtn').classList.toggle('active', t==='income');
+    document.getElementById('editRecTypeExpenseBtn').classList.toggle('active', t==='expense');
+    populateEditRecCategorySelect();
+  }
+  function openEditRecurring(id){
+    var r = state.recurring.find(function(x){ return x.id===id; });
+    if(!r) return;
+    editingRecurringId = id;
+    setEditRecType(r.type);
+    document.getElementById('editRecName').value = r.name;
+    document.getElementById('editRecAmount').value = r.amount;
+    populateEditRecCategorySelect();
+    document.getElementById('editRecCategory').value = r.category;
+    document.getElementById('editRecDay').value = r.day;
+    document.getElementById('editRecBelongsNextMonthInput').checked = !!r.belongsNextMonth;
+    document.getElementById('editRecActiveInput').checked = r.active!==false;
+    document.getElementById('editRecurringModal').style.display = 'flex';
+  }
+  document.getElementById('cancelEditRecurringBtn').addEventListener('click', function(){
+    document.getElementById('editRecurringModal').style.display = 'none';
+    editingRecurringId = null;
+  });
+  document.getElementById('saveEditRecurringBtn').addEventListener('click', async function(){
+    var r = state.recurring.find(function(x){ return x.id===editingRecurringId; });
+    if(!r) return;
+    var name = document.getElementById('editRecName').value.trim();
+    var amount = parseFloat(document.getElementById('editRecAmount').value);
+    var day = parseInt(document.getElementById('editRecDay').value, 10);
+    if(!name || !amount || amount<=0 || !day || day<1 || day>31){
+      alert('Bitte Bezeichnung, Betrag und einen gültigen Tag (1–31) angeben.');
+      return;
+    }
+    r.name = name;
+    r.type = editRecCurrentType;
+    r.amount = Math.round(amount*100)/100;
+    r.category = document.getElementById('editRecCategory').value;
+    r.day = day;
+    r.belongsNextMonth = document.getElementById('editRecBelongsNextMonthInput').checked;
+    r.active = document.getElementById('editRecActiveInput').checked;
+    await saveState();
+    document.getElementById('editRecurringModal').style.display = 'none';
+    editingRecurringId = null;
+    renderRecurring();
+    renderOverview();
+    renderBudget();
+  });
+  document.getElementById('deleteEditRecurringBtn').addEventListener('click', function(){
+    if(!editingRecurringId) return;
+    if(!confirm('Wiederkehrende Buchung wirklich endgültig löschen?')) return;
+    state.recurring = state.recurring.filter(function(r){ return r.id!==editingRecurringId; });
+    saveState();
+    document.getElementById('editRecurringModal').style.display = 'none';
+    editingRecurringId = null;
+    renderRecurring();
+  });
 
   document.getElementById('saveRecurringBtn').addEventListener('click', async function(){
     var name = document.getElementById('recName').value.trim();
