@@ -1,10 +1,15 @@
-const CACHE_NAME = 'kontobuch-shell-v3';
+const CACHE_NAME = 'homehub-shell-v1';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
-  './icon-512-maskable.png'
+  './icon-512-maskable.png',
+  './icon-192-lilac.png',
+  './icon-512-lilac.png',
+  './icon-512-maskable-lilac.png',
+  './apple-touch-icon.png',
+  './apple-touch-icon-lilac.png'
 ];
 
 self.addEventListener('install', function(event){
@@ -18,10 +23,10 @@ self.addEventListener('install', function(event){
 });
 
 self.addEventListener('push', function(event){
-  var payload = { title: 'Haushalt', body: 'Neue Erinnerung' };
+  var payload = { title: 'Home Hub', body: 'Neue Erinnerung' };
   try{ if(event.data) payload = event.data.json(); } catch(e){}
   event.waitUntil(
-    self.registration.showNotification(payload.title || 'Haushalt', {
+    self.registration.showNotification(payload.title || 'Home Hub', {
       body: payload.body || '',
       icon: 'icon-192.png',
       badge: 'icon-192.png'

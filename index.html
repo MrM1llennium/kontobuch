@@ -4,34 +4,81 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Haushalt">
-<meta name="theme-color" content="#1F2420">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Home Hub">
+<meta name="theme-color" content="#F7F8F6">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png" type="image/png">
-<title>Haushalt</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Home Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
+  /* ==================================================================
+     HOME HUB — DUAL THEME TOKEN SYSTEM
+     Forest (default) und Lilac sind zwei Farbwelten desselben Systems.
+     Layout, Typografie, Abstände, Komponenten bleiben identisch — nur
+     die Werte dieser Variablen unterscheiden sich zwischen den Themes.
+     Legacy-Variablennamen (--paper, --ink, --brass ...) bleiben aus
+     Kompatibilitätsgründen die technische Grundlage; die semantischen
+     Namen darunter zeigen einfach auf dieselben Werte.
+     ================================================================== */
   :root{
-    --paper:#F5F1E6;
-    --paper-raised:#FAF7EF;
-    --paper-dark:#E9E2CE;
-    --ink:#1F2420;
-    --ink-soft:#6B6B5E;
-    --line:#CBC3AA;
-    --red:#A03A2C;
-    --red-soft:#EFDAD3;
-    --green:#2E6B52;
-    --green-soft:#D9E6DC;
-    --brass:#A8813F;
-    --brass-soft:#EADFC0;
-    --brass-strong:#8C6A2E;
+    /* Forest 🌲 — Standard-Theme */
+    --paper:#F7F8F6;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#EAEDE9;
+    --ink:#1C2621;
+    --ink-soft:#68756E;
+    --line:#DEE3DE;
+    --red:#D64545;
+    --red-soft:#FBE3E1;
+    --green:#2E8B67;
+    --green-soft:#DEF3E7;
+    --brass:#1E4D47;
+    --brass-soft:#DCE9E2;
+    --brass-strong:#163B36;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-top: env(safe-area-inset-top, 0px);
+
+    /* Semantische Tokens (Design-Guide) — zeigen auf dieselbe Palette */
+    --color-background: var(--paper);
+    --color-surface: var(--paper-raised);
+    --color-surface-secondary: var(--paper-dark);
+    --color-surface-elevated: var(--paper-raised);
+    --color-text-primary: var(--ink);
+    --color-text-secondary: var(--ink-soft);
+    --color-text-tertiary: var(--ink-soft);
+    --color-primary: var(--brass);
+    --color-primary-contrast: var(--paper);
+    --color-primary-soft: var(--brass-soft);
+    --color-accent: var(--brass-strong);
+    --color-accent-soft: var(--brass-soft);
+    --color-border: var(--line);
+    --color-border-subtle: var(--line);
+    --color-success: var(--green);
+    --color-warning: #D9A02B;
+    --color-danger: var(--red);
+    --color-info: #3E7CB1;
+  }
+  /* Lilac 🪻 — alternatives Theme, gleiche Struktur, andere Farbwerte.
+     Rot/Grün für Einnahmen/Ausgaben passen sich leicht an die Palette an
+     (wie im Referenz-Guide vorgesehen) — die FUNKTION (Rot=Ausgabe,
+     Grün=Einnahme) bleibt in beiden Themes exakt gleich, nur der Farbton
+     harmoniert jeweils mit der Themefarbwelt. */
+  html[data-theme="lilac"]{
+    --paper:#F8F6FA;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#ECE7F2;
+    --ink:#241C2E;
+    --ink-soft:#7A7183;
+    --line:#E3DCEA;
+    --red:#C15C7A;
+    --red-soft:#FBE4EA;
+    --green:#4E9B7E;
+    --green-soft:#E1F3E9;
+    --brass:#6B5A9E;
+    --brass-soft:#EAE3F4;
+    --brass-strong:#52447C;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;min-height:100%;background:var(--ink);}
@@ -41,10 +88,10 @@
   #topbarBackdrop{
     position:fixed; top:0; left:50%; transform:translateX(-50%);
     width:100%; max-width:480px; height:440px;
-    background:var(--ink); z-index:-1; pointer-events:none;
+    background:var(--paper); z-index:-1; pointer-events:none;
   }
   body{
-    font-family:'Source Serif 4', Georgia, serif;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
     color:var(--ink);
     display:flex;
     justify-content:center;
@@ -58,7 +105,7 @@
     flex-direction:column;
     position:relative;
   }
-  .num{ font-family:'IBM Plex Mono', monospace; }
+  .num{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; }
 
   .screen{ display:none; flex-direction:column; min-height:100vh; }
   .screen.active{ display:flex; }
@@ -66,9 +113,9 @@
   /* ---------- Topbar ---------- */
   .topbar{
     padding:calc(18px + var(--safe-top)) 20px 14px;
-    background:var(--ink);
-    color:var(--paper);
-    border-bottom:3px double var(--brass);
+    background:var(--paper);
+    color:var(--ink);
+    border-bottom:1px solid var(--line);
     position:sticky;
     top:0;
     z-index:80;
@@ -76,13 +123,13 @@
   .brand{
     font-size:13px;
     letter-spacing:.04em;
-    color:var(--brass-soft);
+    color:var(--brass-strong);
     margin:0 0 10px;
   }
   .back-row{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
   .back-btn{
-    background:none; border:none; color:var(--brass-soft); font-size:14px;
-    padding:2px 0; cursor:pointer; font-family:'Source Serif 4',serif;
+    background:none; border:none; color:var(--brass-strong); font-size:14px;
+    padding:2px 0; cursor:pointer; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
   }
   .month-nav{
     display:flex;
@@ -90,9 +137,9 @@
     justify-content:space-between;
   }
   .month-nav button{
-    background:none;border:none;color:var(--paper);
+    background:none;border:none;color:var(--ink);
     font-size:20px;line-height:1;padding:8px 10px;cursor:pointer;
-    font-family:'IBM Plex Mono',monospace;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace;
   }
   .month-nav.light button{ color:var(--ink); }
   .month-label{ font-size:19px; font-weight:600; letter-spacing:.01em; }
@@ -118,7 +165,7 @@
     border-top:1px dotted var(--line); font-size:13.5px;
   }
   .today-row svg{ width:16px; height:16px; flex-shrink:0; color:var(--brass-strong); }
-  .today-row .tamt{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .today-row .tamt{ margin-left:auto; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:13px; }
   .today-row .tamt.income{ color:var(--green); }
   .today-row .tamt.expense{ color:var(--red); }
   .today-card .empty{ padding:6px 16px 16px; text-align:left; }
@@ -128,7 +175,7 @@
   .tile{
     background:var(--paper-raised); border:1px solid var(--line); border-radius:12px;
     padding:16px 14px; display:flex; flex-direction:column; align-items:flex-start; gap:8px;
-    cursor:pointer; text-align:left; font-family:'Source Serif 4',serif;
+    cursor:pointer; text-align:left; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
   }
   .tile:active{ background:var(--paper-dark); }
   .tile svg{ width:23px; height:23px; color:var(--brass-strong); }
@@ -159,7 +206,7 @@
     display:flex; align-items:center; gap:6px;
   }
   .delta .tag{
-    font-family:'IBM Plex Mono',monospace; font-size:12.5px; padding:2px 7px;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:12.5px; padding:2px 7px;
     border-radius:3px;
   }
   .delta .tag.up{ background:var(--green-soft); color:var(--green); }
@@ -168,7 +215,7 @@
   .flow{ display:flex; gap:14px; padding:16px 20px 20px; border-bottom:1px solid var(--line); }
   .flow-col{ flex:1; }
   .flow-col .flabel{ font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; display:flex; justify-content:space-between; }
-  .flow-col .fval{ font-family:'IBM Plex Mono',monospace; font-size:15px; margin-bottom:6px; }
+  .flow-col .fval{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:15px; margin-bottom:6px; }
   .bar-track{ height:6px; background:var(--paper-dark); border-radius:3px; overflow:hidden; }
   .ratio-bar-track{
     display:flex; height:10px; border-radius:5px; overflow:hidden;
@@ -193,10 +240,10 @@
   .row .rmeta{ flex:1; min-width:0; }
   .row .rcat{ font-size:14.5px; color:var(--ink); }
   .row .rnote{ font-size:12px; color:var(--ink-soft); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .row .ramt{ font-family:'IBM Plex Mono',monospace; font-size:14.5px; white-space:nowrap; }
+  .row .ramt{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:14.5px; white-space:nowrap; }
   .row .ramt.income{ color:var(--green); }
   .row .ramt.expense{ color:var(--red); }
-  .row .rdate{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft); width:34px; text-align:center; flex-shrink:0; }
+  .row .rdate{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:10.5px; color:var(--ink-soft); width:34px; text-align:center; flex-shrink:0; }
   .row .rdel{
     border:none; background:none; color:var(--ink-soft); opacity:.45;
     font-size:16px; padding:4px 2px; cursor:pointer; flex-shrink:0;
@@ -210,7 +257,7 @@
   }
   .type-switch button{
     flex:1; padding:12px; border:none; background:var(--paper);
-    font-family:'Source Serif 4',serif; font-size:14.5px; color:var(--ink); cursor:pointer;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:14.5px; color:var(--ink); cursor:pointer;
   }
   .type-switch button.active.income{ background:var(--green); color:var(--paper); }
   .type-switch button.active.expense{ background:var(--red); color:var(--paper); }
@@ -220,30 +267,30 @@
   }
   .mode-switch button{
     flex:1; padding:12px; border:none; background:var(--paper);
-    font-family:'Source Serif 4',serif; font-size:14.5px; color:var(--ink); cursor:pointer;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:14.5px; color:var(--ink); cursor:pointer;
   }
-  .mode-switch button.active{ background:var(--ink); color:var(--paper); }
+  .mode-switch button.active{ background:var(--brass); color:var(--paper); }
 
   .field{ margin-bottom:18px; }
   .field label{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:6px; letter-spacing:.02em; }
   .field input, .field select, .field textarea{
     width:100%; padding:12px 12px; border:1px solid var(--line); border-radius:6px;
-    background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif; color:var(--ink);
+    background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; color:var(--ink);
   }
   .field input[type="date"], .field input[type="time"]{
     width:1px; min-width:100%; max-width:100%; box-sizing:border-box; display:block;
   }
   .field textarea{ resize:vertical; min-height:90px; }
-  .field input.num-input{ font-family:'IBM Plex Mono',monospace; font-size:20px; }
-  .field select{ font-family:'Source Serif 4',serif; }
+  .field input.num-input{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:20px; }
+  .field select{ font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; }
   .field input:focus, .field select:focus, .field textarea:focus{ outline:2px solid var(--brass); outline-offset:1px; }
 
   .btn{
     display:block; width:100%; padding:14px; border:none; border-radius:6px;
-    background:var(--ink); color:var(--paper); font-size:15px; font-family:'Source Serif 4',serif;
+    background:var(--brass); color:var(--paper); font-size:15px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
     cursor:pointer; letter-spacing:.01em;
   }
-  .btn:active{ background:#3a3f37; }
+  .btn:active{ background:var(--brass-strong); transform:scale(0.98); }
   .btn.ghost{
     background:none; border:1px solid var(--line); color:var(--ink-soft);
   }
@@ -254,7 +301,7 @@
   .new-cat-row input{ flex:1; }
   .link-btn{
     background:var(--paper-dark); border:none; color:var(--brass-strong);
-    font-size:12.5px; font-family:'Source Serif 4',serif; padding:6px 12px;
+    font-size:12.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; padding:6px 12px;
     border-radius:14px; cursor:pointer; text-decoration:none;
   }
   .link-btn:active{ background:var(--brass-soft); }
@@ -270,7 +317,7 @@
   .rec-card .rec-info{ min-width:0; }
   .rec-card .rec-name{ font-size:14.5px; }
   .rec-card .rec-meta{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
-  .rec-card .rec-amt{ font-family:'IBM Plex Mono',monospace; font-size:14.5px; white-space:nowrap; }
+  .rec-card .rec-amt{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:14.5px; white-space:nowrap; }
   .rec-card .rec-amt.income{ color:var(--green); }
   .rec-card .rec-amt.expense{ color:var(--red); }
   .rec-card .rec-del{ border:none; background:none; color:var(--ink-soft); opacity:.5; font-size:16px; padding:4px; cursor:pointer; flex-shrink:0; }
@@ -284,15 +331,15 @@
   }
   .budget-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
   .budget-head .bname{ font-size:15.5px; }
-  .budget-head .bnums{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink-soft); }
+  .budget-head .bnums{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:13px; color:var(--ink-soft); }
   .budget-track{ height:9px; background:var(--paper-dark); border-radius:4px; overflow:hidden; margin-bottom:8px; }
   .budget-fill{ height:100%; background:var(--brass); }
   .budget-fill.over{ background:var(--red); }
   .budget-foot{ display:flex; justify-content:space-between; align-items:center; }
   .budget-foot .bstatus{ font-size:12px; color:var(--ink-soft); }
   .edit-limit{ display:flex; gap:8px; margin-top:10px; }
-  .edit-limit input{ flex:1; padding:8px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; }
-  .edit-limit button{ padding:8px 12px; border:none; border-radius:5px; background:var(--ink); color:var(--paper); font-size:13px; }
+  .edit-limit input{ flex:1; padding:8px; border:1px solid var(--line); border-radius:5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; }
+  .edit-limit button{ padding:8px 12px; border:none; border-radius:5px; background:var(--brass); color:var(--paper); font-size:13px; }
   .set-limit-btn{
     font-size:12px; color:var(--brass-strong); background:var(--paper-dark); border:none;
     padding:5px 11px; border-radius:12px; cursor:pointer;
@@ -303,16 +350,16 @@
     padding:2px 0; cursor:pointer; text-decoration:underline; margin-top:6px;
   }
   .total-budget-card{
-    padding:18px; background:var(--ink); color:var(--paper); border-radius:10px;
+    padding:18px; background:var(--brass); color:var(--paper); border-radius:10px;
   }
   .total-budget-card .tb-label{ font-size:12px; color:var(--brass-soft); margin:0 0 4px; }
-  .total-budget-card .tb-amount{ font-size:28px; font-weight:600; font-family:'IBM Plex Mono',monospace; margin:0; }
+  .total-budget-card .tb-amount{ font-size:28px; font-weight:600; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; margin:0; }
   .total-budget-card .tb-edit{ font-size:11.5px; color:var(--brass-soft); text-decoration:underline; background:none; border:none; padding:0; margin-top:8px; cursor:pointer; }
   .total-budget-card .tb-status{ font-size:12.5px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.15); }
-  .total-budget-card .tb-status.over{ color:#E0A99B; }
+  .total-budget-card .tb-status.over{ color:var(--red); }
   .total-budget-card .tb-status.ok{ color:#B7D4C4; }
   .total-budget-card .tb-edit-row{ display:flex; gap:8px; margin-top:10px; }
-  .total-budget-card .tb-edit-row input{ flex:1; padding:9px; border-radius:5px; border:none; font-family:'IBM Plex Mono',monospace; }
+  .total-budget-card .tb-edit-row input{ flex:1; padding:9px; border-radius:5px; border:none; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; }
   .total-budget-card .tb-edit-row button{ padding:9px 14px; border-radius:5px; border:none; background:var(--brass); color:var(--paper); font-size:13px; }
 
   /* ---------- Savings ---------- */
@@ -322,29 +369,30 @@
   }
   .goal-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
   .goal-head .gname{ font-size:16px; }
-  .goal-pct{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--brass-strong); }
-  .goal-nums{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ink-soft); margin-bottom:8px; }
+  .goal-pct{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:13px; color:var(--brass-strong); }
+  .goal-nums{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:12.5px; color:var(--ink-soft); margin-bottom:8px; }
   .goal-track{ height:9px; background:var(--paper-dark); border-radius:4px; overflow:hidden; margin-bottom:10px; }
   .goal-fill{ height:100%; background:linear-gradient(90deg, var(--green), #4a8f6f); }
   .goal-actions{ display:flex; gap:8px; }
   .goal-actions button{ flex:1; padding:9px; font-size:13px; border-radius:5px; border:1px solid var(--line); background:var(--paper); cursor:pointer; }
   .deposit-row{ display:flex; gap:8px; margin-top:10px; }
-  .deposit-row input{ flex:1; padding:9px; border:1px solid var(--line); border-radius:5px; font-family:'IBM Plex Mono',monospace; }
+  .deposit-row input{ flex:1; padding:9px; border:1px solid var(--line); border-radius:5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; }
   .deposit-row button{ padding:9px 14px; border:none; border-radius:5px; background:var(--green); color:var(--paper); font-size:13px; }
 
   /* ---------- Tabbar ---------- */
   .tabbar{
     position:fixed; bottom:0; left:50%; transform:translateX(-50%);
     width:100%; max-width:480px;
-    display:flex; background:var(--ink); border-top:3px double var(--brass);
+    display:flex; background:var(--paper-raised); border-top:1px solid var(--line);
     padding-bottom:var(--safe-bottom);
+    box-shadow:0 -2px 12px rgba(0,0,0,.04);
   }
   .tabbar button{
     flex:1; background:none; border:none; padding:10px 4px 8px; cursor:pointer;
     display:flex; flex-direction:column; align-items:center; gap:4px;
-    color:#8B8F82; font-family:'Source Serif 4',serif; font-size:10.5px;
+    color:var(--ink-soft); font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:10.5px;
   }
-  .tabbar button.active{ color:var(--paper); }
+  .tabbar button.active{ color:var(--brass); }
   .tabbar svg{ width:21px; height:21px; }
 
   h2.page-title{ font-size:16px; padding:18px 20px 4px; margin:0; color:var(--ink); }
@@ -386,7 +434,7 @@
     border:1px solid var(--line); border-radius:8px; display:flex; gap:14px; align-items:flex-start;
   }
   .cal-date{ text-align:center; flex-shrink:0; width:44px; }
-  .cal-date .cd-day{ font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:600; }
+  .cal-date .cd-day{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:19px; font-weight:600; }
   .cal-date .cd-mon{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
   .cal-info{ flex:1; min-width:0; }
   .cal-info .ctitle{ font-size:15px; }
@@ -403,11 +451,11 @@
   .cal-cell{
     aspect-ratio:1; border-radius:8px; border:1.5px solid transparent; background:var(--paper-raised);
     display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:6px;
-    font-size:12.5px; font-family:'IBM Plex Mono',monospace; cursor:pointer; position:relative;
+    font-size:12.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; cursor:pointer; position:relative;
   }
   .cal-cell.outside{ opacity:.32; }
   .cal-cell.today{ border-color:var(--brass); }
-  .cal-cell.selected{ background:var(--ink); color:var(--paper); }
+  .cal-cell.selected{ background:var(--brass); color:var(--paper); }
   .cal-cell .dots{ display:flex; gap:2px; margin-top:3px; }
   .cal-cell .dot{ width:4px; height:4px; border-radius:50%; background:var(--brass-strong); }
   .cal-cell.selected .dot{ background:var(--paper); }
@@ -434,7 +482,7 @@
   .ingredient-select-row input[type="checkbox"]{ width:19px; height:19px; flex-shrink:0; }
   .amount-toggle{
     flex-shrink:0; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink-soft);
-    border-radius:20px; padding:5px 12px; font-size:12px; font-family:'IBM Plex Mono',monospace; cursor:pointer;
+    border-radius:20px; padding:5px 12px; font-size:12px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; cursor:pointer;
   }
   .amount-toggle.active{ background:var(--brass); color:var(--paper); border-color:var(--brass); }
 
@@ -444,7 +492,7 @@
   }
   .push-banner button{
     margin-top:10px; padding:9px 14px; border:none; border-radius:5px;
-    background:var(--ink); color:var(--paper); font-size:13px; cursor:pointer;
+    background:var(--brass); color:var(--paper); font-size:13px; cursor:pointer;
   }
   .checkbox-row{ display:flex; align-items:center; gap:8px; margin:-6px 0 18px; }
   .checkbox-row input{ width:18px; height:18px; }
@@ -453,20 +501,20 @@
   /* ---------- Code gate ---------- */
   #codeGate{
     display:none; min-height:100vh; width:100%; max-width:480px; margin:0 auto;
-    background:var(--ink); color:var(--paper);
+    background:var(--paper); color:var(--ink);
     align-items:center; justify-content:center; padding:24px;
   }
   #codeGate .gate-inner{ width:100%; max-width:360px; }
-  #codeGate .brand{ color:var(--brass-soft); }
+  #codeGate .brand{ color:var(--brass-strong); }
   #codeGate h2{ font-size:21px; margin:0 0 10px; font-weight:600; }
-  #codeGate p{ font-size:13.5px; color:#B7BBA9; margin:0 0 22px; line-height:1.5; }
+  #codeGate p{ font-size:13.5px; color:var(--ink-soft); margin:0 0 22px; line-height:1.5; }
   #codeGate input{
-    width:100%; padding:13px 12px; border:1px solid #4A4F42; border-radius:6px;
-    background:#2A2F26; color:var(--paper); font-size:15.5px; font-family:'Source Serif 4',serif;
+    width:100%; padding:13px 12px; border:1px solid var(--line); border-radius:12px;
+    background:var(--paper-raised); color:var(--ink); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
   }
   #codeGate input:focus{ outline:2px solid var(--brass); }
   #codeGate .btn{ margin-top:14px; }
-  #codeError{ color:#E0A99B; font-size:12px; margin-top:10px; display:none; }
+  #codeError{ color:var(--red); font-size:12px; margin-top:10px; display:none; }
   .settings-links{ display:flex; gap:16px; padding:0 20px; flex-wrap:wrap; }
 
   /* ---------- Sidebar ---------- */
@@ -477,23 +525,23 @@
   #sidebarBackdrop.open{ display:block; opacity:1; }
   #sidebar{
     position:fixed; top:0; left:0; height:100%; width:78%; max-width:300px;
-    background:var(--ink); color:var(--paper); z-index:91;
+    background:var(--paper); color:var(--ink); z-index:91;
     transform:translateX(-100%); transition:transform .25s ease;
     padding-top:calc(20px + var(--safe-top));
-    display:flex; flex-direction:column; box-shadow:2px 0 20px rgba(0,0,0,.3);
+    display:flex; flex-direction:column; box-shadow:2px 0 20px rgba(0,0,0,.12);
   }
   #sidebar.open{ transform:translateX(0); }
   #sidebar .brand{ padding:0 20px; margin-bottom:16px; }
   .sidebar-item{
     display:flex; align-items:center; gap:12px; padding:13px 20px;
-    background:none; border:none; color:var(--paper); font-family:'Source Serif 4',serif;
+    background:none; border:none; color:var(--ink); font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
     font-size:15px; text-align:left; cursor:pointer; width:100%;
   }
-  .sidebar-item.active{ background:rgba(255,255,255,.08); color:var(--brass-soft); }
+  .sidebar-item.active{ background:var(--brass-soft); color:var(--brass-strong); }
   .sidebar-item svg{ width:19px; height:19px; flex-shrink:0; }
   .top-controls{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .hamburger-btn{
-    background:none; border:none; color:var(--paper); padding:4px; margin:-4px 0;
+    background:none; border:none; color:var(--ink); padding:4px; margin:-4px 0;
     cursor:pointer; flex-shrink:0; display:flex; align-items:center;
   }
   .hamburger-btn svg{ width:21px; height:21px; }
@@ -502,7 +550,7 @@
   .avatar{
     width:20px; height:20px; border-radius:50%; color:#fff; font-size:10px;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    font-family:'IBM Plex Mono',monospace; font-weight:600;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-weight:600;
   }
   .color-palette-group{ margin-top:6px; }
   .color-palette-label{ font-size:11px; color:var(--ink-soft); margin:8px 0 0; letter-spacing:.02em; }
@@ -512,93 +560,63 @@
     border:2px solid transparent; box-shadow:0 0 0 1px var(--line);
   }
   .color-swatch.selected{ border-color:var(--ink); }
+
   /* ============================================================
-     THEME: MODERN (Apple-artiger, cleaner Stil)
-     Aktiviert über html[data-theme="modern"], per Einstellungen wählbar.
-     Überschreibt Farben, Schrift und die ledger-typischen Verzierungen
-     (Doppellinien, gepunktete Trenner), ohne das Ledger-Theme selbst
-     anzufassen.
+     EINHEITLICHE STRUKTUR-BASIS (gilt für Forest & Lilac gleich)
+     Runde Ecken, weiche Schatten statt Doppellinien/gepunkteter
+     Trenner, durchgängige Systemschrift, ruhige Kartenoptik.
      ============================================================ */
-  html[data-theme="modern"]{
-    --paper:#F5F5F7;
-    --paper-raised:#FFFFFF;
-    --paper-dark:#E8E8ED;
-    --ink:#1D1D1F;
-    --ink-soft:#6E6E73;
-    --line:#E3E3E7;
-    --red:#FF3B30;
-    --red-soft:#FFE3E1;
-    --green:#34C759;
-    --green-soft:#DEF7E4;
-    --brass:#0071E3;
-    --brass-soft:#D9EAFC;
-    --brass-strong:#0066CC;
-  }
-  html[data-theme="modern"] body{
-    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-  }
-  html[data-theme="modern"] .num{
-    font-family:-apple-system, BlinkMacSystemFont, "SF Mono", Menlo, monospace;
-    font-variant-numeric: tabular-nums;
-  }
-  html[data-theme="modern"] .tile-name,
-  html[data-theme="modern"] .screen-title,
-  html[data-theme="modern"] h1,
-  html[data-theme="modern"] .page-title,
-  html[data-theme="modern"] .brand{
+  .tile-name, .screen-title, h1, .page-title, .brand{
     font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   }
-  html[data-theme="modern"] .topbar{
-    border-bottom:1px solid rgba(255,255,255,.12);
-  }
-  html[data-theme="modern"] .tabbar,
-  html[data-theme="modern"] #topbarBackdrop{
-    border-top:1px solid rgba(255,255,255,.12);
-  }
-  html[data-theme="modern"] .tile,
-  html[data-theme="modern"] .today-card,
-  html[data-theme="modern"] .budget-card,
-  html[data-theme="modern"] .goal-card,
-  html[data-theme="modern"] .note-card,
-  html[data-theme="modern"] .cal-card,
-  html[data-theme="modern"] .rec-card,
-  html[data-theme="modern"] .meal-day,
-  html[data-theme="modern"] .simple-row,
-  html[data-theme="modern"] .push-banner{
+  .tile, .today-card, .budget-card, .goal-card, .note-card,
+  .cal-card, .rec-card, .meal-day, .simple-row, .push-banner{
     border:none;
-    border-radius:16px;
-    box-shadow:0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.06);
+    border-radius:18px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04), 0 2px 10px rgba(0,0,0,.05);
   }
-  html[data-theme="modern"] .simple-row{ border-radius:0; box-shadow:none; }
-  html[data-theme="modern"] .btn{ border-radius:12px; }
-  html[data-theme="modern"] .type-switch,
-  html[data-theme="modern"] .mode-switch{ border-radius:12px; overflow:hidden; border-color:var(--line); }
-  html[data-theme="modern"] .field input,
-  html[data-theme="modern"] .field select,
-  html[data-theme="modern"] .field textarea{ border-radius:10px; }
-  html[data-theme="modern"] .row,
-  html[data-theme="modern"] .today-row,
-  html[data-theme="modern"] .meal-entry,
-  html[data-theme="modern"] .ingredient-select-row{
+  .simple-row{ border-radius:0; box-shadow:none; }
+  .btn{ border-radius:14px; }
+  .type-switch, .mode-switch{ border-radius:14px; overflow:hidden; border-color:var(--line); }
+  .field input, .field select, .field textarea{ border-radius:12px; }
+  .row, .today-row, .meal-entry, .ingredient-select-row{
     border-top-style:solid;
   }
-  html[data-theme="modern"] .rdate{ font-weight:400; }
-  html[data-theme="modern"] .check{ border-radius:50%; }
+  .rdate{ font-weight:400; }
+  .check{ border-radius:50%; }
+
+  /* Kurze, dezente Übergangsanimation beim Theme-Wechsel */
+  html, body, #app, .topbar, .tabbar, #sidebar, .tile, .btn,
+  .today-card, .budget-card, .goal-card, .note-card, .cal-card,
+  .rec-card, .meal-day, .simple-row, .field input, .field select{
+    transition: background-color .22s ease, color .22s ease, border-color .22s ease, box-shadow .22s ease;
+  }
+
+  /* Subtiles Touch-Feedback (leichtes Eindrücken) für tappbare Elemente */
+  .btn, .tile, .sidebar-item, .tabbar button, .link-btn, .set-limit-btn,
+  .cat-badge, .exclude-cat-btn, .color-swatch, .note-card, .cal-card,
+  .rec-card, .simple-row .check{
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active, .tile:active, .note-card:active, .cal-card:active,
+  .rec-card:active, .color-swatch:active{
+    transform: scale(0.98);
+  }
 </style>
 </head>
 <body>
 
 <div id="codeGate">
   <div class="gate-inner">
-    <p class="brand">HAUSHALT · GEMEINSAM ORGANISIERT</p>
+    <p class="brand">HOME HUB</p>
     <h2>Haushalts-Code</h2>
     <p>Denkt euch gemeinsam einen Code aus (frei wählbar, z. B. euer Nachname). Wer denselben Code eingibt, sieht dieselben Daten — auf beliebig vielen Geräten.</p>
     <input type="text" id="codeInput" placeholder="z. B. mueller-budget" autocapitalize="off" autocorrect="off">
-    <p style="margin:18px 0 8px; font-size:13px; color:#B7BBA9;">Dein Name — legt fest, welches Profil auf diesem Gerät dir gehört.</p>
+    <p style="margin:18px 0 8px; font-size:13px; color:var(--ink-soft);">Dein Name — legt fest, welches Profil auf diesem Gerät dir gehört.</p>
     <input type="text" id="nameGateInput" placeholder="z. B. Lukas" autocapitalize="words">
     <div style="display:flex; align-items:center; gap:9px; margin-top:16px;">
       <input type="checkbox" id="rememberLoginInput" checked style="width:18px; height:18px;">
-      <label for="rememberLoginInput" style="font-size:13px; color:#B7BBA9;">Anmeldedaten auf diesem Gerät merken</label>
+      <label for="rememberLoginInput" style="font-size:13px; color:var(--ink-soft);">Anmeldedaten auf diesem Gerät merken</label>
     </div>
     <button class="btn" id="codeSubmitBtn">Starten</button>
     <p id="codeError"></p>
@@ -645,7 +663,7 @@
       Einstellungen
     </button>
     <div style="flex:1;"></div>
-    <button class="sidebar-item" id="sidebarLogoutBtn" style="border-top:1px solid rgba(255,255,255,.12); color:#D99B8C;">
+    <button class="sidebar-item" id="sidebarLogoutBtn" style="border-top:1px solid var(--line); color:var(--red);">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
       Abmelden
     </button>
@@ -664,7 +682,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
       </div>
-      <p class="brand">HAUSHALT · GEMEINSAM ORGANISIERT</p>
+      <p class="brand">HOME HUB</p>
       <h1>Dashboard</h1>
     </div>
     <div class="today-card">
@@ -745,8 +763,8 @@
           <label>Zutaten</label>
           <div id="recipeIngredientsList" style="margin-bottom:8px;"></div>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="recipeIngredientAmountInput" placeholder="Menge (z. B. 200g)" style="width:38%; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
-            <input type="text" id="recipeIngredientInput" placeholder="Zutat (z. B. Mehl)" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+            <input type="text" id="recipeIngredientAmountInput" placeholder="Menge (z. B. 200g)" style="width:38%; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
+            <input type="text" id="recipeIngredientInput" placeholder="Zutat (z. B. Mehl)" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
             <button type="button" class="btn" id="addIngredientBtn" style="width:auto; padding:12px 16px;">+</button>
           </div>
         </div>
@@ -819,6 +837,10 @@
       <div class="field">
         <label for="reconcileInput">Echter Kontostand (beide Konten zusammen)</label>
         <input type="number" inputmode="decimal" step="0.01" id="reconcileInput" class="num-input" placeholder="0,00">
+      </div>
+      <div class="field">
+        <label for="reconcileDateInput">Stand vom</label>
+        <input type="date" id="reconcileDateInput">
       </div>
       <div id="reconcileResult" style="display:none; margin-bottom:14px; font-size:14px;"></div>
       <div class="btn-row">
@@ -940,14 +962,14 @@
       <button type="button" class="link-btn" id="switchPersonBtn" style="margin:8px 0 0;">Nicht du? Person wechseln</button>
       <div id="switchPersonPanel" style="display:none; margin-top:12px;">
         <div style="display:flex; gap:8px;">
-          <input type="text" id="switchPersonInput" placeholder="Dein Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <input type="text" id="switchPersonInput" placeholder="Dein Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
           <button class="btn" id="confirmSwitchPersonBtn" style="width:auto; padding:12px 16px;">OK</button>
         </div>
       </div>
       <div id="userList" style="margin-top:14px;"></div>
       <div class="form-wrap">
         <div style="display:flex; gap:8px;">
-          <input type="text" id="newUserName" placeholder="Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <input type="text" id="newUserName" placeholder="Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
           <button class="btn" id="addUserBtn" style="width:auto; padding:12px 18px;">+</button>
         </div>
         <button type="button" class="link-btn" id="toggleNewUserColorBtn" style="margin-top:8px;">Farbe</button>
@@ -958,7 +980,7 @@
       <p class="page-sub" style="margin-top:-4px;">Startguthaben, das vor der ersten Buchung schon vorhanden war (z. B. Kontostand bei App-Start).</p>
       <div class="form-wrap" style="padding-top:10px;">
         <div style="display:flex; gap:8px;">
-          <input type="number" inputmode="decimal" step="0.01" id="startingBalanceInput" placeholder="0,00" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <input type="number" inputmode="decimal" step="0.01" id="startingBalanceInput" placeholder="0,00" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
           <button class="btn" id="saveStartingBalanceBtn" style="width:auto; padding:12px 18px;">Speichern</button>
         </div>
         <button type="button" class="link-btn" id="showRecurringListBtn" style="margin-top:14px;">Wiederkehrende Buchungen anzeigen</button>
@@ -973,17 +995,17 @@
       <div id="categoryList" style="margin-top:10px;"></div>
       <div class="form-wrap" style="padding-top:6px;">
         <div style="display:flex; gap:8px;">
-          <input type="text" id="newCategoryName" placeholder="Neue Kategorie" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <input type="text" id="newCategoryName" placeholder="Neue Kategorie" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
           <button class="btn" id="addCategoryBtn" style="width:auto; padding:12px 18px;">+</button>
         </div>
       </div>
 
       <p class="section-title">Design</p>
-      <p class="page-sub" style="margin-top:-4px;">Wählt einen Stil — gilt pro Gerät.</p>
+      <p class="page-sub" style="margin-top:-4px;">Wählt ein Theme — gilt pro Gerät.</p>
       <div class="form-wrap" style="padding-top:10px;">
         <div class="mode-switch" id="themeSwitch" style="margin-bottom:0;">
-          <button type="button" data-theme-choice="ledger" class="active">Ledger</button>
-          <button type="button" data-theme-choice="modern">Modern</button>
+          <button type="button" data-theme-choice="forest" class="active">🌲 Forest</button>
+          <button type="button" data-theme-choice="lilac">🪻 Lilac</button>
         </div>
       </div>
 
@@ -995,10 +1017,10 @@
         <div id="backupPanel" style="display:none; margin-top:14px;">
           <p style="font-size:12px; color:var(--ink-soft); margin:0 0 8px;">Text unten kopieren und irgendwo sichern (z. B. Notizen-App). Zum Wiederherstellen den gesicherten Text einfügen und auf „Wiederherstellen" tippen.</p>
           <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Aktueller Stand (zum Kopieren)</label>
-          <textarea id="backupOut" readonly style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
+          <textarea id="backupOut" readonly style="width:100%; height:80px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
           <button type="button" class="btn ghost" id="copyBackupBtn" style="margin-bottom:16px;">In Zwischenablage kopieren</button>
           <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:4px;">Gesicherten Text einfügen</label>
-          <textarea id="backupIn" style="width:100%; height:80px; font-family:'IBM Plex Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
+          <textarea id="backupIn" style="width:100%; height:80px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); color:var(--ink); margin-bottom:8px;"></textarea>
           <button type="button" class="btn" id="restoreBackupBtn">Wiederherstellen (überschreibt aktuellen Stand)</button>
         </div>
       </div>
@@ -1513,15 +1535,22 @@
   /* ================= Design/Theme ================= */
   var THEME_KEY = 'kontobuch-theme';
   function applyTheme(theme){
-    if(theme==='modern'){
-      document.documentElement.setAttribute('data-theme', 'modern');
+    if(theme==='lilac'){
+      document.documentElement.setAttribute('data-theme', 'lilac');
     } else {
       document.documentElement.removeAttribute('data-theme');
-      theme = 'ledger';
+      theme = 'forest';
     }
     document.querySelectorAll('#themeSwitch button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-theme-choice')===theme);
     });
+    // Browser-Tab-Icon passend zum Theme aktualisieren (das bereits auf dem
+    // Homescreen installierte Icon lässt sich technisch nicht rückwirkend
+    // ändern — dafür müsste die App neu hinzugefügt werden).
+    var touchIcon = document.querySelector('link[rel="apple-touch-icon"]');
+    var favicon = document.querySelector('link[rel="icon"]');
+    if(touchIcon) touchIcon.setAttribute('href', theme==='lilac' ? 'apple-touch-icon-lilac.png' : 'apple-touch-icon.png');
+    if(favicon) favicon.setAttribute('href', theme==='lilac' ? 'icon-192-lilac.png' : 'icon-192.png');
   }
   document.querySelectorAll('#themeSwitch button').forEach(function(b){
     b.addEventListener('click', function(){
@@ -1530,7 +1559,7 @@
       applyTheme(theme);
     });
   });
-  applyTheme(localStorage.getItem(THEME_KEY) || 'ledger');
+  applyTheme(localStorage.getItem(THEME_KEY) || 'forest');
 
   var currentUserId = localStorage.getItem(CURRENT_USER_KEY) || null;
   var LAST_CODE_KEY = 'kontobuch-last-code';
@@ -2304,13 +2333,13 @@
   }
 
   // Wie cumulativeBalanceThroughMonth, aber taggenau statt monatsgenau —
-  // wichtig für den Kontoabgleich, damit zukunftsdatierte Buchungen im
-  // selben Monat nicht fälschlich schon mitgezählt werden.
-  function cumulativeBalanceThroughToday(){
+  // wichtig für den Kontoabgleich, damit zukunftsdatierte Buchungen nicht
+  // fälschlich schon mitgezählt werden. Nimmt ein Stichdatum entgegen
+  // (Standard: heute), damit man den Abgleich auch rückwirkend datieren kann.
+  function cumulativeBalanceThroughDate(dateStr){
     var total = 0;
-    var todayStr = todayISO();
     state.transactions.forEach(function(t){
-      if(t.date <= todayStr){
+      if(t.date <= dateStr){
         total += (t.type==='income' ? t.amount : -t.amount);
       }
     });
@@ -2320,6 +2349,7 @@
   var pendingReconcileDiff = 0;
   document.getElementById('openReconcileBtn').addEventListener('click', function(){
     document.getElementById('reconcileInput').value = '';
+    document.getElementById('reconcileDateInput').value = todayISO();
     document.getElementById('reconcileResult').style.display = 'none';
     document.getElementById('confirmReconcileBtn').style.display = 'none';
     document.getElementById('reconcileModal').style.display = 'flex';
@@ -2329,11 +2359,12 @@
   });
   document.getElementById('calcReconcileBtn').addEventListener('click', function(){
     var real = parseFloat(document.getElementById('reconcileInput').value);
+    var dateStr = document.getElementById('reconcileDateInput').value || todayISO();
     if(isNaN(real)){
       document.getElementById('reconcileInput').focus();
       return;
     }
-    var current = cumulativeBalanceThroughToday();
+    var current = cumulativeBalanceThroughDate(dateStr);
     var diff = Math.round((real-current)*100)/100;
     var resultEl = document.getElementById('reconcileResult');
     var confirmBtn = document.getElementById('confirmReconcileBtn');
@@ -2343,17 +2374,18 @@
       confirmBtn.style.display = 'none';
     } else {
       pendingReconcileDiff = diff;
-      resultEl.innerHTML = 'App-Guthaben aktuell: <span class="num">'+fmtEUR(current)+'</span><br>'+
+      resultEl.innerHTML = 'App-Guthaben zum '+fmtDate(dateStr)+': <span class="num">'+fmtEUR(current)+'</span><br>'+
         'Unterschied: <span class="num" style="color:'+(diff>0?'var(--green)':'var(--red)')+';">'+(diff>0?'+':'')+fmtEUR(diff)+'</span> '+
         (diff>0 ? '(App zeigt weniger als real vorhanden)' : '(App zeigt mehr als real vorhanden)');
       confirmBtn.style.display = 'block';
     }
   });
   document.getElementById('confirmReconcileBtn').addEventListener('click', function(){
+    var dateStr = document.getElementById('reconcileDateInput').value || todayISO();
     state.transactions.push({
       id: uid(), type: pendingReconcileDiff>0 ? 'income' : 'expense',
       amount: Math.abs(pendingReconcileDiff), category: 'Kontoabgleich',
-      date: todayISO(), note: 'Kontoabgleich', isReconciliation: true,
+      date: dateStr, note: 'Kontoabgleich', isReconciliation: true,
       createdBy: currentUserId
     });
     saveState();
