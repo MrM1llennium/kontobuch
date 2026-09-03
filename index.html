@@ -575,6 +575,8 @@
     <h2>Haushalts-Code</h2>
     <p>Denkt euch gemeinsam einen Code aus (frei wählbar, z. B. euer Nachname). Wer denselben Code eingibt, sieht dieselben Daten — auf beliebig vielen Geräten.</p>
     <input type="text" id="codeInput" placeholder="z. B. mueller-budget" autocapitalize="off" autocorrect="off">
+    <p style="margin:18px 0 8px; font-size:13px; color:#B7BBA9;">Dein Name — legt fest, welches Profil auf diesem Gerät dir gehört.</p>
+    <input type="text" id="nameGateInput" placeholder="z. B. Lukas" autocapitalize="words">
     <button class="btn" id="codeSubmitBtn">Starten</button>
     <p id="codeError"></p>
   </div>
@@ -823,8 +825,15 @@
     </div>
     <div class="module-body">
       <p class="section-title">Nutzer</p>
-      <p class="page-sub" style="margin-top:-4px;">Lege euch beide als Nutzer an, damit an jedem Eintrag erkennbar ist, wer ihn hinzugefügt hat.</p>
-      <div id="userList" style="margin-top:10px;"></div>
+      <p class="page-sub" style="margin-top:-4px;">Dein Profil hast du beim Anmelden festgelegt. Du kannst nur dein eigenes Foto und deine eigene Farbe ändern.</p>
+      <button type="button" class="link-btn" id="switchPersonBtn" style="margin:8px 0 0;">Nicht du? Person wechseln</button>
+      <div id="switchPersonPanel" style="display:none; margin-top:12px;">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="switchPersonInput" placeholder="Dein Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
+          <button class="btn" id="confirmSwitchPersonBtn" style="width:auto; padding:12px 16px;">OK</button>
+        </div>
+      </div>
+      <div id="userList" style="margin-top:14px;"></div>
       <div class="form-wrap">
         <div style="display:flex; gap:8px;">
           <input type="text" id="newUserName" placeholder="Name" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
@@ -1503,6 +1512,27 @@
     });
   }
 
+  document.getElementById('switchPersonBtn').addEventListener('click', function(){
+    var panel = document.getElementById('switchPersonPanel');
+    panel.style.display = panel.style.display==='block' ? 'none' : 'block';
+    if(panel.style.display==='block'){
+      var me = state.users.find(function(u){ return u.id===currentUserId; });
+      document.getElementById('switchPersonInput').value = '';
+      document.getElementById('switchPersonInput').focus();
+    }
+  });
+  document.getElementById('confirmSwitchPersonBtn').addEventListener('click', async function(){
+    var name = document.getElementById('switchPersonInput').value.trim();
+    if(!name) return;
+    await resolveIdentity(name);
+    document.getElementById('switchPersonPanel').style.display = 'none';
+    renderUsers();
+    renderCurrentScreen();
+  });
+  document.getElementById('switchPersonInput').addEventListener('keydown', function(e){
+    if(e.key==='Enter') document.getElementById('confirmSwitchPersonBtn').click();
+  });
+
   function renderUsers(){
     var el = document.getElementById('userList');
     if(!el) return;
@@ -1514,10 +1544,9 @@
         return '<div class="simple-row" style="align-items:center; flex-wrap:wrap; border-left:4px solid '+u.color+';">'+
           avatarHtml(u.id, 26)+
           '<div class="stext"><div class="stitle">'+escapeHtml(u.name)+(isMe?' <span style="font-size:11px;color:var(--brass-strong);">(das bist du)</span>':'')+'</div></div>'+
-          (!isMe ? '<button type="button" class="link-btn" data-pick="'+u.id+'" style="flex-shrink:0;">Das bin ich</button>' : '')+
-          '<button type="button" class="link-btn" data-photo="'+u.id+'" style="flex-shrink:0;">Foto</button>'+
-          (u.photo ? '<button type="button" class="link-btn" data-removephoto="'+u.id+'" style="flex-shrink:0;">Entfernen</button>' : '')+
-          '<button type="button" class="link-btn" data-editcolor="'+u.id+'" style="flex-shrink:0;">Farbe</button>'+
+          (isMe ? '<button type="button" class="link-btn" data-photo="'+u.id+'" style="flex-shrink:0;">Foto</button>' : '')+
+          (isMe && u.photo ? '<button type="button" class="link-btn" data-removephoto="'+u.id+'" style="flex-shrink:0;">Entfernen</button>' : '')+
+          (isMe ? '<button type="button" class="link-btn" data-editcolor="'+u.id+'" style="flex-shrink:0;">Farbe</button>' : '')+
           '<button type="button" class="sdel" data-del="'+u.id+'">×</button>'+
           '<div class="color-palette-group" id="colorpick-'+u.id+'" style="display:none; width:100%;"></div>'+
         '</div>';
@@ -1538,13 +1567,6 @@
             renderUsers();
             renderCurrentScreen();
           }
-        });
-      });
-      el.querySelectorAll('[data-pick]').forEach(function(b){
-        b.addEventListener('click', function(){
-          currentUserId = b.getAttribute('data-pick');
-          localStorage.setItem(CURRENT_USER_KEY, currentUserId);
-          renderUsers();
         });
       });
       el.querySelectorAll('[data-del]').forEach(function(b){
@@ -1604,13 +1626,8 @@
     if(!val) return;
     var newUser = { id: uid(), name: val, color: newUserColor };
     state.users.push(newUser);
-    var wasFirst = state.users.length===1;
     saveState();
     input.value = '';
-    if(wasFirst && !currentUserId){
-      currentUserId = newUser.id;
-      localStorage.setItem(CURRENT_USER_KEY, currentUserId);
-    }
     renderUsers();
   });
 
@@ -3515,34 +3532,57 @@
 
   document.getElementById('codeSubmitBtn').addEventListener('click', async function(){
     var val = document.getElementById('codeInput').value.trim();
+    var nameVal = document.getElementById('nameGateInput').value.trim();
     var errEl = document.getElementById('codeError');
-    if(!val){
-      errEl.textContent = 'Bitte einen Code eingeben.';
+    if(!val || !nameVal){
+      errEl.textContent = !val ? 'Bitte einen Code eingeben.' : 'Bitte deinen Namen eingeben.';
       errEl.style.display = 'block';
       return;
     }
+    errEl.style.display = 'none';
     var btn = document.getElementById('codeSubmitBtn');
     btn.textContent = 'Verbinde…';
     householdCode = val.toLowerCase().trim().replace(/\s+/g,'-');
     localStorage.setItem(CODE_KEY, householdCode);
     document.getElementById('codeGate').style.display = 'none';
-    await startApp();
+    await startApp(nameVal);
   });
-  document.getElementById('codeInput').addEventListener('keydown', function(e){
+  document.getElementById('nameGateInput').addEventListener('keydown', function(e){
     if(e.key === 'Enter') document.getElementById('codeSubmitBtn').click();
   });
 
   function logoutHousehold(){
-    if(confirm('Abmelden? Du wirst nach dem Haushalts-Code gefragt.')){
+    if(confirm('Abmelden? Du wirst nach Haushalts-Code und Namen gefragt.')){
       localStorage.removeItem(CODE_KEY);
+      localStorage.removeItem(CURRENT_USER_KEY);
       location.reload();
     }
   }
   document.getElementById('sidebarLogoutBtn').addEventListener('click', logoutHousehold);
 
-  async function startApp(){
+  // Ordnet das aktuelle Gerät einem Profil zu: gibt es schon einen Nutzer
+  // mit diesem Namen, wird dessen Profil übernommen, sonst wird ein neues
+  // angelegt. Wird beim erstmaligen Anmelden aufgerufen (Name kommt vom
+  // Code-Gate), sowie beim späteren "Person wechseln" in den Einstellungen.
+  async function resolveIdentity(name){
+    name = (name||'').trim();
+    if(!name) return;
+    var existing = state.users.find(function(u){ return u.name.trim().toLowerCase()===name.toLowerCase(); });
+    if(existing){
+      currentUserId = existing.id;
+    } else {
+      var newUser = { id: uid(), name: name, color: nextUserColor() };
+      state.users.push(newUser);
+      currentUserId = newUser.id;
+      await saveState();
+    }
+    localStorage.setItem(CURRENT_USER_KEY, currentUserId);
+  }
+
+  async function startApp(nameForIdentity){
     document.getElementById('app').style.display = 'flex';
     await loadState();
+    if(nameForIdentity){ await resolveIdentity(nameForIdentity); }
     await generateDueRecurring();
     setType('expense');
     setRecType('expense');
