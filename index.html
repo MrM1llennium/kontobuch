@@ -108,60 +108,6 @@
     --header-tint-deep: #FBCBE2;
     --sidebar-tint: #FFF1F7;
   }
-  /* Style-Umschaltung: Kawaii-Style zeigt die Sticker-Bilder statt der
-     Strich-SVGs — Farbe (Theme) und Style (Icon-Satz) sind unabhängig
-     voneinander wählbar. */
-  html[data-style="kawaii"] .tile svg,
-  html[data-style="kawaii"] .sidebar-item svg{ display:none; }
-  html[data-style="kawaii"] .tile img.kawaii-icon,
-  html[data-style="kawaii"] .sidebar-item img.kawaii-icon{ display:block; }
-
-  /* --- Kawaii: verspieltere, abgerundete Systemschrift (nativ, kein
-     Nachladen nötig — ui-rounded ist auf Apple-Geräten San Francisco
-     Rounded) --- */
-  html[data-style="kawaii"] body,
-  html[data-style="kawaii"] .tile-name,
-  html[data-style="kawaii"] .screen-title,
-  html[data-style="kawaii"] h1,
-  html[data-style="kawaii"] h2,
-  html[data-style="kawaii"] .page-title,
-  html[data-style="kawaii"] .brand,
-  html[data-style="kawaii"] .btn,
-  html[data-style="kawaii"] .sidebar-item{
-    font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Nunito", sans-serif;
-  }
-
-  /* --- Kawaii: wolkenförmige Unterkante der Kopfzeile, zwei Ebenen
-     übereinander für einen leichten 3D-Fluff-Effekt --- */
-  html[data-style="kawaii"] .topbar{
-    border-bottom:none;
-    padding-bottom: calc(14px + 22px);
-    position:relative;
-    overflow:visible;
-  }
-  html[data-style="kawaii"] .topbar::before,
-  html[data-style="kawaii"] .topbar::after{
-    content:""; position:absolute; left:0; right:0; height:26px; pointer-events:none;
-  }
-  html[data-style="kawaii"] .topbar::before{
-    bottom:-16px;
-    background: radial-gradient(circle at 13px 0, transparent 13px, var(--header-tint-deep) 14px) 0 0 / 26px 26px repeat-x;
-    opacity:.9;
-  }
-  html[data-style="kawaii"] .topbar::after{
-    bottom:-8px;
-    background: radial-gradient(circle at 13px 0, transparent 13px, var(--header-tint) 14px) -6px 0 / 26px 26px repeat-x;
-  }
-
-  /* --- Kawaii: Reiter-Symbole bleiben dieselben Piktogramme, wirken aber
-     runder/kräftiger — dickerer Strich, farbiger Kreis im aktiven Zustand --- */
-  html[data-style="kawaii"] .tabbar svg{ stroke-width:2.1; }
-  html[data-style="kawaii"] .tabbar button{
-    font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Nunito", sans-serif;
-  }
-  html[data-style="kawaii"] .tabbar button.active svg{
-    background:var(--brass-soft); border-radius:50%; padding:4px; box-sizing:content-box;
-  }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;min-height:100%;background:var(--ink);}
   @media (max-width: 480px){
@@ -736,6 +682,58 @@
   .btn:active, .tile:active, .note-card:active, .cal-card:active,
   .rec-card:active, .color-swatch:active{
     transform: scale(0.98);
+  }
+
+  /* ============================================================
+     KAWAII-STYLE — ganz am Ende platziert, damit diese Regeln
+     garantiert Vorrang vor allen Basis-Regeln weiter oben haben
+     (gleiche Selektor-Spezifität, aber spätere Position gewinnt).
+     Greift ausschließlich unter html[data-style="kawaii"].
+     ============================================================ */
+  html[data-style="kawaii"] .tile svg,
+  html[data-style="kawaii"] .sidebar-item svg{ display:none; }
+  html[data-style="kawaii"] .tile img.kawaii-icon,
+  html[data-style="kawaii"] .sidebar-item img.kawaii-icon{ display:block; }
+
+  html[data-style="kawaii"] body,
+  html[data-style="kawaii"] .tile-name,
+  html[data-style="kawaii"] .screen-title,
+  html[data-style="kawaii"] h1,
+  html[data-style="kawaii"] h2,
+  html[data-style="kawaii"] .page-title,
+  html[data-style="kawaii"] .brand,
+  html[data-style="kawaii"] .btn,
+  html[data-style="kawaii"] .tabbar button,
+  html[data-style="kawaii"] .sidebar-item{
+    font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Nunito", sans-serif !important;
+  }
+
+  html[data-style="kawaii"] .topbar{
+    border-bottom:none !important;
+    padding-bottom: 34px !important;
+    position:relative;
+    overflow:visible !important;
+  }
+  html[data-style="kawaii"] .topbar::before,
+  html[data-style="kawaii"] .topbar::after{
+    content:""; position:absolute; left:0; right:0; height:26px; pointer-events:none;
+  }
+  html[data-style="kawaii"] .topbar::before{
+    bottom:-16px;
+    background: radial-gradient(circle at 13px 0, transparent 13px, var(--header-tint-deep) 14px) 0 0 / 26px 26px repeat-x;
+    opacity:.9;
+  }
+  html[data-style="kawaii"] .topbar::after{
+    bottom:-8px;
+    background: radial-gradient(circle at 13px 0, transparent 13px, var(--header-tint) 14px) -6px 0 / 26px 26px repeat-x;
+  }
+  html[data-style="kawaii"] #screen-home .today-card{
+    margin-top:38px;
+  }
+
+  html[data-style="kawaii"] .tabbar svg{ stroke-width:2.1; }
+  html[data-style="kawaii"] .tabbar button.active svg{
+    background:var(--brass-soft); border-radius:50%; padding:4px; box-sizing:content-box;
   }
 </style>
 </head>
