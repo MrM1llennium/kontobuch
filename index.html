@@ -2450,13 +2450,17 @@
         (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
         '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
         avatarHtml(t.createdBy) +
-        (t.auto ? '' : '<button class="rdel" data-id="'+t.id+'" aria-label="Löschen">×</button>')+
+        '<button class="rdel" data-id="'+t.id+'" data-auto="'+(t.auto?'1':'0')+'" aria-label="Löschen">×</button>'+
       '</div>';
     }).join('');
 
     ledgerEl.querySelectorAll('.rdel').forEach(function(btn){
       btn.addEventListener('click', function(){
         var id = btn.getAttribute('data-id');
+        var isAuto = btn.getAttribute('data-auto')==='1';
+        if(isAuto){
+          if(!confirm('Diese Buchung wurde automatisch durch eine wiederkehrende Regel erzeugt. Löschen entfernt nur diesen einen Eintrag — die Regel selbst bleibt bestehen und bucht künftig normal weiter. Trotzdem löschen?')) return;
+        }
         state.transactions = state.transactions.filter(function(t){ return t.id!==id; });
         saveState();
         renderOverview();
