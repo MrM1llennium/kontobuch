@@ -86,6 +86,32 @@
     --header-tint: #F1EDF8;
     --sidebar-tint: #F6F3FA;
   }
+  /* Bubblegum 🩷 — erstes Farbschema für den Kawaii-Style. Sanfte Pastell-
+     Rosatöne als Grundfläche, ein kräftigeres Knallrosa als Akzent. */
+  html[data-theme="bubblegum"]{
+    --paper:#FFF4F8;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#FCE3EE;
+    --ink:#4A2E3D;
+    --ink-soft:#9C7C8C;
+    --line:#F6D6E6;
+    --red:#FF6B88;
+    --red-soft:#FFE3E9;
+    --green:#4FBE8E;
+    --green-soft:#E1F7EC;
+    --brass:#FF5FA8;
+    --brass-soft:#FFDCEC;
+    --brass-strong:#E0388C;
+    --header-tint: #FDE9F2;
+    --sidebar-tint: #FFF1F7;
+  }
+  /* Style-Umschaltung: Kawaii-Style zeigt die Sticker-Bilder statt der
+     Strich-SVGs — Farbe (Theme) und Style (Icon-Satz) sind unabhängig
+     voneinander wählbar. */
+  html[data-style="kawaii"] .tile svg,
+  html[data-style="kawaii"] .sidebar-item svg{ display:none; }
+  html[data-style="kawaii"] .tile img.kawaii-icon,
+  html[data-style="kawaii"] .sidebar-item img.kawaii-icon{ display:block; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;min-height:100%;background:var(--ink);}
   @media (max-width: 480px){
@@ -216,6 +242,7 @@
   }
   .tile:active{ background:var(--paper-dark); }
   .tile svg{ width:23px; height:23px; color:var(--brass-strong); }
+  .tile img.kawaii-icon{ display:none; width:34px; height:34px; object-fit:contain; }
   .tile-name{ font-size:15.5px; color:var(--ink); }
   .tile-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; }
 
@@ -589,6 +616,7 @@
   }
   .sidebar-item.active{ background:var(--brass-soft); color:var(--brass-strong); }
   .sidebar-item svg{ width:19px; height:19px; flex-shrink:0; }
+  .sidebar-item img.kawaii-icon{ display:none; width:26px; height:26px; object-fit:contain; flex-shrink:0; }
   .top-controls{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
   .hamburger-btn{
     background:none; border:none; color:var(--ink); padding:4px; margin:-4px 0;
@@ -693,30 +721,37 @@
     </button>
     <button class="sidebar-item" data-module="finance">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+      <img class="kawaii-icon" src="kawaii-finance.png" alt="">
       Finanzen
     </button>
     <button class="sidebar-item" data-module="calendar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+      <img class="kawaii-icon" src="kawaii-calendar.png" alt="">
       Kalender
     </button>
     <button class="sidebar-item" data-module="todos">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>
+      <img class="kawaii-icon" src="kawaii-todos.png" alt="">
       To-Dos
     </button>
     <button class="sidebar-item" data-module="mealplan">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v7M4 3v4a3 3 0 0 0 6 0V3M7 10v11M15 13c0-4 2-8 4-9v17M15 13a4 2 0 0 0 4 2"/></svg>
+      <img class="kawaii-icon" src="kawaii-mealplan.png" alt="">
       Lebensmittel
     </button>
     <button class="sidebar-item" data-module="projects">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c4 4 5 9 5 14v2H7v-2c0-5 1-10 5-14Z"/><path d="M7 15l-4 4 4 1 1 4 4-4"/><path d="M17 15l4 4-4 1-1 4-4-4"/><circle cx="12" cy="10" r="2"/></svg>
+      <img class="kawaii-icon" src="kawaii-projects.png" alt="">
       Projekte
     </button>
     <button class="sidebar-item" data-module="notes">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M15 3v5h5"/></svg>
+      <img class="kawaii-icon" src="kawaii-notes.png" alt="">
       Notizen
     </button>
     <button class="sidebar-item" data-module="settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+      <img class="kawaii-icon" src="kawaii-settings.png" alt="">
       Einstellungen
     </button>
     <div style="flex:1;"></div>
@@ -749,30 +784,37 @@
     <div class="tile-grid">
       <button class="tile tile-hero" data-module="finance">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+        <img class="kawaii-icon" src="kawaii-finance.png" alt="">
         <div><div class="tile-name">Finanzen</div><div class="tile-sub">Budget & Sparen</div></div>
       </button>
       <button class="tile" data-module="calendar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+        <img class="kawaii-icon" src="kawaii-calendar.png" alt="">
         <div><div class="tile-name">Kalender</div><div class="tile-sub">Termine</div></div>
       </button>
       <button class="tile" data-module="todos">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>
+        <img class="kawaii-icon" src="kawaii-todos.png" alt="">
         <div><div class="tile-name">To-Dos</div><div class="tile-sub">Aufgaben</div></div>
       </button>
       <button class="tile" data-module="mealplan">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v7M4 3v4a3 3 0 0 0 6 0V3M7 10v11M15 13c0-4 2-8 4-9v17M15 13a4 2 0 0 0 4 2"/></svg>
+        <img class="kawaii-icon" src="kawaii-mealplan.png" alt="">
         <div><div class="tile-name">Lebensmittel</div><div class="tile-sub">Einkauf, Vorrat & Rezepte</div></div>
       </button>
       <button class="tile" data-module="projects">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c4 4 5 9 5 14v2H7v-2c0-5 1-10 5-14Z"/><path d="M7 15l-4 4 4 1 1 4 4-4"/><path d="M17 15l4 4-4 1-1 4-4-4"/><circle cx="12" cy="10" r="2"/></svg>
+        <img class="kawaii-icon" src="kawaii-projects.png" alt="">
         <div><div class="tile-name">Projekte</div><div class="tile-sub">Urlaube & Anschaffungen</div></div>
       </button>
       <button class="tile" data-module="notes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M15 3v5h5"/></svg>
+        <img class="kawaii-icon" src="kawaii-notes.png" alt="">
         <div><div class="tile-name">Notizen</div><div class="tile-sub">Festhalten</div></div>
       </button>
       <button class="tile" data-module="settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+        <img class="kawaii-icon" src="kawaii-settings.png" alt="">
         <div><div class="tile-name">Einstellungen</div><div class="tile-sub">Nutzer & Daten</div></div>
       </button>
     </div>
@@ -1172,11 +1214,18 @@
       </div>
 
       <p class="section-title">Design</p>
-      <p class="page-sub" style="margin-top:-4px;">Wählt ein Theme — gilt pro Gerät.</p>
+      <p class="page-sub" style="margin-top:-4px;">Stil und Farbe wählen — gilt pro Gerät.</p>
       <div class="form-wrap" style="padding-top:10px;">
+        <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">Stil</label>
+        <div class="mode-switch" id="styleSwitch" style="margin-bottom:16px;">
+          <button type="button" data-style-choice="modern" class="active">Modern</button>
+          <button type="button" data-style-choice="kawaii">Kawaii</button>
+        </div>
+        <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">Farbe</label>
         <div class="mode-switch" id="themeSwitch" style="margin-bottom:0;">
-          <button type="button" data-theme-choice="forest" class="active">🌲 Forest</button>
-          <button type="button" data-theme-choice="lilac">🪻 Lilac</button>
+          <button type="button" data-theme-choice="forest" data-theme-style="modern" class="active">🌲 Forest</button>
+          <button type="button" data-theme-choice="lilac" data-theme-style="modern">🪻 Lilac</button>
+          <button type="button" data-theme-choice="bubblegum" data-theme-style="kawaii" style="display:none;">🩷 Bubblegum</button>
         </div>
       </div>
 
@@ -1757,11 +1806,38 @@
   /* ================= Nutzer & Avatare ================= */
   var CURRENT_USER_KEY = 'kontobuch-current-user-id';
 
-  /* ================= Design/Theme ================= */
+  /* ================= Design/Style/Theme ================= */
   var THEME_KEY = 'kontobuch-theme';
+  var STYLE_KEY = 'kontobuch-style';
+  var VALID_THEMES_BY_STYLE = { modern: ['forest','lilac'], kawaii: ['bubblegum'] };
+  var DEFAULT_THEME_BY_STYLE = { modern: 'forest', kawaii: 'bubblegum' };
+
+  function applyStyle(style){
+    if(style!=='kawaii') style = 'modern';
+    if(style==='kawaii'){
+      document.documentElement.setAttribute('data-style', 'kawaii');
+    } else {
+      document.documentElement.removeAttribute('data-style');
+    }
+    document.querySelectorAll('#styleSwitch button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-style-choice')===style);
+    });
+    // Nur die zum Style passenden Farboptionen anzeigen
+    document.querySelectorAll('#themeSwitch button').forEach(function(b){
+      b.style.display = b.getAttribute('data-theme-style')===style ? '' : 'none';
+    });
+    // Falls die aktuell gewählte Farbe zum neuen Style nicht passt, auf die
+    // Standardfarbe dieses Styles wechseln.
+    var currentTheme = localStorage.getItem(THEME_KEY) || 'forest';
+    if(VALID_THEMES_BY_STYLE[style].indexOf(currentTheme)===-1){
+      currentTheme = DEFAULT_THEME_BY_STYLE[style];
+      localStorage.setItem(THEME_KEY, currentTheme);
+    }
+    applyTheme(currentTheme);
+  }
   function applyTheme(theme){
-    if(theme==='lilac'){
-      document.documentElement.setAttribute('data-theme', 'lilac');
+    if(theme==='lilac' || theme==='bubblegum'){
+      document.documentElement.setAttribute('data-theme', theme);
     } else {
       document.documentElement.removeAttribute('data-theme');
       theme = 'forest';
@@ -1770,6 +1846,13 @@
       b.classList.toggle('active', b.getAttribute('data-theme-choice')===theme);
     });
   }
+  document.querySelectorAll('#styleSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var style = b.getAttribute('data-style-choice');
+      localStorage.setItem(STYLE_KEY, style);
+      applyStyle(style);
+    });
+  });
   document.querySelectorAll('#themeSwitch button').forEach(function(b){
     b.addEventListener('click', function(){
       var theme = b.getAttribute('data-theme-choice');
@@ -1777,7 +1860,7 @@
       applyTheme(theme);
     });
   });
-  applyTheme(localStorage.getItem(THEME_KEY) || 'forest');
+  applyStyle(localStorage.getItem(STYLE_KEY) || 'modern');
 
   var currentUserId = localStorage.getItem(CURRENT_USER_KEY) || null;
   var LAST_CODE_KEY = 'kontobuch-last-code';
