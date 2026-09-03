@@ -810,6 +810,14 @@
         <label for="editRecDay">Tag im Monat</label>
         <input type="number" inputmode="numeric" min="1" max="31" id="editRecDay" placeholder="z. B. 1">
       </div>
+      <div class="field">
+        <label for="editRecStartDate">Start (optional, sonst ab heute)</label>
+        <input type="date" id="editRecStartDate">
+      </div>
+      <div class="field">
+        <label for="editRecEndDate">Ende (optional, sonst unbegrenzt)</label>
+        <input type="date" id="editRecEndDate">
+      </div>
       <div class="checkbox-row">
         <input type="checkbox" id="editRecBelongsNextMonthInput">
         <label for="editRecBelongsNextMonthInput">Gehört zum nächsten Monat</label>
@@ -1048,6 +1056,14 @@
           <div class="field">
             <label for="recDay">Tag im Monat</label>
             <input type="number" inputmode="numeric" min="1" max="31" id="recDay" placeholder="z. B. 1">
+          </div>
+          <div class="field">
+            <label for="recStartDate">Start (optional, sonst ab heute)</label>
+            <input type="date" id="recStartDate">
+          </div>
+          <div class="field">
+            <label for="recEndDate">Ende (optional, sonst unbegrenzt)</label>
+            <input type="date" id="recEndDate">
           </div>
           <div class="checkbox-row">
             <input type="checkbox" id="recBelongsNextMonthInput">
@@ -2103,6 +2119,16 @@
   }
 
   /* ================= Wiederkehrende Buchungen ================= */
+  // Prüft, ob eine wiederkehrende Regel an einem bestimmten Datum (String
+  // "YYYY-MM-DD") überhaupt greifen soll — berücksichtigt optionales
+  // Start-/Enddatum. Kein Startdatum = ab jeher gültig, kein Enddatum =
+  // unbegrenzt gültig.
+  function recurringActiveOnDate(r, dateStr){
+    if(r.startDate && dateStr < r.startDate) return false;
+    if(r.endDate && dateStr > r.endDate) return false;
+    return true;
+  }
+
   async function generateDueRecurring(){
     if(!state.recurring || state.recurring.length===0) return;
     var today = new Date();
@@ -2118,6 +2144,7 @@
       var already = state.transactions.some(function(t){ return t.recurringId===r.id && dateToKey(t.date)===todayKey; });
       if(already) return;
       var dateStr = y+'-'+String(m+1).padStart(2,'0')+'-'+String(bookDay).padStart(2,'0');
+      if(!recurringActiveOnDate(r, dateStr)) return;
       state.transactions.push({
         id: uid(), type: r.type, amount: r.amount, category: r.category,
         date: dateStr, note: r.name, recurringId: r.id, auto: true,
@@ -2143,13 +2170,20 @@
         if(already) return;
         var bookDay = Math.min(r.day, daysInMonth);
         if(bookDay > todayDate){
+          var dateStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(bookDay).padStart(2,'0');
+          if(!recurringActiveOnDate(r, dateStr)) return;
           if(r.type==='income') pendingInc += r.amount; else pendingExp += r.amount;
         }
       });
     } else {
       // Künftiger Monat: alle aktiven, wiederkehrenden Regeln einmal komplett einrechnen
+      var y = viewDate.getFullYear(), m = viewDate.getMonth();
+      var daysInViewedMonth = new Date(y, m+1, 0).getDate();
       (state.recurring||[]).forEach(function(r){
         if(!r.active) return;
+        var bookDay = Math.min(r.day, daysInViewedMonth);
+        var dateStr = y+'-'+String(m+1).padStart(2,'0')+'-'+String(bookDay).padStart(2,'0');
+        if(!recurringActiveOnDate(r, dateStr)) return;
         if(r.type==='income') pendingInc += r.amount; else pendingExp += r.amount;
       });
     }
@@ -2352,9 +2386,13 @@
     var sorted = state.recurring.slice().sort(function(a,b){ return a.day-b.day; });
     el.innerHTML = sorted.map(function(r){
       var paused = r.active===false;
+      var rangeParts = [];
+      if(r.startDate) rangeParts.push('ab '+fmtDate(r.startDate));
+      if(r.endDate) rangeParts.push('bis '+fmtDate(r.endDate));
       return '<div class="rec-card'+(paused?' paused':'')+'" data-editrec="'+r.id+'">'+
         '<div class="rec-info"><div class="rec-name">'+escapeHtml(r.name)+'</div>'+
-        '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'. · '+(r.type==='income'?'Einnahme':'Ausgabe')+'</div>'+
+        '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'. · '+(r.type==='income'?'Einnahme':'Ausgabe')+
+        (rangeParts.length ? ' · '+rangeParts.join(', ') : '')+'</div>'+
         (paused ? '<span class="pause-tag">Pausiert</span>' : '')+
         '</div>'+
         '<div class="rec-amt '+r.type+'">'+(r.type==='income'?'+':'−')+fmtEUR(r.amount)+'</div>'+
@@ -2401,6 +2439,8 @@
     populateEditRecCategorySelect();
     document.getElementById('editRecCategory').value = r.category;
     document.getElementById('editRecDay').value = r.day;
+    document.getElementById('editRecStartDate').value = r.startDate || '';
+    document.getElementById('editRecEndDate').value = r.endDate || '';
     document.getElementById('editRecBelongsNextMonthInput').checked = !!r.belongsNextMonth;
     document.getElementById('editRecActiveInput').checked = r.active!==false;
     document.getElementById('editRecurringModal').style.display = 'flex';
@@ -2415,8 +2455,14 @@
     var name = document.getElementById('editRecName').value.trim();
     var amount = parseFloat(document.getElementById('editRecAmount').value);
     var day = parseInt(document.getElementById('editRecDay').value, 10);
+    var startDate = document.getElementById('editRecStartDate').value || null;
+    var endDate = document.getElementById('editRecEndDate').value || null;
     if(!name || !amount || amount<=0 || !day || day<1 || day>31){
       alert('Bitte Bezeichnung, Betrag und einen gültigen Tag (1–31) angeben.');
+      return;
+    }
+    if(startDate && endDate && endDate < startDate){
+      alert('Das Enddatum darf nicht vor dem Startdatum liegen.');
       return;
     }
     r.name = name;
@@ -2424,6 +2470,8 @@
     r.amount = Math.round(amount*100)/100;
     r.category = document.getElementById('editRecCategory').value;
     r.day = day;
+    r.startDate = startDate;
+    r.endDate = endDate;
     r.belongsNextMonth = document.getElementById('editRecBelongsNextMonthInput').checked;
     r.active = document.getElementById('editRecActiveInput').checked;
     await saveState();
@@ -2448,13 +2496,20 @@
     var amount = parseFloat(document.getElementById('recAmount').value);
     var category = document.getElementById('recCategory').value;
     var day = parseInt(document.getElementById('recDay').value, 10);
+    var startDate = document.getElementById('recStartDate').value || null;
+    var endDate = document.getElementById('recEndDate').value || null;
     if(!name || !amount || amount<=0 || !day || day<1 || day>31){
       alert('Bitte Bezeichnung, Betrag und einen gültigen Tag (1–31) angeben.');
+      return;
+    }
+    if(startDate && endDate && endDate < startDate){
+      alert('Das Enddatum darf nicht vor dem Startdatum liegen.');
       return;
     }
     state.recurring.push({
       id: uid(), type: recCurrentType, category: category,
       amount: Math.round(amount*100)/100, day: day, name: name, active: true,
+      startDate: startDate, endDate: endDate,
       belongsNextMonth: document.getElementById('recBelongsNextMonthInput').checked
     });
     await generateDueRecurring();
@@ -2462,6 +2517,8 @@
     document.getElementById('recName').value = '';
     document.getElementById('recAmount').value = '';
     document.getElementById('recDay').value = '';
+    document.getElementById('recStartDate').value = '';
+    document.getElementById('recEndDate').value = '';
     document.getElementById('recBelongsNextMonthInput').checked = false;
     renderRecurring();
     renderOverview();
