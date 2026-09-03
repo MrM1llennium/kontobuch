@@ -710,25 +710,23 @@
 
   html[data-style="kawaii"] .topbar{
     border-bottom:none !important;
-    padding-bottom: 34px !important;
-    position:relative;
-    overflow:visible !important;
+    padding-bottom: 40px !important;
   }
   html[data-style="kawaii"] .topbar::before,
   html[data-style="kawaii"] .topbar::after{
     content:""; position:absolute; left:0; right:0; height:26px; pointer-events:none;
   }
   html[data-style="kawaii"] .topbar::before{
-    bottom:-16px;
+    bottom:14px;
     background: radial-gradient(circle at 13px 0, transparent 13px, var(--header-tint-deep) 14px) 0 0 / 26px 26px repeat-x;
     opacity:.9;
   }
   html[data-style="kawaii"] .topbar::after{
-    bottom:-8px;
+    bottom:6px;
     background: radial-gradient(circle at 13px 0, transparent 13px, var(--header-tint) 14px) -6px 0 / 26px 26px repeat-x;
   }
   html[data-style="kawaii"] #screen-home .today-card{
-    margin-top:38px;
+    margin-top:22px;
   }
 
   html[data-style="kawaii"] .tabbar svg{ stroke-width:2.1; }
