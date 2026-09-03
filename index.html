@@ -114,7 +114,43 @@
   .num{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; }
 
   .screen{ display:none; flex-direction:column; min-height:100vh; }
-  .screen.active{ display:flex; }
+  .screen.active{ display:flex; animation: screenEnter 240ms ease; }
+  @keyframes screenEnter{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @keyframes sheetFadeIn{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes sheetSlideUp{
+    from{ transform:translateY(28px); opacity:0; }
+    to{ transform:translateY(0); opacity:1; }
+  }
+  @keyframes sheetScaleIn{
+    from{ transform:scale(0.94); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+  /* Bottom-Sheet-Pop-ups fahren von unten nach oben aus */
+  div[style*="align-items:flex-end; justify-content:center;"]{
+    animation: sheetFadeIn 180ms ease;
+  }
+  div[style*="align-items:flex-end; justify-content:center;"] > div{
+    animation: sheetSlideUp 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* Mittig zentrierte Bestätigungs-Pop-ups faden + skalieren sanft ein */
+  div[style*="position:fixed; inset:0"][style*="align-items:center; justify-content:center;"]{
+    animation: sheetFadeIn 180ms ease;
+  }
+  div[style*="position:fixed; inset:0"][style*="align-items:center; justify-content:center;"] > div{
+    animation: sheetScaleIn 220ms ease;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .screen.active,
+    div[style*="align-items:flex-end; justify-content:center;"],
+    div[style*="align-items:flex-end; justify-content:center;"] > div,
+    div[style*="align-items:center; justify-content:center;"],
+    div[style*="align-items:center; justify-content:center;"] > div{
+      animation:none !important;
+    }
+  }
 
   /* ---------- Topbar ---------- */
   .topbar{
@@ -1484,6 +1520,19 @@
   "use strict";
   if('scrollRestoration' in history){ history.scrollRestoration = 'manual'; }
   window.addEventListener('pageshow', function(){ window.scrollTo(0,0); });
+
+  // Haptik: funktioniert nur dort, wo der Browser die Vibration-API
+  // unterstützt (Android u. a.) — iOS Safari/PWA unterstützt das leider
+  // grundsätzlich nicht, dort bleibt es beim rein visuellen Feedback.
+  function triggerHaptic(strength){
+    if(navigator.vibrate){
+      navigator.vibrate(strength==='medium' ? 15 : strength==='strong' ? 25 : 8);
+    }
+  }
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('.btn, .check, .tile, .tabbar button, .sidebar-item, .rec-card, .note-card, .cal-card');
+    if(t) triggerHaptic(t.classList.contains('check') ? 'medium' : 'light');
+  }, true);
 
   var DEFAULT_STATE = {
     transactions: [],
