@@ -623,10 +623,17 @@
   .check{ border-radius:50%; }
 
   /* Kurze, dezente Übergangsanimation beim Theme-Wechsel */
-  html, body, #app, .topbar, .tabbar, #sidebar, .tile, .btn,
+  html, body, #app, .topbar, .tabbar, .tile, .btn,
   .today-card, .budget-card, .goal-card, .note-card, .cal-card,
   .rec-card, .meal-day, .simple-row, .field input, .field select{
     transition: background-color .22s ease, color .22s ease, border-color .22s ease, box-shadow .22s ease;
+  }
+  /* Sidebar braucht zusätzlich zur Theme-Farbübergabe weiterhin ihre
+     eigene Slide-Animation — beides zusammen in einer Deklaration,
+     sonst überschreibt die spätere Regel die frühere komplett. */
+  #sidebar{
+    transition: transform .38s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color .22s ease, color .22s ease;
   }
 
   /* Subtiles Touch-Feedback (leichtes Eindrücken) für tappbare Elemente */
