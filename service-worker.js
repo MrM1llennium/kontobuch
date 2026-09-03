@@ -1,15 +1,11 @@
-const CACHE_NAME = 'homehub-shell-v1';
+const CACHE_NAME = 'homehub-shell-v2';
 const SHELL_FILES = [
   './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
-  './icon-192-lilac.png',
-  './icon-512-lilac.png',
-  './icon-512-maskable-lilac.png',
-  './apple-touch-icon.png',
-  './apple-touch-icon-lilac.png'
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', function(event){

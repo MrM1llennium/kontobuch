@@ -1769,13 +1769,6 @@
     document.querySelectorAll('#themeSwitch button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-theme-choice')===theme);
     });
-    // Browser-Tab-Icon passend zum Theme aktualisieren (das bereits auf dem
-    // Homescreen installierte Icon lässt sich technisch nicht rückwirkend
-    // ändern — dafür müsste die App neu hinzugefügt werden).
-    var touchIcon = document.querySelector('link[rel="apple-touch-icon"]');
-    var favicon = document.querySelector('link[rel="icon"]');
-    if(touchIcon) touchIcon.setAttribute('href', theme==='lilac' ? 'apple-touch-icon-lilac.png' : 'apple-touch-icon.png');
-    if(favicon) favicon.setAttribute('href', theme==='lilac' ? 'icon-192-lilac.png' : 'icon-192.png');
   }
   document.querySelectorAll('#themeSwitch button').forEach(function(b){
     b.addEventListener('click', function(){
