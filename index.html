@@ -819,13 +819,28 @@
         <label for="editRecDay">Tag im Monat</label>
         <input type="number" inputmode="numeric" min="1" max="31" id="editRecDay" placeholder="z. B. 1">
       </div>
-      <div class="field">
-        <label for="editRecStartDate">Start (optional, sonst ab heute)</label>
-        <input type="date" id="editRecStartDate">
+      <button type="button" class="link-btn" id="toggleEditRecDatesBtn" style="margin-bottom:16px;">Start-/Enddatum festlegen</button>
+      <div id="editRecDatesWrap" style="display:none;">
+        <div class="field">
+          <label for="editRecStartDate">Start (optional, sonst ab heute)</label>
+          <input type="date" id="editRecStartDate">
+        </div>
+        <div class="field">
+          <label for="editRecEndDate">Ende (optional, sonst unbegrenzt)</label>
+          <input type="date" id="editRecEndDate">
+        </div>
       </div>
-      <div class="field">
-        <label for="editRecEndDate">Ende (optional, sonst unbegrenzt)</label>
-        <input type="date" id="editRecEndDate">
+      <button type="button" class="link-btn" id="toggleEditRecPauseBtn" style="margin-bottom:16px;">Zahlung pausieren</button>
+      <div id="editRecPauseWrap" style="display:none;">
+        <p class="page-sub" style="padding:0 0 10px;">In diesem Zeitraum wird nichts gebucht, danach läuft's automatisch normal weiter.</p>
+        <div class="field">
+          <label for="editRecPauseStart">Pausiert von</label>
+          <input type="date" id="editRecPauseStart">
+        </div>
+        <div class="field">
+          <label for="editRecPauseEnd">Pausiert bis</label>
+          <input type="date" id="editRecPauseEnd">
+        </div>
       </div>
       <div class="checkbox-row">
         <input type="checkbox" id="editRecBelongsNextMonthInput">
@@ -833,7 +848,7 @@
       </div>
       <div class="checkbox-row">
         <input type="checkbox" id="editRecActiveInput" checked>
-        <label for="editRecActiveInput">Aktiv (bei Abwahl wird pausiert, ohne zu löschen)</label>
+        <label for="editRecActiveInput">Aktiv (bei Abwahl wird komplett pausiert, ohne zu löschen)</label>
       </div>
       <div class="btn-row">
         <button class="btn ghost" id="cancelEditRecurringBtn">Abbrechen</button>
@@ -1066,13 +1081,16 @@
             <label for="recDay">Tag im Monat</label>
             <input type="number" inputmode="numeric" min="1" max="31" id="recDay" placeholder="z. B. 1">
           </div>
-          <div class="field">
-            <label for="recStartDate">Start (optional, sonst ab heute)</label>
-            <input type="date" id="recStartDate">
-          </div>
-          <div class="field">
-            <label for="recEndDate">Ende (optional, sonst unbegrenzt)</label>
-            <input type="date" id="recEndDate">
+          <button type="button" class="link-btn" id="toggleRecDatesBtn" style="margin-bottom:16px;">Start-/Enddatum festlegen</button>
+          <div id="recDatesWrap" style="display:none;">
+            <div class="field">
+              <label for="recStartDate">Start (optional, sonst ab heute)</label>
+              <input type="date" id="recStartDate">
+            </div>
+            <div class="field">
+              <label for="recEndDate">Ende (optional, sonst unbegrenzt)</label>
+              <input type="date" id="recEndDate">
+            </div>
           </div>
           <div class="checkbox-row">
             <input type="checkbox" id="recBelongsNextMonthInput">
@@ -2137,11 +2155,14 @@
   /* ================= Wiederkehrende Buchungen ================= */
   // Prüft, ob eine wiederkehrende Regel an einem bestimmten Datum (String
   // "YYYY-MM-DD") überhaupt greifen soll — berücksichtigt optionales
-  // Start-/Enddatum. Kein Startdatum = ab jeher gültig, kein Enddatum =
+  // Start-/Enddatum (Lebensdauer der Regel insgesamt) und eine optionale
+  // Pause-Zeitspanne (vorübergehend ausgesetzt, läuft danach automatisch
+  // wieder weiter). Kein Startdatum = ab jeher gültig, kein Enddatum =
   // unbegrenzt gültig.
   function recurringActiveOnDate(r, dateStr){
     if(r.startDate && dateStr < r.startDate) return false;
     if(r.endDate && dateStr > r.endDate) return false;
+    if(r.pauseStart && r.pauseEnd && dateStr >= r.pauseStart && dateStr <= r.pauseEnd) return false;
     return true;
   }
 
@@ -2333,7 +2354,7 @@
         (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
         '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
         avatarHtml(t.createdBy) +
-        '<button class="rdel" data-id="'+t.id+'" aria-label="Löschen">×</button>'+
+        (t.auto ? '' : '<button class="rdel" data-id="'+t.id+'" aria-label="Löschen">×</button>')+
       '</div>';
     }).join('');
 
@@ -2400,16 +2421,20 @@
       return;
     }
     var sorted = state.recurring.slice().sort(function(a,b){ return a.day-b.day; });
+    var todayStr = todayISO();
     el.innerHTML = sorted.map(function(r){
-      var paused = r.active===false;
+      var pausedFully = r.active===false;
+      var inTempPause = !!(r.pauseStart && r.pauseEnd && todayStr>=r.pauseStart && todayStr<=r.pauseEnd);
+      var visuallyPaused = pausedFully || inTempPause;
       var rangeParts = [];
       if(r.startDate) rangeParts.push('ab '+fmtDate(r.startDate));
       if(r.endDate) rangeParts.push('bis '+fmtDate(r.endDate));
-      return '<div class="rec-card'+(paused?' paused':'')+'" data-editrec="'+r.id+'">'+
+      if(r.pauseStart && r.pauseEnd) rangeParts.push('Pause '+fmtDate(r.pauseStart)+'–'+fmtDate(r.pauseEnd));
+      return '<div class="rec-card'+(visuallyPaused?' paused':'')+'" data-editrec="'+r.id+'">'+
         '<div class="rec-info"><div class="rec-name">'+escapeHtml(r.name)+'</div>'+
         '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'. · '+(r.type==='income'?'Einnahme':'Ausgabe')+
         (rangeParts.length ? ' · '+rangeParts.join(', ') : '')+'</div>'+
-        (paused ? '<span class="pause-tag">Pausiert</span>' : '')+
+        (pausedFully ? '<span class="pause-tag">Pausiert</span>' : (inTempPause ? '<span class="pause-tag">Pausiert bis '+fmtDate(r.pauseEnd)+'</span>' : ''))+
         '</div>'+
         '<div class="rec-amt '+r.type+'">'+(r.type==='income'?'+':'−')+fmtEUR(r.amount)+'</div>'+
       '</div>';
@@ -2447,10 +2472,22 @@
     document.getElementById('editRecDay').value = r.day;
     document.getElementById('editRecStartDate').value = r.startDate || '';
     document.getElementById('editRecEndDate').value = r.endDate || '';
+    document.getElementById('editRecDatesWrap').style.display = (r.startDate || r.endDate) ? 'block' : 'none';
+    document.getElementById('editRecPauseStart').value = r.pauseStart || '';
+    document.getElementById('editRecPauseEnd').value = r.pauseEnd || '';
+    document.getElementById('editRecPauseWrap').style.display = (r.pauseStart || r.pauseEnd) ? 'block' : 'none';
     document.getElementById('editRecBelongsNextMonthInput').checked = !!r.belongsNextMonth;
     document.getElementById('editRecActiveInput').checked = r.active!==false;
     document.getElementById('editRecurringModal').style.display = 'flex';
   }
+  document.getElementById('toggleEditRecDatesBtn').addEventListener('click', function(){
+    var el = document.getElementById('editRecDatesWrap');
+    el.style.display = el.style.display==='block' ? 'none' : 'block';
+  });
+  document.getElementById('toggleEditRecPauseBtn').addEventListener('click', function(){
+    var el = document.getElementById('editRecPauseWrap');
+    el.style.display = el.style.display==='block' ? 'none' : 'block';
+  });
   document.getElementById('cancelEditRecurringBtn').addEventListener('click', function(){
     document.getElementById('editRecurringModal').style.display = 'none';
     editingRecurringId = null;
@@ -2463,12 +2500,22 @@
     var day = parseInt(document.getElementById('editRecDay').value, 10);
     var startDate = document.getElementById('editRecStartDate').value || null;
     var endDate = document.getElementById('editRecEndDate').value || null;
+    var pauseStart = document.getElementById('editRecPauseStart').value || null;
+    var pauseEnd = document.getElementById('editRecPauseEnd').value || null;
     if(!name || !amount || amount<=0 || !day || day<1 || day>31){
       alert('Bitte Bezeichnung, Betrag und einen gültigen Tag (1–31) angeben.');
       return;
     }
     if(startDate && endDate && endDate < startDate){
       alert('Das Enddatum darf nicht vor dem Startdatum liegen.');
+      return;
+    }
+    if((pauseStart && !pauseEnd) || (!pauseStart && pauseEnd)){
+      alert('Bitte für die Pause beide Daten angeben (von und bis).');
+      return;
+    }
+    if(pauseStart && pauseEnd && pauseEnd < pauseStart){
+      alert('Das "Pausiert bis"-Datum darf nicht vor "Pausiert von" liegen.');
       return;
     }
     r.name = name;
@@ -2478,6 +2525,8 @@
     r.day = day;
     r.startDate = startDate;
     r.endDate = endDate;
+    r.pauseStart = pauseStart;
+    r.pauseEnd = pauseEnd;
     r.belongsNextMonth = document.getElementById('editRecBelongsNextMonthInput').checked;
     r.active = document.getElementById('editRecActiveInput').checked;
     await saveState();
@@ -2525,10 +2574,15 @@
     document.getElementById('recDay').value = '';
     document.getElementById('recStartDate').value = '';
     document.getElementById('recEndDate').value = '';
+    document.getElementById('recDatesWrap').style.display = 'none';
     document.getElementById('recBelongsNextMonthInput').checked = false;
     renderRecurring();
     renderOverview();
     renderBudget();
+  });
+  document.getElementById('toggleRecDatesBtn').addEventListener('click', function(){
+    var el = document.getElementById('recDatesWrap');
+    el.style.display = el.style.display==='block' ? 'none' : 'block';
   });
 
   document.getElementById('showNewCat').addEventListener('click', function(){
