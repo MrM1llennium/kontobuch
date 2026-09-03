@@ -787,6 +787,15 @@
     </div>
   </div>
 
+  <div id="recurringListModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 12px;">Wiederkehrende Buchungen</p>
+      <p class="page-sub" style="padding:0 0 12px;">Zum Bearbeiten oder Löschen antippen.</p>
+      <div id="recurringList"></div>
+      <button type="button" class="btn ghost" id="closeRecurringListBtn" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
   <div id="editRecurringModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
       <p class="section-title" style="padding:0 0 12px;">Wiederkehrende Buchung bearbeiten</p>
@@ -904,6 +913,7 @@
           <input type="number" inputmode="decimal" step="0.01" id="startingBalanceInput" placeholder="0,00" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:'Source Serif 4',serif;">
           <button class="btn" id="saveStartingBalanceBtn" style="width:auto; padding:12px 18px;">Speichern</button>
         </div>
+        <button type="button" class="link-btn" id="showRecurringListBtn" style="margin-top:14px;">Wiederkehrende Buchungen anzeigen</button>
       </div>
 
       <p class="section-title">Kategorien</p>
@@ -1035,8 +1045,7 @@
       </div>
       <div id="addRecurring" style="display:none;">
         <p class="page-sub">Wird ab jetzt automatisch am gewählten Tag jeden Monat gebucht — z. B. Gehalt, Miete, Strom, Versicherungen.</p>
-        <div id="recurringList" style="margin-top:14px;"></div>
-        <div class="form-wrap" style="padding-top:6px;">
+        <div class="form-wrap" style="padding-top:14px;">
           <div class="type-switch" style="margin-bottom:20px;">
             <button type="button" id="recTypeIncomeBtn" class="income">Einnahme</button>
             <button type="button" id="recTypeExpenseBtn" class="expense active">Ausgabe</button>
@@ -1695,6 +1704,13 @@
     }
     saveState();
     renderOverview();
+  });
+  document.getElementById('showRecurringListBtn').addEventListener('click', function(){
+    renderRecurring();
+    document.getElementById('recurringListModal').style.display = 'flex';
+  });
+  document.getElementById('closeRecurringListBtn').addEventListener('click', function(){
+    document.getElementById('recurringListModal').style.display = 'none';
   });
   document.getElementById('addUserBtn').addEventListener('click', function(){
     var input = document.getElementById('newUserName');
@@ -2396,18 +2412,8 @@
         (paused ? '<span class="pause-tag">Pausiert</span>' : '')+
         '</div>'+
         '<div class="rec-amt '+r.type+'">'+(r.type==='income'?'+':'−')+fmtEUR(r.amount)+'</div>'+
-        '<button class="rec-del" data-id="'+r.id+'" aria-label="Löschen" onclick="event.stopPropagation()">×</button>'+
       '</div>';
     }).join('');
-    el.querySelectorAll('.rec-del').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var id = btn.getAttribute('data-id');
-        if(!confirm('Wiederkehrende Buchung wirklich endgültig löschen?')) return;
-        state.recurring = state.recurring.filter(function(r){ return r.id!==id; });
-        saveState();
-        renderRecurring();
-      });
-    });
     el.querySelectorAll('[data-editrec]').forEach(function(card){
       card.addEventListener('click', function(){ openEditRecurring(card.getAttribute('data-editrec')); });
     });
