@@ -3234,7 +3234,7 @@
 
   // Fügt einen Artikel zur Vorratskammer hinzu — gleiche Zusammenführungslogik
   // wie bei der Einkaufsliste (Mengen werden addiert, wenn möglich).
-  function addToPantry(name, amount){
+  function addToPantry(name, amount, category){
     name = (name||'').trim();
     if(!name) return;
     amount = (amount||'').trim() || null;
@@ -3250,7 +3250,7 @@
         return; // schon vorhanden, nichts Neues
       }
     }
-    state.pantry.push({ id: uid(), name: name, amount: amount, category: guessGroceryCategory(name), createdBy: currentUserId });
+    state.pantry.push({ id: uid(), name: name, amount: amount, category: category || guessGroceryCategory(name), createdBy: currentUserId });
   }
   // Lockere Übereinstimmung (Teilstring, ohne Groß-/Kleinschreibung) — findet
   // z. B. "Mehl" in der Vorratskammer auch, wenn die Zutat "Weizenmehl" heißt.
@@ -3405,7 +3405,7 @@
         it.checked = !it.checked;
         if(!wasChecked && it.checked){
           // Beim Abhaken automatisch in die Vorratskammer übernehmen
-          addToPantry(it.name, it.amount);
+          addToPantry(it.name, it.amount, it.category);
         }
         saveState();
         renderShopping();
