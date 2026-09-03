@@ -3250,7 +3250,7 @@
         return; // schon vorhanden, nichts Neues
       }
     }
-    state.pantry.push({ id: uid(), name: name, amount: amount, createdBy: currentUserId });
+    state.pantry.push({ id: uid(), name: name, amount: amount, category: guessGroceryCategory(name), createdBy: currentUserId });
   }
   // Lockere Übereinstimmung (Teilstring, ohne Groß-/Kleinschreibung) — findet
   // z. B. "Mehl" in der Vorratskammer auch, wenn die Zutat "Weizenmehl" heißt.
@@ -3267,6 +3267,7 @@
     var label = (it.amount ? escapeHtml(it.amount)+' ' : '') + escapeHtml(it.name);
     return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
       '<div class="stext"><div class="stitle">'+label+'</div></div>'+
+      '<button type="button" class="cat-badge" data-pantrycatedit="'+it.id+'">'+escapeHtml(it.category||'Sonstiges')+'</button>'+
       avatarHtml(it.createdBy) +
       '<button class="sdel" data-pantrydel="'+it.id+'">×</button>'+
     '</div>';
@@ -3278,8 +3279,21 @@
       el.innerHTML = '<p class="empty">Vorratskammer ist leer.</p>';
       return;
     }
-    var sorted = state.pantry.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
-    el.innerHTML = sorted.map(pantryRowHtml).join('');
+    var groups = {};
+    state.pantry.forEach(function(it){
+      var cat = it.category || 'Sonstiges';
+      if(!groups[cat]) groups[cat] = [];
+      groups[cat].push(it);
+    });
+    Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return a.name.localeCompare(b.name); }); });
+    var catOrder = GROCERY_CATEGORIES.map(function(c){ return c.name; }).concat(['Sonstiges']);
+    var html = '';
+    catOrder.forEach(function(catName){
+      if(!groups[catName] || groups[catName].length===0) return;
+      html += '<p class="section-title" style="padding:14px 20px 4px;">'+catName+'</p>';
+      html += groups[catName].map(pantryRowHtml).join('');
+    });
+    el.innerHTML = html;
     el.querySelectorAll('[data-pantrydel]').forEach(function(b){
       b.addEventListener('click', function(){
         var id = b.getAttribute('data-pantrydel');
@@ -3287,6 +3301,9 @@
         saveState();
         renderPantry();
       });
+    });
+    el.querySelectorAll('[data-pantrycatedit]').forEach(function(b){
+      b.addEventListener('click', function(){ openCategoryEditModal(b.getAttribute('data-pantrycatedit'), 'pantry'); });
     });
   }
   document.getElementById('openPantryAddBtn').addEventListener('click', function(){
@@ -3319,9 +3336,12 @@
   }
 
   var categoryEditTargetId = null;
-  function openCategoryEditModal(itemId){
+  var categoryEditTargetList = 'shopping';
+  function openCategoryEditModal(itemId, listName){
     categoryEditTargetId = itemId;
-    var item = state.shopping.find(function(x){ return x.id===itemId; });
+    categoryEditTargetList = listName || 'shopping';
+    var collection = categoryEditTargetList==='pantry' ? state.pantry : state.shopping;
+    var item = collection.find(function(x){ return x.id===itemId; });
     if(!item) return;
     var names = GROCERY_CATEGORIES.map(function(c){ return c.name; }).concat(['Sonstiges']);
     document.getElementById('categoryEditList').innerHTML = names.map(function(n){
@@ -3333,11 +3353,12 @@
     }).join('');
     document.querySelectorAll('#categoryEditList [data-catchoice]').forEach(function(row){
       row.addEventListener('click', function(){
-        var it = state.shopping.find(function(x){ return x.id===categoryEditTargetId; });
+        var coll = categoryEditTargetList==='pantry' ? state.pantry : state.shopping;
+        var it = coll.find(function(x){ return x.id===categoryEditTargetId; });
         if(it){
           it.category = row.getAttribute('data-catchoice');
           saveState();
-          renderShopping();
+          if(categoryEditTargetList==='pantry') renderPantry(); else renderShopping();
         }
         document.getElementById('categoryEditModal').style.display = 'none';
       });
@@ -3399,7 +3420,7 @@
       });
     });
     el.querySelectorAll('[data-catedit]').forEach(function(b){
-      b.addEventListener('click', function(){ openCategoryEditModal(b.getAttribute('data-catedit')); });
+      b.addEventListener('click', function(){ openCategoryEditModal(b.getAttribute('data-catedit'), 'shopping'); });
     });
   }
   document.getElementById('openShopAddBtn').addEventListener('click', function(){
