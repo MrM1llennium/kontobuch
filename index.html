@@ -577,6 +577,10 @@
     <input type="text" id="codeInput" placeholder="z. B. mueller-budget" autocapitalize="off" autocorrect="off">
     <p style="margin:18px 0 8px; font-size:13px; color:#B7BBA9;">Dein Name — legt fest, welches Profil auf diesem Gerät dir gehört.</p>
     <input type="text" id="nameGateInput" placeholder="z. B. Lukas" autocapitalize="words">
+    <div style="display:flex; align-items:center; gap:9px; margin-top:16px;">
+      <input type="checkbox" id="rememberLoginInput" checked style="width:18px; height:18px;">
+      <label for="rememberLoginInput" style="font-size:13px; color:#B7BBA9;">Anmeldedaten auf diesem Gerät merken</label>
+    </div>
     <button class="btn" id="codeSubmitBtn">Starten</button>
     <p id="codeError"></p>
   </div>
@@ -1408,6 +1412,8 @@
   applyTheme(localStorage.getItem(THEME_KEY) || 'ledger');
 
   var currentUserId = localStorage.getItem(CURRENT_USER_KEY) || null;
+  var LAST_CODE_KEY = 'kontobuch-last-code';
+  var LAST_NAME_KEY = 'kontobuch-last-name';
   var USER_COLORS = ['#A03A2C','#2E6B52','#A8813F','#5C6B8C','#7A4E8C','#3F7A6B','#B0562F','#6E5C9E','#8C4E6B','#4E7A3F'];
   var USER_COLORS_PASTEL = ['#E8A79C','#A8D5BE','#E8CFA0','#AEC0DB','#CDB8DC','#A8D4CB','#F0C4A8','#C6C0E8','#DCB8C8','#C9D4A8'];
   var newUserColor = USER_COLORS[0];
@@ -3542,8 +3548,16 @@
     errEl.style.display = 'none';
     var btn = document.getElementById('codeSubmitBtn');
     btn.textContent = 'Verbinde…';
+    var rememberForNextTime = document.getElementById('rememberLoginInput').checked;
     householdCode = val.toLowerCase().trim().replace(/\s+/g,'-');
     localStorage.setItem(CODE_KEY, householdCode);
+    if(rememberForNextTime){
+      localStorage.setItem(LAST_CODE_KEY, householdCode);
+      localStorage.setItem(LAST_NAME_KEY, nameVal);
+    } else {
+      localStorage.removeItem(LAST_CODE_KEY);
+      localStorage.removeItem(LAST_NAME_KEY);
+    }
     document.getElementById('codeGate').style.display = 'none';
     await startApp(nameVal);
   });
@@ -3609,6 +3623,10 @@
       householdCode = savedCode;
       await startApp();
     } else {
+      var lastCode = localStorage.getItem(LAST_CODE_KEY);
+      var lastName = localStorage.getItem(LAST_NAME_KEY);
+      if(lastCode) document.getElementById('codeInput').value = lastCode;
+      if(lastName) document.getElementById('nameGateInput').value = lastName;
       document.getElementById('codeGate').style.display = 'flex';
     }
   })();
