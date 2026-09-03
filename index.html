@@ -298,6 +298,22 @@
     padding:5px 11px; border-radius:12px; cursor:pointer;
   }
   .set-limit-btn:active{ background:var(--brass-soft); }
+  .exclude-cat-btn{
+    font-size:11px; color:var(--ink-soft); background:none; border:none;
+    padding:2px 0; cursor:pointer; text-decoration:underline; margin-top:6px;
+  }
+  .total-budget-card{
+    padding:18px; background:var(--ink); color:var(--paper); border-radius:10px;
+  }
+  .total-budget-card .tb-label{ font-size:12px; color:var(--brass-soft); margin:0 0 4px; }
+  .total-budget-card .tb-amount{ font-size:28px; font-weight:600; font-family:'IBM Plex Mono',monospace; margin:0; }
+  .total-budget-card .tb-edit{ font-size:11.5px; color:var(--brass-soft); text-decoration:underline; background:none; border:none; padding:0; margin-top:8px; cursor:pointer; }
+  .total-budget-card .tb-status{ font-size:12.5px; margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.15); }
+  .total-budget-card .tb-status.over{ color:#E0A99B; }
+  .total-budget-card .tb-status.ok{ color:#B7D4C4; }
+  .total-budget-card .tb-edit-row{ display:flex; gap:8px; margin-top:10px; }
+  .total-budget-card .tb-edit-row input{ flex:1; padding:9px; border-radius:5px; border:none; font-family:'IBM Plex Mono',monospace; }
+  .total-budget-card .tb-edit-row button{ padding:9px 14px; border-radius:5px; border:none; background:var(--brass); color:var(--paper); font-size:13px; }
 
   /* ---------- Savings ---------- */
   .goal-card{
@@ -1112,7 +1128,9 @@
     <main class="view" id="view-budget">
       <h2 class="page-title">Ausgabenplan</h2>
       <p class="page-sub">Budgets je Kategorie für den angezeigten Monat.</p>
-      <div id="budgetList" style="margin-top:14px;"></div>
+      <div id="totalBudgetCard" style="margin:14px 20px 6px;"></div>
+      <div id="budgetList" style="margin-top:10px;"></div>
+      <div id="excludedCatsWrap" style="margin:6px 20px 20px;"></div>
     </main>
 
     <main class="view" id="view-savings">
@@ -1937,6 +1955,8 @@
     if(!state.recipes) state.recipes = [];
     if(!state.mealPlan) state.mealPlan = [];
     if(typeof state.startingBalance !== 'number') state.startingBalance = 0;
+    if(!state.budgetExcludedCategories) state.budgetExcludedCategories = [];
+    if(typeof state.budgetManualTotal === 'undefined') state.budgetManualTotal = null;
   }
 
   async function saveState(){
@@ -2701,6 +2721,22 @@
   }
 
   /* ================= Budget ================= */
+  // Automatisch berechnetes Gesamtbudget: wiederkehrende Einnahmen minus
+  // wiederkehrende Ausgaben in ausgeblendeten (nicht budgetierten) Kategorien
+  // — also grob "was an Fixkosten sowieso weggeht" schon rausgerechnet.
+  function autoTotalBudget(){
+    var incomeTotal = 0, excludedExpenseTotal = 0;
+    (state.recurring||[]).forEach(function(r){
+      if(!r.active) return;
+      if(r.type==='income'){
+        incomeTotal += r.amount;
+      } else if((state.budgetExcludedCategories||[]).indexOf(r.category)!==-1){
+        excludedExpenseTotal += r.amount;
+      }
+    });
+    return incomeTotal - excludedExpenseTotal;
+  }
+
   function renderBudget(){
     var key = monthKey(viewingDate);
     var spentByCat = {};
@@ -2709,11 +2745,56 @@
         spentByCat[t.category] = (spentByCat[t.category]||0) + t.amount;
       }
     });
+    var excluded = state.budgetExcludedCategories || [];
     var cats = state.categories.expense.slice();
     Object.keys(spentByCat).forEach(function(c){ if(cats.indexOf(c)===-1) cats.push(c); });
+    var visibleCats = cats.filter(function(c){ return excluded.indexOf(c)===-1; });
 
+    // --- Gesamtbudget-Karte ---
+    var totalBudget = state.budgetManualTotal!=null ? state.budgetManualTotal : autoTotalBudget();
+    var totalAllocated = 0;
+    visibleCats.forEach(function(c){ if(state.budgets[c]) totalAllocated += state.budgets[c]; });
+    var diff = totalBudget - totalAllocated;
+    var tbEl = document.getElementById('totalBudgetCard');
+    tbEl.innerHTML =
+      '<div class="total-budget-card">'+
+        '<p class="tb-label">Gesamtbudget'+(state.budgetManualTotal!=null?' (manuell)':' (automatisch, wiederkehrende Einnahmen − ausgeblendete Fixkosten)')+'</p>'+
+        '<p class="tb-amount">'+fmtEUR(totalBudget)+'</p>'+
+        '<div class="tb-status '+(diff<0?'over':'ok')+'">'+
+          (diff<0
+            ? 'Budgets überschreiten Gesamtbudget um '+fmtEUR(Math.abs(diff))
+            : 'Noch nicht verplant: '+fmtEUR(diff))+
+        '</div>'+
+        '<button type="button" class="tb-edit" id="toggleTotalBudgetEdit">'+(state.budgetManualTotal!=null?'Manuellen Wert entfernen (wieder automatisch)':'Manuell überschreiben')+'</button>'+
+        '<div class="tb-edit-row" id="totalBudgetEditRow" style="display:none;">'+
+          '<input type="number" inputmode="decimal" step="0.01" id="totalBudgetInput" placeholder="Gesamtbudget in €" value="'+(state.budgetManualTotal!=null?state.budgetManualTotal:'')+'">'+
+          '<button type="button" id="saveTotalBudgetBtn">OK</button>'+
+        '</div>'+
+      '</div>';
+    document.getElementById('toggleTotalBudgetEdit').addEventListener('click', function(){
+      if(state.budgetManualTotal!=null){
+        state.budgetManualTotal = null;
+        saveState();
+        renderBudget();
+        return;
+      }
+      var row = document.getElementById('totalBudgetEditRow');
+      row.style.display = row.style.display==='flex' ? 'none' : 'flex';
+      if(row.style.display==='flex') document.getElementById('totalBudgetInput').focus();
+    });
+    var saveBtn = document.getElementById('saveTotalBudgetBtn');
+    if(saveBtn){
+      saveBtn.addEventListener('click', function(){
+        var val = parseFloat(document.getElementById('totalBudgetInput').value);
+        state.budgetManualTotal = isNaN(val) ? null : Math.round(val*100)/100;
+        saveState();
+        renderBudget();
+      });
+    }
+
+    // --- Kategorie-Karten ---
     var el = document.getElementById('budgetList');
-    el.innerHTML = cats.map(function(cat){
+    el.innerHTML = visibleCats.map(function(cat){
       var spent = spentByCat[cat]||0;
       var limit = state.budgets[cat];
       var card = '<div class="budget-card" data-cat="'+escapeHtml(cat)+'">';
@@ -2730,6 +2811,7 @@
         card += '<button class="set-limit-btn" data-cat="'+escapeHtml(cat)+'">festlegen</button></div>';
       }
       card += '<div class="edit-limit" style="display:none;"><input type="number" inputmode="decimal" step="0.01" min="0" placeholder="Limit in €" value="'+(limit!=null?limit:'')+'"><button type="button">OK</button></div>';
+      card += '<button type="button" class="exclude-cat-btn" data-exclude="'+escapeHtml(cat)+'">Nicht budgetieren (ausblenden)</button>';
       card += '</div>';
       return card;
     }).join('') || '<p class="empty">Noch keine Ausgabenkategorien vorhanden.</p>';
@@ -2756,6 +2838,36 @@
         renderBudget();
       });
     });
+    el.querySelectorAll('[data-exclude]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var cat = btn.getAttribute('data-exclude');
+        if(state.budgetExcludedCategories.indexOf(cat)===-1){
+          state.budgetExcludedCategories.push(cat);
+        }
+        saveState();
+        renderBudget();
+      });
+    });
+
+    // --- Ausgeblendete Kategorien wieder einblendbar machen ---
+    var exWrap = document.getElementById('excludedCatsWrap');
+    var excludedInUse = excluded.filter(function(c){ return cats.indexOf(c)!==-1; });
+    if(excludedInUse.length===0){
+      exWrap.innerHTML = '';
+    } else {
+      exWrap.innerHTML = '<p class="section-title" style="padding:0 0 6px;">Ausgeblendet</p>'+
+        excludedInUse.map(function(c){
+          return '<button type="button" class="set-limit-btn" data-unexclude="'+escapeHtml(c)+'" style="margin:0 6px 6px 0;">'+escapeHtml(c)+' wieder einblenden</button>';
+        }).join('');
+      exWrap.querySelectorAll('[data-unexclude]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var cat = btn.getAttribute('data-unexclude');
+          state.budgetExcludedCategories = state.budgetExcludedCategories.filter(function(c){ return c!==cat; });
+          saveState();
+          renderBudget();
+        });
+      });
+    }
   }
 
   /* ================= Savings ================= */
