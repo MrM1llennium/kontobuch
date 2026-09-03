@@ -1106,14 +1106,15 @@
         </button>
         <button class="back-btn" data-back>‹ Dashboard</button>
       </div>
-      <div class="month-nav">
-        <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
-        <div class="month-label" id="monthLabel">—</div>
-        <button id="nextMonth" aria-label="Nächster Monat">›</button>
-      </div>
+      <p class="screen-title">Finanzen</p>
     </div>
 
     <main class="view active" id="view-overview">
+      <div class="month-nav light" style="padding:14px 20px 6px;">
+        <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
+        <div class="month-label" id="monthLabel" style="color:var(--ink); font-size:16px;">—</div>
+        <button id="nextMonth" aria-label="Nächster Monat">›</button>
+      </div>
       <div class="hero">
         <p class="label">Gesamtguthaben <span id="cumulativeAsOf" style="font-weight:400;"></span></p>
         <p class="balance num" id="heroCumulative">0,00 €</p>
@@ -1227,6 +1228,11 @@
     </main>
 
     <main class="view" id="view-stats">
+      <div class="month-nav light" style="padding:14px 20px 0;">
+        <button id="statsPrevMonth" aria-label="Vorheriger Monat">‹</button>
+        <div class="month-label" id="statsMonthNavLabel" style="color:var(--ink); font-size:16px;">—</div>
+        <button id="statsNextMonth" aria-label="Nächster Monat">›</button>
+      </div>
       <h2 class="page-title">Statistik</h2>
       <p class="page-sub">Verlauf der letzten 6 Monate und Ausgaben nach Kategorie.</p>
       <div id="statsChart" style="padding:14px 20px 6px;"></div>
@@ -1235,6 +1241,11 @@
     </main>
 
     <main class="view" id="view-budget">
+      <div class="month-nav light" style="padding:14px 20px 0;">
+        <button id="budgetPrevMonth" aria-label="Vorheriger Monat">‹</button>
+        <div class="month-label" id="budgetMonthNavLabel" style="color:var(--ink); font-size:16px;">—</div>
+        <button id="budgetNextMonth" aria-label="Nächster Monat">›</button>
+      </div>
       <h2 class="page-title">Ausgabenplan</h2>
       <p class="page-sub">Budgets je Kategorie für den angezeigten Monat.</p>
       <div id="totalBudgetCard" style="margin:14px 20px 6px;"></div>
@@ -2262,9 +2273,28 @@
     viewingDate.setMonth(viewingDate.getMonth()+1);
     renderAll();
   });
+  document.getElementById('statsPrevMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()-1);
+    renderAll();
+  });
+  document.getElementById('statsNextMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()+1);
+    renderAll();
+  });
+  document.getElementById('budgetPrevMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()-1);
+    renderAll();
+  });
+  document.getElementById('budgetNextMonth').addEventListener('click', function(){
+    viewingDate.setMonth(viewingDate.getMonth()+1);
+    renderAll();
+  });
 
   function renderAll(){
-    document.getElementById('monthLabel').textContent = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
+    var monthText = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
+    document.getElementById('monthLabel').textContent = monthText;
+    document.getElementById('statsMonthNavLabel').textContent = monthText;
+    document.getElementById('budgetMonthNavLabel').textContent = monthText;
     renderOverview();
     renderBudget();
     renderSavings();
@@ -4256,7 +4286,10 @@
     setRecType('expense');
     renderCurrentScreen();
     window.scrollTo(0, 0);
-    document.getElementById('monthLabel').textContent = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
+    var startMonthText = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
+    document.getElementById('monthLabel').textContent = startMonthText;
+    document.getElementById('statsMonthNavLabel').textContent = startMonthText;
+    document.getElementById('budgetMonthNavLabel').textContent = startMonthText;
     subscribeRealtime();
     startPolling();
   }
