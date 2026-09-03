@@ -1664,7 +1664,19 @@
   });
   document.getElementById('saveStartingBalanceBtn').addEventListener('click', function(){
     var val = parseFloat(document.getElementById('startingBalanceInput').value);
-    state.startingBalance = isNaN(val) ? 0 : Math.round(val*100)/100;
+    if(isNaN(val)) val = 0;
+    var existing = state.transactions.find(function(t){ return t.isStartingBalance; });
+    if(existing){
+      existing.amount = Math.round(Math.abs(val)*100)/100;
+      existing.type = val<0 ? 'expense' : 'income';
+    } else if(val !== 0){
+      state.transactions.push({
+        id: uid(), type: val<0 ? 'expense' : 'income',
+        amount: Math.round(Math.abs(val)*100)/100, category: 'Startguthaben',
+        date: todayISO(), note: 'Startguthaben', isStartingBalance: true,
+        createdBy: currentUserId
+      });
+    }
     saveState();
     renderOverview();
   });
@@ -1824,6 +1836,7 @@
       if(res.data && res.data.data){
         state = res.data.data;
         applyDefaults();
+        if(migrateStartingBalanceToTransaction()){ await saveState(); }
       } else {
         state = JSON.parse(JSON.stringify(DEFAULT_STATE));
         var ins = await sb.from('households').insert({ code: householdCode, data: state });
@@ -1844,6 +1857,22 @@
         showSaveBanner("Verbindung zur Cloud fehlgeschlagen. Prüfe deine Internetverbindung und tippe auf Erneut.");
       }
     }
+  }
+  // Wandelt ein altes, separates "Startguthaben" (Zahl ohne Buchung) einmalig
+  // in eine echte Buchung um, damit es auch im Monatssaldo auftaucht, nicht
+  // nur im Gesamtguthaben. Gibt true zurück, wenn etwas migriert wurde.
+  function migrateStartingBalanceToTransaction(){
+    if(!state.startingBalance) return false;
+    var alreadyMigrated = state.transactions.some(function(t){ return t.isStartingBalance; });
+    if(alreadyMigrated){ state.startingBalance = 0; return true; }
+    state.transactions.push({
+      id: uid(), type: state.startingBalance<0 ? 'expense' : 'income',
+      amount: Math.abs(state.startingBalance), category: 'Startguthaben',
+      date: todayISO(), note: 'Startguthaben (automatisch übernommen)',
+      isStartingBalance: true
+    });
+    state.startingBalance = 0;
+    return true;
   }
   function applyDefaults(){
     if(!state.categories) state.categories = DEFAULT_STATE.categories;
@@ -1979,7 +2008,12 @@
     if(name==='notes') renderNotesList();
     if(name==='calendar'){ document.getElementById('calDateInput').value = selectedDayStr; renderCalendar(); }
     if(name==='mealplan') renderMealPlan();
-    if(name==='settings'){ renderUsers(); renderCategoryManage(); document.getElementById('startingBalanceInput').value = state.startingBalance || ''; }
+    if(name==='settings'){
+      renderUsers(); renderCategoryManage();
+      var sbTx = state.transactions.find(function(t){ return t.isStartingBalance; });
+      var sbVal = sbTx ? (sbTx.type==='expense' ? -sbTx.amount : sbTx.amount) : 0;
+      document.getElementById('startingBalanceInput').value = sbVal || '';
+    }
   }
   function renderCurrentScreen(){
     renderAll();
@@ -2151,7 +2185,7 @@
   // dem ECHTEN Buchungsdatum (Geld ist real ab diesem Tag da), unabhängig
   // von "gehört zum nächsten Monat" — das betrifft nur die Monats-Statistik.
   function cumulativeBalanceThroughMonth(viewedKey){
-    var total = state.startingBalance || 0;
+    var total = 0;
     state.transactions.forEach(function(t){
       if(dateToKey(t.date) <= viewedKey){
         total += (t.type==='income' ? t.amount : -t.amount);
