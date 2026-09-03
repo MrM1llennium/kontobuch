@@ -812,6 +812,23 @@
     </div>
   </div>
 
+  <div id="reconcileModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
+      <p class="section-title" style="padding:0 0 10px;">Kontostand abgleichen</p>
+      <p class="page-sub" style="padding:0 0 14px;">Trag den echten Stand beider Konten zusammengerechnet ein (heutiger Stand, alle bekannten Abbuchungen mit drin). Die App berechnet die Differenz zu eurem Gesamtguthaben und legt bei Bedarf eine einzelne Ausgleichsbuchung an.</p>
+      <div class="field">
+        <label for="reconcileInput">Echter Kontostand (beide Konten zusammen)</label>
+        <input type="number" inputmode="decimal" step="0.01" id="reconcileInput" class="num-input" placeholder="0,00">
+      </div>
+      <div id="reconcileResult" style="display:none; margin-bottom:14px; font-size:14px;"></div>
+      <div class="btn-row">
+        <button class="btn ghost" id="cancelReconcileBtn">Abbrechen</button>
+        <button class="btn" id="calcReconcileBtn">Vergleichen</button>
+      </div>
+      <button class="btn" id="confirmReconcileBtn" style="display:none; margin-top:10px;">Ausgleichsbuchung anlegen</button>
+    </div>
+  </div>
+
   <div id="editRecurringModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
       <p class="section-title" style="padding:0 0 12px;">Wiederkehrende Buchung bearbeiten</p>
@@ -1009,6 +1026,7 @@
       <div class="hero">
         <p class="label">Gesamtguthaben <span id="cumulativeAsOf" style="font-weight:400;"></span></p>
         <p class="balance num" id="heroCumulative">0,00 €</p>
+        <button type="button" class="link-btn" id="openReconcileBtn" style="margin-top:8px;">Kontostand abgleichen</button>
         <div style="margin-top:14px; padding-top:14px; border-top:1px dotted var(--line);">
           <p class="label" style="margin-bottom:4px;">Saldo diesen Monat</p>
           <p class="num" id="heroBalance" style="font-size:22px; font-weight:600; margin:0;">0,00 €</p>
@@ -2284,6 +2302,64 @@
     });
     return total;
   }
+
+  // Wie cumulativeBalanceThroughMonth, aber taggenau statt monatsgenau —
+  // wichtig für den Kontoabgleich, damit zukunftsdatierte Buchungen im
+  // selben Monat nicht fälschlich schon mitgezählt werden.
+  function cumulativeBalanceThroughToday(){
+    var total = 0;
+    var todayStr = todayISO();
+    state.transactions.forEach(function(t){
+      if(t.date <= todayStr){
+        total += (t.type==='income' ? t.amount : -t.amount);
+      }
+    });
+    return total;
+  }
+
+  var pendingReconcileDiff = 0;
+  document.getElementById('openReconcileBtn').addEventListener('click', function(){
+    document.getElementById('reconcileInput').value = '';
+    document.getElementById('reconcileResult').style.display = 'none';
+    document.getElementById('confirmReconcileBtn').style.display = 'none';
+    document.getElementById('reconcileModal').style.display = 'flex';
+  });
+  document.getElementById('cancelReconcileBtn').addEventListener('click', function(){
+    document.getElementById('reconcileModal').style.display = 'none';
+  });
+  document.getElementById('calcReconcileBtn').addEventListener('click', function(){
+    var real = parseFloat(document.getElementById('reconcileInput').value);
+    if(isNaN(real)){
+      document.getElementById('reconcileInput').focus();
+      return;
+    }
+    var current = cumulativeBalanceThroughToday();
+    var diff = Math.round((real-current)*100)/100;
+    var resultEl = document.getElementById('reconcileResult');
+    var confirmBtn = document.getElementById('confirmReconcileBtn');
+    resultEl.style.display = 'block';
+    if(Math.abs(diff) < 0.01){
+      resultEl.innerHTML = '<span style="color:var(--green);">Stimmt genau überein — keine Ausgleichsbuchung nötig.</span>';
+      confirmBtn.style.display = 'none';
+    } else {
+      pendingReconcileDiff = diff;
+      resultEl.innerHTML = 'App-Guthaben aktuell: <span class="num">'+fmtEUR(current)+'</span><br>'+
+        'Unterschied: <span class="num" style="color:'+(diff>0?'var(--green)':'var(--red)')+';">'+(diff>0?'+':'')+fmtEUR(diff)+'</span> '+
+        (diff>0 ? '(App zeigt weniger als real vorhanden)' : '(App zeigt mehr als real vorhanden)');
+      confirmBtn.style.display = 'block';
+    }
+  });
+  document.getElementById('confirmReconcileBtn').addEventListener('click', function(){
+    state.transactions.push({
+      id: uid(), type: pendingReconcileDiff>0 ? 'income' : 'expense',
+      amount: Math.abs(pendingReconcileDiff), category: 'Kontoabgleich',
+      date: todayISO(), note: 'Kontoabgleich', isReconciliation: true,
+      createdBy: currentUserId
+    });
+    saveState();
+    document.getElementById('reconcileModal').style.display = 'none';
+    renderOverview();
+  });
 
   function renderOverview(){
     var key = monthKey(viewingDate);
