@@ -83,8 +83,8 @@
     --brass:#1E4D47;
     --brass-soft:#DCE9E2;
     --brass-strong:#163B36;
-    --header-tint: #E9F1EC;
-    --sidebar-tint: #F1F5F2;
+    --header-tint: #1E4D47;
+    --sidebar-tint: #2A5F58;
   }
   /* Lilac 🪻 — alternatives Theme, gleiche Struktur, andere Farbwerte.
      Rot/Grün für Einnahmen/Ausgaben passen sich leicht an die Palette an
@@ -105,8 +105,8 @@
     --brass:#6B5A9E;
     --brass-soft:#EAE3F4;
     --brass-strong:#52447C;
-    --header-tint: #F1EDF8;
-    --sidebar-tint: #F6F3FA;
+    --header-tint: #6B5A9E;
+    --sidebar-tint: #7C6EAC;
   }
   /* Bubblegum 🩷 — erstes Farbschema für den Kawaii-Style. Sanfte Pastell-
      Rosatöne als Grundfläche, ein kräftigeres Knallrosa als Akzent. */
@@ -731,41 +731,59 @@
   html[data-style="kawaii"] .sidebar-item img.kawaii-icon{ display:block; }
 
   /* ============================================================
-     SIGNATURE-THEME — Header & Sidebar tragen den dunklen Wellenton
-     als Vollton statt einer hellen Tönung, deshalb muss die Schrift
-     dort auf Hell umschalten. Nur unter data-theme="signature" (oder
-     ganz ohne data-theme-Attribut, da Signature der Standard ist).
+     Header & Sidebar tragen bei Signature/Forest/Lilac den jeweiligen
+     kräftigen Vollton statt einer hellen Tönung, deshalb muss die
+     Schrift dort auf Hell umschalten. Bubblegum (Kawaii) bleibt bei
+     ihrer hellen Tönung und dunkler Schrift, daher hier ausgenommen.
      ============================================================ */
   html:not([data-theme]) .topbar,
-  html[data-theme="signature"] .topbar{
-    color:#F4EEE7;
+  html[data-theme="signature"] .topbar,
+  html[data-theme="forest"] .topbar,
+  html[data-theme="lilac"] .topbar{
+    color:#F5F1EC;
   }
   html:not([data-theme]) .topbar .brand,
   html[data-theme="signature"] .topbar .brand,
+  html[data-theme="forest"] .topbar .brand,
+  html[data-theme="lilac"] .topbar .brand,
   html:not([data-theme]) .topbar .back-btn,
-  html[data-theme="signature"] .topbar .back-btn{
-    color:#D8CCBE;
+  html[data-theme="signature"] .topbar .back-btn,
+  html[data-theme="forest"] .topbar .back-btn,
+  html[data-theme="lilac"] .topbar .back-btn{
+    color:rgba(255,255,255,.72);
   }
   html:not([data-theme]) .hamburger-btn,
-  html[data-theme="signature"] .hamburger-btn{
-    color:#F4EEE7;
+  html[data-theme="signature"] .hamburger-btn,
+  html[data-theme="forest"] .hamburger-btn,
+  html[data-theme="lilac"] .hamburger-btn{
+    color:#F5F1EC;
   }
   html:not([data-theme]) #sidebar,
   html[data-theme="signature"] #sidebar,
+  html[data-theme="forest"] #sidebar,
+  html[data-theme="lilac"] #sidebar,
   html:not([data-theme]) .sidebar-item,
-  html[data-theme="signature"] .sidebar-item{
-    color:#F0E8DE;
+  html[data-theme="signature"] .sidebar-item,
+  html[data-theme="forest"] .sidebar-item,
+  html[data-theme="lilac"] .sidebar-item{
+    color:#F2ECE4;
   }
   html:not([data-theme]) #sidebar .brand,
-  html[data-theme="signature"] #sidebar .brand{
-    color:#C7BAAA;
+  html[data-theme="signature"] #sidebar .brand,
+  html[data-theme="forest"] #sidebar .brand,
+  html[data-theme="lilac"] #sidebar .brand{
+    color:rgba(255,255,255,.6);
   }
   html:not([data-theme]) .sidebar-item.active,
-  html[data-theme="signature"] .sidebar-item.active{
-    background:rgba(255,255,255,.12); color:#FFFFFF;
+  html[data-theme="signature"] .sidebar-item.active,
+  html[data-theme="forest"] .sidebar-item.active,
+  html[data-theme="lilac"] .sidebar-item.active{
+    background:rgba(255,255,255,.14); color:#FFFFFF;
   }
   html:not([data-theme]) #sidebarBackdrop,
-  html[data-theme="signature"] #sidebarBackdrop{
+  html[data-theme="signature"] #sidebarBackdrop,
+  html[data-theme="forest"] #sidebarBackdrop,
+  html[data-theme="lilac"] #sidebarBackdrop{
     background:rgba(0,0,0,.5);
   }
 </style>
