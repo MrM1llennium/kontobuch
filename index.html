@@ -247,6 +247,7 @@
   }
   .today-row svg{ width:16px; height:16px; flex-shrink:0; color:var(--brass-strong); }
   .today-row .tamt{ margin-left:auto; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:13px; }
+  .today-row .today-avatars{ margin-left:auto; display:flex; gap:4px; flex-shrink:0; }
   .today-row .tamt.income{ color:var(--green); }
   .today-row .tamt.expense{ color:var(--red); }
   .today-card .empty{ padding:6px 16px 16px; text-align:left; }
@@ -1898,6 +1899,10 @@
         <label for="calNoteInput">Notiz (optional)</label>
         <input type="text" id="calNoteInput" placeholder="z. B. Praxis Dr. Meyer">
       </div>
+      <div class="field">
+        <label>Zuweisen an (optional)</label>
+        <div id="calAssignList"></div>
+      </div>
       <div class="checkbox-row">
         <input type="checkbox" id="calRemindInput">
         <label for="calRemindInput">Push-Erinnerung senden</label>
@@ -2625,12 +2630,20 @@
 
     if(typeof eventsForDate === 'function'){
       eventsForDate(todayStr).forEach(function(ev){
-        rows.push(todayIconSvg('cal') + '<span>'+escapeHtml(ev.title)+(ev.time?' · '+ev.time+' Uhr':'')+'</span>');
+        var avatars = (ev.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
+        rows.push(
+          todayIconSvg('cal') + '<span>'+escapeHtml(ev.title)+(ev.time?' · '+ev.time+' Uhr':'')+'</span>' +
+          (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '')
+        );
       });
     }
 
     state.todos.filter(function(t){ return t.dueDate===todayStr && !t.done; }).forEach(function(t){
-      rows.push(todayIconSvg('todo') + '<span>'+escapeHtml(t.text)+(t.dueTime?' · '+t.dueTime+' Uhr':'')+'</span>');
+      var avatars = (t.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
+      rows.push(
+        todayIconSvg('todo') + '<span>'+escapeHtml(t.text)+(t.dueTime?' · '+t.dueTime+' Uhr':'')+'</span>' +
+        (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '')
+      );
     });
 
     state.transactions.filter(function(t){ return t.auto && t.date===todayStr; }).forEach(function(t){
@@ -5005,6 +5018,23 @@
   document.getElementById('calRemindInput').addEventListener('change', function(){
     document.getElementById('calRemindOffsetWrap').style.display = this.checked ? 'block' : 'none';
   });
+  function renderCalAssignList(selectedIds){
+    var el = document.getElementById('calAssignList');
+    if(!el) return;
+    selectedIds = selectedIds || [];
+    if(!state.users || state.users.length===0){
+      el.innerHTML = '<p class="empty" style="padding:6px 0;">Noch keine Nutzer angelegt (siehe Einstellungen).</p>';
+      return;
+    }
+    el.innerHTML = state.users.map(function(u){
+      var checked = selectedIds.indexOf(u.id)!==-1;
+      return '<label style="display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px dotted var(--line);">'+
+        '<input type="checkbox" value="'+u.id+'" '+(checked?'checked':'')+' style="width:19px;height:19px;">'+
+        avatarHtml(u.id, 22)+
+        '<span style="font-size:14px;">'+escapeHtml(u.name)+'</span>'+
+      '</label>';
+    }).join('');
+  }
   document.getElementById('openCalAddBtn').addEventListener('click', function(){
     editingEventId = null;
     document.getElementById('calModalTitle').textContent = 'Neuer Termin';
@@ -5017,6 +5047,7 @@
     document.getElementById('calRemindOffsetWrap').style.display = 'none';
     document.getElementById('calRepeatInput').value = 'none';
     document.getElementById('calDateInput').value = selectedDayStr;
+    renderCalAssignList();
     document.getElementById('calAddModal').style.display = 'flex';
   });
   document.getElementById('cancelCalAddBtn').addEventListener('click', function(){
@@ -5044,6 +5075,7 @@
     document.getElementById('calRemindInput').checked = !!ev.remind;
     document.getElementById('calRemindOffsetWrap').style.display = ev.remind ? 'block' : 'none';
     document.getElementById('calRemindOffsetInput').value = ev.remindOffset || 1440;
+    renderCalAssignList(ev.assignedTo||[]);
     document.getElementById('calAddModal').style.display = 'flex';
   }
   document.getElementById('deleteCalBtn').addEventListener('click', function(){
@@ -5065,17 +5097,19 @@
     var repeat = document.getElementById('calRepeatInput').value;
     var remind = document.getElementById('calRemindInput').checked;
     var remindOffset = remind ? parseInt(document.getElementById('calRemindOffsetInput').value, 10) : 0;
+    var assignedTo = Array.prototype.slice.call(document.querySelectorAll('#calAssignList input:checked')).map(function(cb){ return cb.value; });
     if(!title || !date) return;
     if(editingEventId){
       var ev = state.calendar.find(function(x){ return x.id===editingEventId; });
       if(ev){
         ev.title = title; ev.date = date; ev.time = time||null; ev.note = note;
         ev.repeat = repeat; ev.remind = remind; ev.remindOffset = remindOffset;
+        ev.assignedTo = assignedTo;
       }
     } else {
       state.calendar.push({
         id: uid(), title: title, date: date, time: time||null, note: note,
-        repeat: repeat, remind: remind, remindOffset: remindOffset, createdBy: currentUserId
+        repeat: repeat, remind: remind, remindOffset: remindOffset, assignedTo: assignedTo, createdBy: currentUserId
       });
     }
     saveState();
