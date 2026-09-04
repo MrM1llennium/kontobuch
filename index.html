@@ -2840,10 +2840,11 @@
     return dateToKey(t.date);
   }
 
-  function sumsForMonth(key){
+  function sumsForMonth(key, capDateStr){
     var inc=0, exp=0;
     state.transactions.forEach(function(t){
       if(effectiveMonthKey(t)===key){
+        if(capDateStr && t.date > capDateStr) return; // noch nicht fällig — nicht mitzählen
         if(t.type==='income') inc+=t.amount; else exp+=t.amount;
       }
     });
@@ -2931,14 +2932,19 @@
     var prev = new Date(viewingDate); prev.setMonth(prev.getMonth()-1);
     var prevKey = monthKey(prev);
 
-    var cur = sumsForMonth(key);
-    var prv = sumsForMonth(prevKey);
-    var balance = cur.inc - cur.exp;
-    var prevBalance = prv.inc - prv.exp;
-
     var todayRealKey = monthKey(new Date());
     var isFuture = key > todayRealKey;
     var isPast = key < todayRealKey;
+
+    // Im aktuell laufenden Monat nur das zählen, was bis heute schon
+    // wirklich fällig war/ist — noch nicht fällige (zukunftsdatierte)
+    // Buchungen tauchen stattdessen in "Monat nach geplanten Buchungen"
+    // weiter unten auf, nicht schon im normalen Saldo.
+    var capToday = (!isFuture && !isPast) ? todayISO() : null;
+    var cur = sumsForMonth(key, capToday);
+    var prv = sumsForMonth(prevKey);
+    var balance = cur.inc - cur.exp;
+    var prevBalance = prv.inc - prv.exp;
 
     // --- Gesamtguthaben (groß, oben) ---
     var cumulative, cumLabel;
