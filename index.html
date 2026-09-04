@@ -1247,8 +1247,8 @@
     <div class="module-body" id="projectBoardView" style="display:none;">
       <div id="projectSummaryCard" style="margin:18px 0 6px;"></div>
       <div id="projectPinnedWrap"></div>
-      <div id="projectFoldersWrap"></div>
       <div id="projectItemsList" style="display:none;"></div>
+      <div id="projectFoldersWrap"></div>
       <div class="form-wrap">
         <div style="display:flex; gap:8px;">
           <button class="btn" id="openAddProjectItemBtn" style="flex:1;">+ Hinzufügen</button>
@@ -4570,6 +4570,13 @@
     var emoji = detectProjectEmoji(p.name);
     return '<div style="width:44px; height:44px; border-radius:10px; background:var(--brass-soft); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">'+emoji+'</div>';
   }
+  function projectCoverHtmlLarge(p){
+    if(p.coverImage){
+      return '<img src="'+p.coverImage+'" style="align-self:stretch; aspect-ratio:1/1; border-radius:14px; object-fit:cover; flex-shrink:0;">';
+    }
+    var emoji = detectProjectEmoji(p.name);
+    return '<div style="align-self:stretch; aspect-ratio:1/1; border-radius:14px; background:var(--brass-soft); display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0;">'+emoji+'</div>';
+  }
   function renderProjectList(){
     var el = document.getElementById('projectList');
     if(!el) return;
@@ -4779,13 +4786,16 @@
     var total = projectPlannedTotal(p);
     var goal = p.goalId ? state.savings.find(function(g){ return g.id===p.goalId; }) : null;
     var summaryEl = document.getElementById('projectSummaryCard');
-    var summaryHtml = '<div class="today-card" style="padding:16px 18px;">';
-    summaryHtml += '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">';
-    summaryHtml += '<div style="font-size:12px; color:var(--ink-soft); padding-top:4px;">Geplante Kosten</div>';
-    summaryHtml += '<div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">'+projectCoverHtml(p)+editIconBtn('meta')+'</div>';
-    summaryHtml += '</div>';
+    var summaryHtml = '<div class="today-card" style="padding:16px 18px; position:relative;">';
+    summaryHtml += '<button class="redit" data-pitemedit="meta" aria-label="Bearbeiten" style="position:absolute; top:12px; right:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>';
+    summaryHtml += '<div style="display:flex; gap:14px; align-items:stretch;">';
+    summaryHtml += projectCoverHtmlLarge(p);
+    summaryHtml += '<div style="flex:1; min-width:0; padding-right:30px; display:flex; flex-direction:column; justify-content:center;">';
+    if(p.note) summaryHtml += '<div style="font-size:15px; font-weight:600; color:var(--ink); margin-bottom:4px;">'+escapeHtml(p.note)+'</div>';
     summaryHtml += '<div class="num" style="font-size:22px; font-weight:600;">'+fmtEUR(total)+'</div>';
-    if(p.note) summaryHtml += '<div style="font-size:13.5px; color:var(--ink-soft); margin-top:10px;">'+escapeHtml(p.note)+'</div>';
+    summaryHtml += '<div style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Geplante Kosten</div>';
+    summaryHtml += '</div>';
+    summaryHtml += '</div>';
     if(goal){
       var pct = goal.target>0 ? Math.min(goal.saved/goal.target*100, 100) : 0;
       summaryHtml += '<div style="margin-top:12px; padding-top:12px; border-top:1px dotted var(--line);">'+
@@ -4799,11 +4809,13 @@
     var editIconEl = summaryEl.querySelector('[data-pitemedit="meta"]');
     if(editIconEl) editIconEl.addEventListener('click', openEditProjectMetaModal);
 
-    // Todos — bleiben direkt sichtbar, kein Ordner
+    // Todos — mit eigener Überschrift
     var todos = state.todos.filter(function(t){ return t.projectId===p.id; });
     var todosEl = document.getElementById('projectItemsList');
     todosEl.style.display = todos.length ? 'block' : 'none';
-    todosEl.innerHTML = todos.map(projectTodoRowHtml).join('');
+    todosEl.innerHTML = todos.length
+      ? '<p class="section-title" style="padding:14px 20px 4px;">To-Dos</p>' + todos.map(projectTodoRowHtml).join('')
+      : '';
     todosEl.querySelectorAll('[data-ptodoedit]').forEach(function(b){
       b.addEventListener('click', function(){ openEditTodoModal(b.getAttribute('data-ptodoedit')); });
     });
@@ -4815,7 +4827,7 @@
       });
     });
 
-    // Angepinnte Einträge — über allen Ordnern
+    // Angepinnte Einträge — über allem
     var items = p.items || [];
     var pinned = items.filter(function(it){ return it.pinned; });
     var pinnedEl = document.getElementById('projectPinnedWrap');
@@ -4826,9 +4838,11 @@
         pinned.map(projectItemRowHtml).join('');
     }
 
-    // Ordner nach Typ — Link / Notiz / Kosten, je aufklappbar
+    // Ordner nach Typ — Link / Notiz / Kosten, je aufklappbar, mit eigener Überschrift
     var foldersEl = document.getElementById('projectFoldersWrap');
     var foldersHtml = '';
+    var anyFolder = ['link','note','cost'].some(function(type){ return items.some(function(it){ return it.type===type; }); });
+    if(anyFolder) foldersHtml += '<p class="section-title" style="padding:14px 20px 4px;">Ordner</p>';
     ['link','note','cost'].forEach(function(type){
       var typeItems = items.filter(function(it){ return it.type===type; });
       if(typeItems.length===0) return;
