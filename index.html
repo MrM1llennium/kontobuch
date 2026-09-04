@@ -269,7 +269,7 @@
   .delta .tag.up{ background:var(--green-soft); color:var(--green); }
   .delta .tag.down{ background:var(--red-soft); color:var(--red); }
 
-  .flow{ display:flex; gap:14px; padding:16px 20px 20px; border-bottom:1px solid var(--line); }
+  .flow{ display:flex; gap:14px; padding:16px 20px 4px; }
   .flow-col{ flex:1; }
   .flow-col .flabel{ font-size:11.5px; color:var(--ink-soft); margin-bottom:6px; display:flex; justify-content:space-between; }
   .flow-col .fval{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:15px; margin-bottom:6px; }
@@ -1319,7 +1319,7 @@
           <div class="flabel"><span>Einnahmen</span><span class="num" id="incVal"></span></div>
         </div>
         <div class="flow-col" style="text-align:right;">
-          <div class="flabel" style="justify-content:flex-end;"><span class="num" id="expVal"></span><span>Ausgaben</span></div>
+          <div class="flabel"><span class="num" id="expVal"></span><span>Ausgaben</span></div>
         </div>
       </div>
       <div class="ratio-bar-track">
@@ -2806,6 +2806,18 @@
     sel.value = current;
   }
 
+  function ledgerRowHtml(t){
+    var d = new Date(t.date);
+    var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
+    return '<div class="row"'+personTintStyle(t.createdBy)+'>'+
+      '<div class="rdate num">'+dd+'</div>'+
+      '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+(t.belongsNextMonth?' <span style="font-size:10px;color:var(--brass-strong);">· nächster Monat</span>':'')+'</div>'+
+      (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
+      '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
+      avatarHtml(t.createdBy) +
+      '<button class="rdel" data-id="'+t.id+'" data-auto="'+(t.auto?'1':'0')+'" aria-label="Löschen">×</button>'+
+    '</div>';
+  }
   function renderLedgerList(){
     var key = monthKey(viewingDate);
     var searchTerm = (document.getElementById('txSearchInput').value||'').trim().toLowerCase();
@@ -2835,18 +2847,25 @@
         : '<div class="empty">Noch keine Buchungen in diesem Monat. Tippe unten auf „Buchen“.</div>';
       return;
     }
-    ledgerEl.innerHTML = list.map(function(t){
-      var d = new Date(t.date);
-      var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+(searching?'.'+d.getFullYear():'.');
-      return '<div class="row"'+personTintStyle(t.createdBy)+'>'+
-        '<div class="rdate num">'+dd+'</div>'+
-        '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+(t.belongsNextMonth?' <span style="font-size:10px;color:var(--brass-strong);">· nächster Monat</span>':'')+'</div>'+
-        (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
-        '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
-        avatarHtml(t.createdBy) +
-        '<button class="rdel" data-id="'+t.id+'" data-auto="'+(t.auto?'1':'0')+'" aria-label="Löschen">×</button>'+
-      '</div>';
-    }).join('');
+
+    if(searching){
+      // Bei der Suche über mehrere Monate hinweg: Ergebnisse gruppiert mit
+      // Monats-Überschriften darstellen statt Jahreszahl in jede Zeile zu quetschen.
+      var html = '';
+      var lastGroup = null;
+      list.forEach(function(t){
+        var d = new Date(t.date);
+        var groupLabel = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+        if(groupLabel !== lastGroup){
+          html += '<p class="section-title" style="padding:16px 20px 6px;">'+groupLabel+'</p>';
+          lastGroup = groupLabel;
+        }
+        html += ledgerRowHtml(t);
+      });
+      ledgerEl.innerHTML = html;
+    } else {
+      ledgerEl.innerHTML = list.map(ledgerRowHtml).join('');
+    }
 
     ledgerEl.querySelectorAll('.rdel').forEach(function(btn){
       btn.addEventListener('click', function(){
