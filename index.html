@@ -2754,14 +2754,17 @@
       return;
     }
 
-    // Nach Monat gruppieren
+    // Nach Monat gruppieren — Label wird aus dem GLEICHEN Schlüssel abgeleitet
+    // wie die Gruppierung selbst (berücksichtigt also "gehört zum nächsten
+    // Monat" korrekt), damit nie zwei Gruppen mit gleichem Anzeigenamen
+    // aber unterschiedlichem Schlüssel entstehen können.
     var groups = []; // [{key, label, items:[]}]
     var byKey = {};
     list.forEach(function(t){
       var k = effectiveMonthKey(t);
       if(!byKey[k]){
-        var d = new Date(t.date+'T00:00:00');
-        var label = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+        var parts = k.split('-');
+        var label = MONTH_NAMES[parseInt(parts[1],10)-1] + ' ' + parts[0];
         byKey[k] = { key:k, label:label, items:[] };
         groups.push(byKey[k]);
       }
@@ -2949,8 +2952,7 @@
     if(already) return;
     state.transactions.push({
       id: uid(), type: r.type, amount: r.amount, category: r.category,
-      date: todayStr, note: r.name, recurringId: r.id, auto: true,
-      belongsNextMonth: !!r.belongsNextMonth
+      date: todayStr, note: r.name, recurringId: r.id, auto: true
     });
     saveState();
     renderOverview();
