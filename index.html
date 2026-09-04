@@ -1215,6 +1215,12 @@
         <button type="button" class="settings-row" id="openCategoriesBtn">Kategorien <span class="chev">›</span></button>
       </div>
 
+      <p class="section-title">Notizen</p>
+      <div class="settings-group">
+        <button type="button" class="settings-row" id="changeNotesPinBtn">PIN ändern <span class="chev">›</span></button>
+        <button type="button" class="settings-row" id="forgotNotesPinBtn">PIN vergessen? <span class="chev">›</span></button>
+      </div>
+
       <p class="section-title">Design</p>
       <p class="page-sub" style="margin-top:-4px;">Stil und Farbe wählen — gilt pro Gerät.</p>
       <div class="form-wrap" style="padding-top:10px;">
@@ -3880,19 +3886,31 @@
   }
 
   /* ---- PIN-Schutz für Notizen: ein gemeinsamer 4-stelliger PIN gilt für
-     alle als "geschützt" markierten Notizen. ---- */
+     alle als "geschützt" markierten Notizen. Setup läuft zweistufig
+     (neuer PIN + Bestätigung), damit sich kein Tippfehler einschleicht. ---- */
   var notePinCallback = null;
-  var notePinMode = 'verify';
+  var notePinStage = 'verify'; // 'verify' | 'setup-new' | 'setup-confirm'
+  var notePinFirstEntry = null;
   function openNotePinModal(mode, onSuccess){
-    notePinMode = mode;
     notePinCallback = onSuccess;
+    notePinStage = mode==='setup' ? 'setup-new' : 'verify';
+    notePinFirstEntry = null;
+    renderNotePinModalStage();
+    document.getElementById('notePinModal').style.display = 'flex';
+  }
+  function renderNotePinModalStage(){
     document.getElementById('notePinInput').value = '';
     document.getElementById('notePinError').style.display = 'none';
-    document.getElementById('notePinTitle').textContent = mode==='setup' ? 'PIN festlegen' : 'PIN eingeben';
-    document.getElementById('notePinSub').textContent = mode==='setup'
-      ? 'Dieser PIN gilt für alle geschützten Notizen — merkt ihn euch beide.'
-      : 'Diese Notiz ist geschützt.';
-    document.getElementById('notePinModal').style.display = 'flex';
+    if(notePinStage==='verify'){
+      document.getElementById('notePinTitle').textContent = 'PIN eingeben';
+      document.getElementById('notePinSub').textContent = 'Zum Fortfahren PIN eingeben.';
+    } else if(notePinStage==='setup-new'){
+      document.getElementById('notePinTitle').textContent = 'Neuen PIN festlegen';
+      document.getElementById('notePinSub').textContent = 'Dieser PIN gilt für alle geschützten Notizen — merkt ihn euch beide.';
+    } else if(notePinStage==='setup-confirm'){
+      document.getElementById('notePinTitle').textContent = 'PIN bestätigen';
+      document.getElementById('notePinSub').textContent = 'Gebt den PIN zur Sicherheit nochmal ein.';
+    }
   }
   document.getElementById('cancelNotePinBtn').addEventListener('click', function(){
     document.getElementById('notePinModal').style.display = 'none';
@@ -3906,23 +3924,57 @@
       errEl.style.display = 'block';
       return;
     }
-    if(notePinMode==='setup'){
-      state.notesPin = val;
-      saveState();
-      document.getElementById('notePinModal').style.display = 'none';
-      var cb = notePinCallback; notePinCallback = null;
-      if(cb) cb();
-    } else {
+    if(notePinStage==='verify'){
       if(val === state.notesPin){
         document.getElementById('notePinModal').style.display = 'none';
-        var cb2 = notePinCallback; notePinCallback = null;
-        if(cb2) cb2();
+        var cb = notePinCallback; notePinCallback = null;
+        if(cb) cb();
       } else {
         errEl.textContent = 'Falscher PIN.';
         errEl.style.display = 'block';
         document.getElementById('notePinInput').value = '';
       }
+    } else if(notePinStage==='setup-new'){
+      notePinFirstEntry = val;
+      notePinStage = 'setup-confirm';
+      renderNotePinModalStage();
+    } else if(notePinStage==='setup-confirm'){
+      if(val === notePinFirstEntry){
+        state.notesPin = val;
+        saveState();
+        document.getElementById('notePinModal').style.display = 'none';
+        var cb2 = notePinCallback; notePinCallback = null;
+        if(cb2) cb2();
+      } else {
+        notePinStage = 'setup-new';
+        notePinFirstEntry = null;
+        renderNotePinModalStage();
+        errEl.textContent = 'PINs stimmten nicht überein — nochmal von vorn.';
+        errEl.style.display = 'block';
+      }
     }
+  });
+
+  document.getElementById('changeNotesPinBtn').addEventListener('click', function(){
+    if(!state.notesPin){
+      openNotePinModal('setup', function(){ alert('PIN gespeichert.'); });
+      return;
+    }
+    openNotePinModal('verify', function(){
+      openNotePinModal('setup', function(){ alert('PIN geändert.'); });
+    });
+  });
+  document.getElementById('forgotNotesPinBtn').addEventListener('click', function(){
+    if(!state.notesPin){
+      alert('Es ist noch gar kein PIN eingerichtet.');
+      return;
+    }
+    if(!confirm('PIN zurücksetzen? Alle bisher geschützten Notizen werden dabei entsperrt — der Inhalt bleibt erhalten, nur der PIN-Schutz fällt weg. Ihr könnt danach jederzeit einen neuen PIN festlegen. Fortfahren?')) return;
+    state.notesPin = null;
+    state.notes.forEach(function(n){ n.locked = false; });
+    saveState();
+    renderNotesList();
+    alert('PIN zurückgesetzt — alle Notizen sind jetzt wieder frei zugänglich.');
   });
 
   function requestOpenNoteEdit(id){
