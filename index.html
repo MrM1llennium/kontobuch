@@ -1179,7 +1179,7 @@
 
   <div id="projectItemModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
-      <p class="section-title" style="padding:0 0 12px;">Hinzufügen</p>
+      <p class="section-title" id="projectItemModalTitle" style="padding:0 0 12px;">Hinzufügen</p>
       <div class="type-switch" id="projectItemTypeSwitch" style="margin-bottom:18px; display:flex;">
         <button type="button" data-ptype="link" class="active" style="flex:1;">Link</button>
         <button type="button" data-ptype="note" style="flex:1;">Notiz</button>
@@ -1230,6 +1230,7 @@
         <button class="btn ghost" id="cancelProjectItemBtn">Abbrechen</button>
         <button class="btn" id="saveProjectItemBtn">Hinzufügen</button>
       </div>
+      <button type="button" class="link-btn" id="deleteProjectItemBtn" style="margin-top:16px; color:var(--red); display:none;">Eintrag löschen</button>
     </div>
   </div>
 
@@ -1495,6 +1496,7 @@
       <div class="form-wrap" style="padding-top:6px;">
         <button class="btn" id="newGoalBtn">+ Neues Sparziel</button>
         <div id="newGoalForm" style="display:none; margin-top:16px;">
+          <p class="section-title" id="goalFormTitle" style="padding:0 0 10px;">Neues Sparziel</p>
           <div class="field">
             <label for="goalName">Name</label>
             <input type="text" id="goalName" placeholder="z. B. Urlaub 2027">
@@ -1515,6 +1517,7 @@
             <button class="btn ghost" id="cancelGoalBtn">Abbrechen</button>
             <button class="btn" id="createGoalBtn">Anlegen</button>
           </div>
+          <button type="button" class="link-btn" id="deleteGoalBtn" style="margin-top:16px; color:var(--red); display:none;">Sparziel löschen</button>
         </div>
       </div>
     </main>
@@ -3509,7 +3512,7 @@
           '<div class="goal-track"><div class="goal-fill" style="width:'+pct+'%"></div></div>'+
           '<div class="goal-actions">'+
             '<button type="button" class="dep-toggle">Einzahlen</button>'+
-            '<button type="button" class="goal-del">Löschen</button>'+
+            '<button type="button" class="redit goal-edit-btn" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
           '</div>'+
           '<div class="deposit-row" style="display:none;">'+
             '<input type="number" inputmode="decimal" step="0.01" min="0" placeholder="Betrag">'+
@@ -3539,22 +3542,55 @@
         }
       });
     });
-    el.querySelectorAll('.goal-del').forEach(function(btn){
+    el.querySelectorAll('.goal-edit-btn').forEach(function(btn){
       btn.addEventListener('click', function(){
-        var id = btn.closest('.goal-card').getAttribute('data-id');
-        state.savings = state.savings.filter(function(g){ return g.id!==id; });
-        saveState();
-        renderSavings();
+        openEditGoalModal(btn.closest('.goal-card').getAttribute('data-id'));
       });
     });
   }
 
+  var editingGoalId = null;
   document.getElementById('newGoalBtn').addEventListener('click', function(){
     var form = document.getElementById('newGoalForm');
-    form.style.display = form.style.display==='block' ? 'none' : 'block';
+    var willOpen = form.style.display!=='block';
+    if(willOpen){
+      editingGoalId = null;
+      document.getElementById('goalFormTitle').textContent = 'Neues Sparziel';
+      document.getElementById('createGoalBtn').textContent = 'Anlegen';
+      document.getElementById('deleteGoalBtn').style.display = 'none';
+      document.getElementById('goalName').value = '';
+      document.getElementById('goalTarget').value = '';
+      document.getElementById('goalSaved').value = '';
+      document.getElementById('goalDeadline').value = '';
+    }
+    form.style.display = willOpen ? 'block' : 'none';
+  });
+  function openEditGoalModal(id){
+    var g = state.savings.find(function(x){ return x.id===id; });
+    if(!g) return;
+    editingGoalId = id;
+    document.getElementById('goalFormTitle').textContent = 'Sparziel bearbeiten';
+    document.getElementById('createGoalBtn').textContent = 'Speichern';
+    document.getElementById('deleteGoalBtn').style.display = 'block';
+    document.getElementById('goalName').value = g.name;
+    document.getElementById('goalTarget').value = g.target;
+    document.getElementById('goalSaved').value = g.saved;
+    document.getElementById('goalDeadline').value = g.deadline || '';
+    document.getElementById('newGoalForm').style.display = 'block';
+    document.getElementById('newGoalForm').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  document.getElementById('deleteGoalBtn').addEventListener('click', function(){
+    if(!editingGoalId) return;
+    if(!confirm('Sparziel wirklich löschen?')) return;
+    state.savings = state.savings.filter(function(g){ return g.id!==editingGoalId; });
+    saveState();
+    editingGoalId = null;
+    document.getElementById('newGoalForm').style.display = 'none';
+    renderSavings();
   });
   document.getElementById('cancelGoalBtn').addEventListener('click', function(){
     document.getElementById('newGoalForm').style.display = 'none';
+    editingGoalId = null;
   });
   document.getElementById('createGoalBtn').addEventListener('click', function(){
     var name = document.getElementById('goalName').value.trim();
@@ -3562,6 +3598,18 @@
     var saved = parseFloat(document.getElementById('goalSaved').value) || 0;
     var deadline = document.getElementById('goalDeadline').value || null;
     if(!name || !target || target<=0) return;
+    if(editingGoalId){
+      var g = state.savings.find(function(x){ return x.id===editingGoalId; });
+      if(g){
+        g.name = name; g.target = Math.round(target*100)/100;
+        g.saved = Math.round(saved*100)/100; g.deadline = deadline;
+      }
+      saveState();
+      editingGoalId = null;
+      document.getElementById('newGoalForm').style.display = 'none';
+      renderSavings();
+      return;
+    }
     state.savings.push({ id: uid(), name: name, target: Math.round(target*100)/100, saved: Math.round(saved*100)/100, deadline: deadline });
     saveState();
     document.getElementById('goalName').value = '';
@@ -4413,20 +4461,23 @@
     renderProjectList();
   });
 
+  function editIconBtn(id){
+    return '<button class="redit" data-pitemedit="'+id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>';
+  }
   function projectItemRowHtml(it){
     if(it.type==='link'){
       return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
         '<div class="stext"><a href="'+escapeHtml(it.url)+'" target="_blank" rel="noopener" style="color:var(--brass-strong); font-weight:600; text-decoration:none;">🔗 '+escapeHtml(it.title)+'</a>'+
         '<div class="ssub" style="word-break:break-all;">'+escapeHtml(it.url)+'</div></div>'+
         avatarHtml(it.createdBy)+
-        '<button class="sdel" data-pitemdel="'+it.id+'">×</button>'+
+        editIconBtn(it.id)+
       '</div>';
     }
     if(it.type==='note'){
       return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
         '<div class="stext"><div class="stitle">📝 '+escapeHtml(it.text)+'</div></div>'+
         avatarHtml(it.createdBy)+
-        '<button class="sdel" data-pitemdel="'+it.id+'">×</button>'+
+        editIconBtn(it.id)+
       '</div>';
     }
     if(it.type==='cost'){
@@ -4434,7 +4485,7 @@
         '<div class="stext"><div class="stitle">💰 '+escapeHtml(it.title)+'</div></div>'+
         '<div class="num" style="font-size:14px; flex-shrink:0;">'+fmtEUR(it.amount)+'</div>'+
         avatarHtml(it.createdBy)+
-        '<button class="sdel" data-pitemdel="'+it.id+'">×</button>'+
+        editIconBtn(it.id)+
       '</div>';
     }
     if(it.type==='image'){
@@ -4442,7 +4493,7 @@
         '<img src="'+it.photo+'" style="width:100%; border-radius:10px; order:1;">'+
         (it.caption ? '<div class="stext" style="order:2;"><div class="stitle">'+escapeHtml(it.caption)+'</div></div>' : '<div style="order:2; flex:1;"></div>')+
         avatarHtml(it.createdBy)+
-        '<button class="sdel" data-pitemdel="'+it.id+'" style="order:3;">×</button>'+
+        '<span style="order:3;">'+editIconBtn(it.id)+'</span>'+
       '</div>';
     }
     return '';
@@ -4490,13 +4541,9 @@
     } else {
       itemsEl.innerHTML = todos.map(projectTodoRowHtml).join('') + items.map(projectItemRowHtml).join('');
     }
-    itemsEl.querySelectorAll('[data-pitemdel]').forEach(function(b){
+    itemsEl.querySelectorAll('[data-pitemedit]').forEach(function(b){
       b.addEventListener('click', function(){
-        var id = b.getAttribute('data-pitemdel');
-        p.items = p.items.filter(function(x){ return x.id!==id; });
-        saveState();
-        renderProjectBoard();
-        renderProjectList();
+        openEditProjectItemModal(b.getAttribute('data-pitemedit'));
       });
     });
     itemsEl.querySelectorAll('[data-ptodoedit]').forEach(function(b){
@@ -4526,7 +4573,13 @@
   document.querySelectorAll('#projectItemTypeSwitch button').forEach(function(b){
     b.addEventListener('click', function(){ setProjectItemType(b.getAttribute('data-ptype')); });
   });
+  var editingProjectItemId = null;
   document.getElementById('openAddProjectItemBtn').addEventListener('click', function(){
+    editingProjectItemId = null;
+    document.getElementById('projectItemModalTitle').textContent = 'Hinzufügen';
+    document.getElementById('saveProjectItemBtn').textContent = 'Hinzufügen';
+    document.getElementById('deleteProjectItemBtn').style.display = 'none';
+    document.querySelectorAll('#projectItemTypeSwitch button').forEach(function(b){ b.disabled = false; b.style.opacity = ''; });
     setProjectItemType('link');
     document.getElementById('ptLinkTitle').value = '';
     document.getElementById('ptLinkUrl').value = '';
@@ -4538,8 +4591,49 @@
     document.getElementById('ptImagePreview').removeAttribute('data-photo');
     document.getElementById('projectItemModal').style.display = 'flex';
   });
+  function openEditProjectItemModal(id){
+    var p = state.projects.find(function(x){ return x.id===currentProjectId; });
+    if(!p) return;
+    var it = p.items.find(function(x){ return x.id===id; });
+    if(!it) return;
+    editingProjectItemId = id;
+    document.getElementById('projectItemModalTitle').textContent = 'Eintrag bearbeiten';
+    document.getElementById('saveProjectItemBtn').textContent = 'Speichern';
+    document.getElementById('deleteProjectItemBtn').style.display = 'block';
+    // Typ steht beim Bearbeiten fest (kein Wechsel zwischen Link/Notiz/Kosten/Bild)
+    document.querySelectorAll('#projectItemTypeSwitch button').forEach(function(b){ b.disabled = true; b.style.opacity = '.4'; });
+    setProjectItemType(it.type);
+    document.getElementById('ptLinkTitle').value = it.title || '';
+    document.getElementById('ptLinkUrl').value = it.url || '';
+    document.getElementById('ptNoteText').value = it.text || '';
+    document.getElementById('ptCostTitle').value = it.title || '';
+    document.getElementById('ptCostAmount').value = it.amount || '';
+    document.getElementById('ptImageCaption').value = it.caption || '';
+    var img = document.getElementById('ptImagePreview');
+    if(it.type==='image' && it.photo){
+      img.src = it.photo;
+      img.setAttribute('data-photo', it.photo);
+      img.style.display = 'block';
+    } else {
+      img.style.display = 'none';
+      img.removeAttribute('data-photo');
+    }
+    document.getElementById('projectItemModal').style.display = 'flex';
+  }
+  document.getElementById('deleteProjectItemBtn').addEventListener('click', function(){
+    var p = state.projects.find(function(x){ return x.id===currentProjectId; });
+    if(!p || !editingProjectItemId) return;
+    if(!confirm('Eintrag wirklich löschen?')) return;
+    p.items = p.items.filter(function(x){ return x.id!==editingProjectItemId; });
+    saveState();
+    editingProjectItemId = null;
+    document.getElementById('projectItemModal').style.display = 'none';
+    renderProjectBoard();
+    renderProjectList();
+  });
   document.getElementById('cancelProjectItemBtn').addEventListener('click', function(){
     document.getElementById('projectItemModal').style.display = 'none';
+    editingProjectItemId = null;
   });
   document.getElementById('ptImagePickBtn').addEventListener('click', function(){
     document.getElementById('ptImageInput').click();
@@ -4560,26 +4654,59 @@
   document.getElementById('saveProjectItemBtn').addEventListener('click', function(){
     var p = state.projects.find(function(x){ return x.id===currentProjectId; });
     if(!p) return;
+
+    if(editingProjectItemId){
+      var it = p.items.find(function(x){ return x.id===editingProjectItemId; });
+      if(!it) return;
+      if(it.type==='link'){
+        var title = document.getElementById('ptLinkTitle').value.trim();
+        var url = document.getElementById('ptLinkUrl').value.trim();
+        if(!title || !url) return;
+        if(!/^https?:\/\//i.test(url)) url = 'https://'+url;
+        it.title = title; it.url = url;
+      } else if(it.type==='note'){
+        var text = document.getElementById('ptNoteText').value.trim();
+        if(!text) return;
+        it.text = text;
+      } else if(it.type==='cost'){
+        var ctitle = document.getElementById('ptCostTitle').value.trim();
+        var amount = parseFloat(document.getElementById('ptCostAmount').value);
+        if(!ctitle || !amount || amount<=0) return;
+        it.title = ctitle; it.amount = Math.round(amount*100)/100;
+      } else if(it.type==='image'){
+        var photo = document.getElementById('ptImagePreview').getAttribute('data-photo');
+        if(!photo) return;
+        it.photo = photo;
+        it.caption = document.getElementById('ptImageCaption').value.trim();
+      }
+      saveState();
+      editingProjectItemId = null;
+      document.getElementById('projectItemModal').style.display = 'none';
+      renderProjectBoard();
+      renderProjectList();
+      return;
+    }
+
     var base = { id: uid(), type: projectItemType, createdBy: currentUserId, createdAt: new Date().toISOString() };
     if(projectItemType==='link'){
-      var title = document.getElementById('ptLinkTitle').value.trim();
-      var url = document.getElementById('ptLinkUrl').value.trim();
-      if(!title || !url) return;
-      if(!/^https?:\/\//i.test(url)) url = 'https://'+url;
-      base.title = title; base.url = url;
+      var title2 = document.getElementById('ptLinkTitle').value.trim();
+      var url2 = document.getElementById('ptLinkUrl').value.trim();
+      if(!title2 || !url2) return;
+      if(!/^https?:\/\//i.test(url2)) url2 = 'https://'+url2;
+      base.title = title2; base.url = url2;
     } else if(projectItemType==='note'){
-      var text = document.getElementById('ptNoteText').value.trim();
-      if(!text) return;
-      base.text = text;
+      var text2 = document.getElementById('ptNoteText').value.trim();
+      if(!text2) return;
+      base.text = text2;
     } else if(projectItemType==='cost'){
-      var ctitle = document.getElementById('ptCostTitle').value.trim();
-      var amount = parseFloat(document.getElementById('ptCostAmount').value);
-      if(!ctitle || !amount || amount<=0) return;
-      base.title = ctitle; base.amount = Math.round(amount*100)/100;
+      var ctitle2 = document.getElementById('ptCostTitle').value.trim();
+      var amount2 = parseFloat(document.getElementById('ptCostAmount').value);
+      if(!ctitle2 || !amount2 || amount2<=0) return;
+      base.title = ctitle2; base.amount = Math.round(amount2*100)/100;
     } else if(projectItemType==='image'){
-      var photo = document.getElementById('ptImagePreview').getAttribute('data-photo');
-      if(!photo) return;
-      base.photo = photo;
+      var photo2 = document.getElementById('ptImagePreview').getAttribute('data-photo');
+      if(!photo2) return;
+      base.photo = photo2;
       base.caption = document.getElementById('ptImageCaption').value.trim();
     }
     p.items.push(base);
