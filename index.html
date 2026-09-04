@@ -1501,6 +1501,7 @@
       <h2 class="page-title">Statistik</h2>
       <p class="page-sub">Verlauf der letzten 6 Monate und Ausgaben nach Kategorie.</p>
       <div id="statsChart" style="padding:14px 20px 6px;"></div>
+      <div id="statsMonthlyTotals" style="padding:6px 20px 4px;"></div>
       <p class="section-title">Ausgaben nach Kategorie — <span id="statsMonthLabel"></span></p>
       <div id="statsCategoryList" style="padding:0 20px 30px;"></div>
     </main>
@@ -3216,6 +3217,21 @@
     chartEl.innerHTML = buildLineChartSVG(months, sums);
 
     var key = monthKey(viewingDate);
+    var curSums = sumsForMonth(key);
+    var maxIncExp = Math.max(curSums.inc, curSums.exp, 1);
+    var incPct2 = curSums.inc/maxIncExp*100;
+    var expPct2 = curSums.exp/maxIncExp*100;
+    var totalsEl = document.getElementById('statsMonthlyTotals');
+    totalsEl.innerHTML =
+      '<div style="margin-bottom:12px;">'+
+        '<div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:4px;"><span>Einnahmen</span><span class="num">'+fmtEUR(curSums.inc)+'</span></div>'+
+        '<div class="bar-track"><div class="bar-fill income" style="width:'+incPct2+'%"></div></div>'+
+      '</div>'+
+      '<div style="margin-bottom:4px;">'+
+        '<div style="display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:4px;"><span>Ausgaben</span><span class="num">'+fmtEUR(curSums.exp)+'</span></div>'+
+        '<div class="bar-track"><div class="bar-fill expense" style="width:'+expPct2+'%"></div></div>'+
+      '</div>';
+
     var byCat = {};
     state.transactions.forEach(function(t){
       if(t.type==='expense' && effectiveMonthKey(t)===key){
