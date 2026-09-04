@@ -1074,6 +1074,15 @@
     </div>
   </div>
 
+  <div id="plannedTxModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 12px;">Geplante Zahlungen/Einnahmen</p>
+      <p class="page-sub" style="padding:0 0 12px;">Bereits eingetragene Buchungen mit einem Datum in der Zukunft — zählen erst am jeweiligen Tag zu eurem Guthaben dazu. Zum Bearbeiten antippen.</p>
+      <div id="plannedTxList"></div>
+      <button type="button" class="btn ghost" id="closePlannedTxBtn" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
   <div id="editTxModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
       <p class="section-title" style="padding:0 0 12px;">Buchung bearbeiten</p>
@@ -1362,6 +1371,7 @@
       <div class="settings-group">
         <button type="button" class="settings-row" id="openStartingBalanceBtn">Startguthaben <span class="chev">›</span></button>
         <button type="button" class="settings-row" id="showRecurringListBtn">Wiederkehrende Buchungen anzeigen <span class="chev">›</span></button>
+        <button type="button" class="settings-row" id="showPlannedTxBtn">Geplante Zahlungen/Einnahmen <span class="chev">›</span></button>
         <button type="button" class="settings-row" id="openCategoriesBtn">Kategorien <span class="chev">›</span></button>
       </div>
 
@@ -2259,6 +2269,37 @@
   document.getElementById('closeRecurringListBtn').addEventListener('click', function(){
     document.getElementById('recurringListModal').style.display = 'none';
   });
+  function renderPlannedTx(){
+    var el = document.getElementById('plannedTxList');
+    var todayStr = todayISO();
+    var list = state.transactions
+      .filter(function(t){ return t.date > todayStr; })
+      .sort(function(a,b){ return a.date.localeCompare(b.date); });
+    if(list.length===0){
+      el.innerHTML = '<p class="empty">Keine zukunftsdatierten Buchungen.</p>';
+      return;
+    }
+    el.innerHTML = list.map(function(t){
+      return '<div class="simple-row" data-plannedtx="'+t.id+'" style="cursor:pointer;"'+personTintStyle(t.createdBy)+'>'+
+        '<div class="stext"><div class="stitle">'+escapeHtml(t.category)+'</div>'+
+        '<div class="ssub">'+fmtDate(t.date)+(t.note?' · '+escapeHtml(t.note):'')+'</div></div>'+
+        '<div class="num '+t.type+'" style="font-size:14px; flex-shrink:0; color:'+(t.type==='income'?'var(--green)':'var(--red)')+';">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-plannedtx]').forEach(function(row){
+      row.addEventListener('click', function(){
+        document.getElementById('plannedTxModal').style.display = 'none';
+        openEditTxModal(row.getAttribute('data-plannedtx'));
+      });
+    });
+  }
+  document.getElementById('showPlannedTxBtn').addEventListener('click', function(){
+    renderPlannedTx();
+    document.getElementById('plannedTxModal').style.display = 'flex';
+  });
+  document.getElementById('closePlannedTxBtn').addEventListener('click', function(){
+    document.getElementById('plannedTxModal').style.display = 'none';
+  });
   document.getElementById('openCategoriesBtn').addEventListener('click', function(){
     renderCategoryManage();
     document.getElementById('categoriesModal').style.display = 'flex';
@@ -2902,11 +2943,11 @@
     // --- Gesamtguthaben (groß, oben) ---
     var cumulative, cumLabel;
     if(isFuture){
-      cumulative = cumulativeBalanceThroughMonth(todayRealKey);
+      cumulative = cumulativeBalanceThroughDate(todayISO());
       var now = new Date();
       cumLabel = '(Stand '+MONTH_NAMES[now.getMonth()]+' '+now.getFullYear()+')';
     } else if(!isPast){
-      cumulative = cumulativeBalanceThroughMonth(key);
+      cumulative = cumulativeBalanceThroughDate(todayISO());
       cumLabel = '(Aktuell)';
     } else {
       cumulative = cumulativeBalanceThroughMonth(key);
