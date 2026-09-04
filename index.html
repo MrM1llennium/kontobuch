@@ -1635,12 +1635,29 @@
             <label for="noteTextInput">Text</label>
             <textarea id="noteTextInput" placeholder="Notiz…"></textarea>
           </div>
+          <label style="display:flex; align-items:center; gap:8px; margin:-6px 0 18px; font-size:14.5px; color:var(--ink); cursor:pointer;">
+            <input type="checkbox" id="noteLockToggle" style="width:18px; height:18px; accent-color:var(--brass);">
+            🔒 Mit PIN schützen
+          </label>
           <div class="btn-row">
             <button class="btn ghost" id="cancelNoteBtn">Zurück</button>
             <button class="btn" id="saveNoteBtn">Speichern</button>
           </div>
           <button type="button" class="link-btn" id="deleteNoteBtn" style="margin-top:16px; color:var(--red);">Notiz löschen</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="notePinModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:97; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
+      <p class="section-title" id="notePinTitle" style="padding:0 0 8px;">PIN eingeben</p>
+      <p class="page-sub" id="notePinSub" style="padding:0 0 14px;"></p>
+      <input type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" id="notePinInput" placeholder="••••" style="width:100%; text-align:center; font-size:28px; letter-spacing:14px; padding:14px; border:1px solid var(--line); border-radius:10px; background:var(--paper-raised); font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
+      <p id="notePinError" style="color:var(--red); font-size:13px; margin:8px 2px 0; display:none;"></p>
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn ghost" id="cancelNotePinBtn">Abbrechen</button>
+        <button class="btn" id="confirmNotePinBtn">Bestätigen</button>
       </div>
     </div>
   </div>
@@ -3848,21 +3865,80 @@
     }
     var sorted = state.notes.slice().sort(function(a,b){ return (b.updatedAt||'').localeCompare(a.updatedAt||''); });
     el.innerHTML = sorted.map(function(n){
+      var snippet = n.locked
+        ? '<span style="color:var(--ink-soft);">Geschützt — zum Anzeigen antippen</span>'
+        : escapeHtml(n.text||'');
       return '<div class="note-card" data-id="'+n.id+'" style="position:relative;'+personTintBg(n.updatedBy||n.createdBy)+'">'+
         '<div style="position:absolute; top:14px; right:16px;">'+avatarHtml(n.updatedBy||n.createdBy)+'</div>'+
-        '<div class="ntitle" style="padding-right:26px;">'+escapeHtml(n.title||'Ohne Titel')+'</div>'+
-        '<div class="nsnippet">'+escapeHtml(n.text||'')+'</div>'+
+        '<div class="ntitle" style="padding-right:26px;">'+(n.locked?'🔒 ':'')+escapeHtml(n.title||'Ohne Titel')+'</div>'+
+        '<div class="nsnippet">'+snippet+'</div>'+
       '</div>';
     }).join('');
     el.querySelectorAll('.note-card').forEach(function(c){
-      c.addEventListener('click', function(){ openNoteEdit(c.getAttribute('data-id')); });
+      c.addEventListener('click', function(){ requestOpenNoteEdit(c.getAttribute('data-id')); });
     });
+  }
+
+  /* ---- PIN-Schutz für Notizen: ein gemeinsamer 4-stelliger PIN gilt für
+     alle als "geschützt" markierten Notizen. ---- */
+  var notePinCallback = null;
+  var notePinMode = 'verify';
+  function openNotePinModal(mode, onSuccess){
+    notePinMode = mode;
+    notePinCallback = onSuccess;
+    document.getElementById('notePinInput').value = '';
+    document.getElementById('notePinError').style.display = 'none';
+    document.getElementById('notePinTitle').textContent = mode==='setup' ? 'PIN festlegen' : 'PIN eingeben';
+    document.getElementById('notePinSub').textContent = mode==='setup'
+      ? 'Dieser PIN gilt für alle geschützten Notizen — merkt ihn euch beide.'
+      : 'Diese Notiz ist geschützt.';
+    document.getElementById('notePinModal').style.display = 'flex';
+  }
+  document.getElementById('cancelNotePinBtn').addEventListener('click', function(){
+    document.getElementById('notePinModal').style.display = 'none';
+    notePinCallback = null;
+  });
+  document.getElementById('confirmNotePinBtn').addEventListener('click', function(){
+    var val = document.getElementById('notePinInput').value.trim();
+    var errEl = document.getElementById('notePinError');
+    if(!/^\d{4}$/.test(val)){
+      errEl.textContent = 'Bitte genau 4 Ziffern eingeben.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if(notePinMode==='setup'){
+      state.notesPin = val;
+      saveState();
+      document.getElementById('notePinModal').style.display = 'none';
+      var cb = notePinCallback; notePinCallback = null;
+      if(cb) cb();
+    } else {
+      if(val === state.notesPin){
+        document.getElementById('notePinModal').style.display = 'none';
+        var cb2 = notePinCallback; notePinCallback = null;
+        if(cb2) cb2();
+      } else {
+        errEl.textContent = 'Falscher PIN.';
+        errEl.style.display = 'block';
+        document.getElementById('notePinInput').value = '';
+      }
+    }
+  });
+
+  function requestOpenNoteEdit(id){
+    var n = id ? state.notes.find(function(x){ return x.id===id; }) : null;
+    if(n && n.locked){
+      openNotePinModal('verify', function(){ openNoteEdit(id); });
+    } else {
+      openNoteEdit(id);
+    }
   }
   function openNoteEdit(id){
     editingNoteId = id;
-    var n = id ? state.notes.find(function(x){ return x.id===id; }) : { title:'', text:'' };
+    var n = id ? state.notes.find(function(x){ return x.id===id; }) : { title:'', text:'', locked:false };
     document.getElementById('noteTitleInput').value = n.title || '';
     document.getElementById('noteTextInput').value = n.text || '';
+    document.getElementById('noteLockToggle').checked = !!n.locked;
     document.getElementById('notesListView').style.display = 'none';
     document.getElementById('noteEditView').style.display = 'block';
     document.getElementById('deleteNoteBtn').style.display = id ? 'block' : 'none';
@@ -3878,15 +3954,23 @@
   document.getElementById('saveNoteBtn').addEventListener('click', function(){
     var title = document.getElementById('noteTitleInput').value.trim();
     var text = document.getElementById('noteTextInput').value.trim();
+    var wantsLock = document.getElementById('noteLockToggle').checked;
     if(!title && !text){ closeNoteEdit(); return; }
-    if(editingNoteId){
-      var n = state.notes.find(function(x){ return x.id===editingNoteId; });
-      n.title = title; n.text = text; n.updatedAt = new Date().toISOString(); n.updatedBy = currentUserId;
-    } else {
-      state.notes.push({ id: uid(), title: title, text: text, updatedAt: new Date().toISOString(), createdBy: currentUserId });
+    function doSave(){
+      if(editingNoteId){
+        var n = state.notes.find(function(x){ return x.id===editingNoteId; });
+        n.title = title; n.text = text; n.locked = wantsLock; n.updatedAt = new Date().toISOString(); n.updatedBy = currentUserId;
+      } else {
+        state.notes.push({ id: uid(), title: title, text: text, locked: wantsLock, updatedAt: new Date().toISOString(), createdBy: currentUserId });
+      }
+      saveState();
+      closeNoteEdit();
     }
-    saveState();
-    closeNoteEdit();
+    if(wantsLock && !state.notesPin){
+      openNotePinModal('setup', doSave);
+    } else {
+      doSave();
+    }
   });
   document.getElementById('deleteNoteBtn').addEventListener('click', function(){
     if(!editingNoteId) return;
