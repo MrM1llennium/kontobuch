@@ -14,29 +14,31 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   /* ==================================================================
-     HOME HUB — DUAL THEME TOKEN SYSTEM
-     Forest (default) und Lilac sind zwei Farbwelten desselben Systems.
-     Layout, Typografie, Abstände, Komponenten bleiben identisch — nur
-     die Werte dieser Variablen unterscheiden sich zwischen den Themes.
+     HOME HUB — MULTI THEME TOKEN SYSTEM
+     Signature (Standard), Forest und Lilac sind Farbwelten desselben
+     Systems. Layout, Typografie, Abstände, Komponenten bleiben
+     identisch — nur die Werte dieser Variablen unterscheiden sich.
      Legacy-Variablennamen (--paper, --ink, --brass ...) bleiben aus
      Kompatibilitätsgründen die technische Grundlage; die semantischen
      Namen darunter zeigen einfach auf dieselben Werte.
      ================================================================== */
   :root{
-    /* Forest 🌲 — Standard-Theme */
-    --paper:#F7F8F6;
+    /* Signature ✨ — Standard-Theme, abgeleitet aus den Farben des
+       App-Icons (Creme-Kachel + dunkle Vorder-Welle). Header/Sidebar
+       tragen bewusst den dunklen Wellenton, der Rest bleibt hell/cremig. */
+    --paper:#FAF6F2;
     --paper-raised:#FFFFFF;
-    --paper-dark:#EAEDE9;
-    --ink:#1C2621;
-    --ink-soft:#68756E;
-    --line:#DEE3DE;
-    --red:#D64545;
-    --red-soft:#FBE3E1;
-    --green:#2E8B67;
-    --green-soft:#DEF3E7;
-    --brass:#1E4D47;
-    --brass-soft:#DCE9E2;
-    --brass-strong:#163B36;
+    --paper-dark:#F0E7DE;
+    --ink:#2B2826;
+    --ink-soft:#8C8078;
+    --line:#E8DED2;
+    --red:#C1543F;
+    --red-soft:#F6E3DD;
+    --green:#4C8F6C;
+    --green-soft:#E3F0E7;
+    --brass:#3D3936;
+    --brass-soft:#E7E0D8;
+    --brass-strong:#211E1C;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-top: env(safe-area-inset-top, 0px);
 
@@ -60,7 +62,27 @@
     --color-danger: var(--red);
     --color-info: #3E7CB1;
 
-    /* Dezente Akzent-Waschung für Kopfzeile/Seitenmenü (kein Vollton) */
+    /* Header/Sidebar tragen bei Signature den dunklen Wellenton direkt
+       als Vollton (kein zartes Wasch), nicht nur eine Tönung. */
+    --header-tint: #3A3633;
+    --header-tint-deep: #2E2B29;
+    --sidebar-tint: #46413D;
+  }
+  /* Forest 🌲 — jetzt Zweitfarbe im Modern-Style */
+  html[data-theme="forest"]{
+    --paper:#F7F8F6;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#EAEDE9;
+    --ink:#1C2621;
+    --ink-soft:#68756E;
+    --line:#DEE3DE;
+    --red:#D64545;
+    --red-soft:#FBE3E1;
+    --green:#2E8B67;
+    --green-soft:#DEF3E7;
+    --brass:#1E4D47;
+    --brass-soft:#DCE9E2;
+    --brass-strong:#163B36;
     --header-tint: #E9F1EC;
     --sidebar-tint: #F1F5F2;
   }
@@ -212,7 +234,10 @@
     margin:22px 20px 0; background:var(--paper-raised); border:1px solid var(--line);
     border-radius:10px;
   }
-  .today-card .section-title{ padding:14px 16px 6px !important; }
+  .today-card .section-title{
+    padding:14px 16px 6px !important;
+    font-size:16px !important; color:var(--ink) !important; letter-spacing:normal !important;
+  }
   #todayOverview{
     padding-bottom:6px;
   }
@@ -227,7 +252,7 @@
   .today-card .empty{ padding:6px 16px 16px; text-align:left; }
   .tile.tile-hero{ grid-column:1 / span 2; flex-direction:row; align-items:center; padding:18px 18px; }
   .tile.tile-hero svg{ width:32px; height:32px; }
-  .tile.tile-hero .tile-name{ font-size:18px; font-weight:600; }
+  .tile.tile-hero .tile-name{ font-size:15.5px; font-weight:400; }
   .tile{
     background:var(--paper-raised); border:1px solid var(--line); border-radius:12px;
     padding:16px 14px; display:flex; flex-direction:column; align-items:flex-start; gap:8px;
@@ -704,6 +729,45 @@
   html[data-style="kawaii"] .sidebar-item svg{ display:none; }
   html[data-style="kawaii"] .tile img.kawaii-icon,
   html[data-style="kawaii"] .sidebar-item img.kawaii-icon{ display:block; }
+
+  /* ============================================================
+     SIGNATURE-THEME — Header & Sidebar tragen den dunklen Wellenton
+     als Vollton statt einer hellen Tönung, deshalb muss die Schrift
+     dort auf Hell umschalten. Nur unter data-theme="signature" (oder
+     ganz ohne data-theme-Attribut, da Signature der Standard ist).
+     ============================================================ */
+  html:not([data-theme]) .topbar,
+  html[data-theme="signature"] .topbar{
+    color:#F4EEE7;
+  }
+  html:not([data-theme]) .topbar .brand,
+  html[data-theme="signature"] .topbar .brand,
+  html:not([data-theme]) .topbar .back-btn,
+  html[data-theme="signature"] .topbar .back-btn{
+    color:#D8CCBE;
+  }
+  html:not([data-theme]) .hamburger-btn,
+  html[data-theme="signature"] .hamburger-btn{
+    color:#F4EEE7;
+  }
+  html:not([data-theme]) #sidebar,
+  html[data-theme="signature"] #sidebar,
+  html:not([data-theme]) .sidebar-item,
+  html[data-theme="signature"] .sidebar-item{
+    color:#F0E8DE;
+  }
+  html:not([data-theme]) #sidebar .brand,
+  html[data-theme="signature"] #sidebar .brand{
+    color:#C7BAAA;
+  }
+  html:not([data-theme]) .sidebar-item.active,
+  html[data-theme="signature"] .sidebar-item.active{
+    background:rgba(255,255,255,.12); color:#FFFFFF;
+  }
+  html:not([data-theme]) #sidebarBackdrop,
+  html[data-theme="signature"] #sidebarBackdrop{
+    background:rgba(0,0,0,.5);
+  }
 </style>
 </head>
 <body>
@@ -1284,7 +1348,8 @@
         </div>
         <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">Farbe</label>
         <div class="mode-switch" id="themeSwitch" style="margin-bottom:0;">
-          <button type="button" data-theme-choice="forest" data-theme-style="modern" class="active">🌲 Forest</button>
+          <button type="button" data-theme-choice="signature" data-theme-style="modern" class="active">✨ Signature</button>
+          <button type="button" data-theme-choice="forest" data-theme-style="modern">🌲 Forest</button>
           <button type="button" data-theme-choice="lilac" data-theme-style="modern">🪻 Lilac</button>
           <button type="button" data-theme-choice="bubblegum" data-theme-style="kawaii" style="display:none;">🩷 Bubblegum</button>
         </div>
@@ -1899,8 +1964,8 @@
   /* ================= Design/Style/Theme ================= */
   var THEME_KEY = 'kontobuch-theme';
   var STYLE_KEY = 'kontobuch-style';
-  var VALID_THEMES_BY_STYLE = { modern: ['forest','lilac'], kawaii: ['bubblegum'] };
-  var DEFAULT_THEME_BY_STYLE = { modern: 'forest', kawaii: 'bubblegum' };
+  var VALID_THEMES_BY_STYLE = { modern: ['signature','forest','lilac'], kawaii: ['bubblegum'] };
+  var DEFAULT_THEME_BY_STYLE = { modern: 'signature', kawaii: 'bubblegum' };
 
   function applyStyle(style){
     if(style!=='kawaii') style = 'modern';
@@ -1918,7 +1983,7 @@
     });
     // Falls die aktuell gewählte Farbe zum neuen Style nicht passt, auf die
     // Standardfarbe dieses Styles wechseln.
-    var currentTheme = localStorage.getItem(THEME_KEY) || 'forest';
+    var currentTheme = localStorage.getItem(THEME_KEY) || 'signature';
     if(VALID_THEMES_BY_STYLE[style].indexOf(currentTheme)===-1){
       currentTheme = DEFAULT_THEME_BY_STYLE[style];
       localStorage.setItem(THEME_KEY, currentTheme);
@@ -1926,11 +1991,11 @@
     applyTheme(currentTheme);
   }
   function applyTheme(theme){
-    if(theme==='lilac' || theme==='bubblegum'){
+    if(theme==='lilac' || theme==='bubblegum' || theme==='forest'){
       document.documentElement.setAttribute('data-theme', theme);
     } else {
       document.documentElement.removeAttribute('data-theme');
-      theme = 'forest';
+      theme = 'signature';
     }
     document.querySelectorAll('#themeSwitch button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-theme-choice')===theme);
