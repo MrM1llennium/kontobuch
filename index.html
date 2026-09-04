@@ -4054,6 +4054,7 @@
     editingTodoId = null;
     document.getElementById('todoAddModal').style.display = 'none';
     renderTodos();
+    if(typeof currentProjectId!=='undefined' && currentProjectId) renderProjectBoard();
   });
   document.getElementById('cancelTodoAddBtn').addEventListener('click', function(){
     document.getElementById('todoAddModal').style.display = 'none';
@@ -4091,6 +4092,7 @@
       editingTodoId = null;
       document.getElementById('todoAddModal').style.display = 'none';
       renderTodos();
+      if(typeof currentProjectId!=='undefined' && currentProjectId) renderProjectBoard();
       return;
     }
 
@@ -4453,7 +4455,7 @@
       '<div class="stext"><div class="stitle'+(t.done?' done':'')+'">✅ '+escapeHtml(t.text)+'</div>'+
       (subParts.length ? '<div class="ssub">'+subParts.join(' · ')+'</div>' : '')+'</div>'+
       avatarHtml(t.createdBy)+
-      '<button class="sdel" data-ptododel="'+t.id+'">×</button>'+
+      '<button class="redit" data-ptodoedit="'+t.id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
     '</div>';
   }
 
@@ -4497,12 +4499,9 @@
         renderProjectList();
       });
     });
-    itemsEl.querySelectorAll('[data-ptododel]').forEach(function(b){
+    itemsEl.querySelectorAll('[data-ptodoedit]').forEach(function(b){
       b.addEventListener('click', function(){
-        var id = b.getAttribute('data-ptododel');
-        state.todos = state.todos.filter(function(x){ return x.id!==id; });
-        saveState();
-        renderProjectBoard();
+        openEditTodoModal(b.getAttribute('data-ptodoedit'));
       });
     });
     itemsEl.querySelectorAll('[data-ptodocheck]').forEach(function(c){
