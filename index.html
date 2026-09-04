@@ -1327,6 +1327,12 @@
         <div id="ratioExpBar" class="ratio-bar-exp"></div>
       </div>
       <p class="section-title">Buchungen</p>
+      <div style="display:flex; gap:8px; padding:0 20px 12px;">
+        <input type="text" id="txSearchInput" placeholder="Suchen…" style="flex:1; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--paper-raised); font-size:14.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
+        <select id="txCategoryFilter" style="flex-shrink:0; max-width:130px; padding:10px 6px; border:1px solid var(--line); border-radius:8px; background:var(--paper-raised); font-size:13.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
+          <option value="">Alle Kategorien</option>
+        </select>
+      </div>
       <div class="ledger" id="ledgerList"></div>
     </main>
 
@@ -2781,18 +2787,57 @@
     document.getElementById('ratioIncBar').style.width = incPct+'%';
     document.getElementById('ratioExpBar').style.width = expPct+'%';
 
-    var list = state.transactions
-      .filter(function(t){ return effectiveMonthKey(t)===key; })
-      .sort(function(a,b){ return b.date.localeCompare(a.date); });
+    populateTxCategoryFilter();
+    renderLedgerList();
+  }
+
+  function getAllCategoryNames(){
+    var names = {};
+    (state.categories.income||[]).forEach(function(c){ names[c]=1; });
+    (state.categories.expense||[]).forEach(function(c){ names[c]=1; });
+    state.transactions.forEach(function(t){ names[t.category]=1; });
+    return Object.keys(names).sort(function(a,b){ return a.localeCompare(b,'de'); });
+  }
+  function populateTxCategoryFilter(){
+    var sel = document.getElementById('txCategoryFilter');
+    var current = sel.value;
+    sel.innerHTML = '<option value="">Alle Kategorien</option>' +
+      getAllCategoryNames().map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
+    sel.value = current;
+  }
+
+  function renderLedgerList(){
+    var key = monthKey(viewingDate);
+    var searchTerm = (document.getElementById('txSearchInput').value||'').trim().toLowerCase();
+    var catFilter = document.getElementById('txCategoryFilter').value;
+    var searching = searchTerm.length>0 || catFilter.length>0;
+
+    var list;
+    if(searching){
+      list = state.transactions.filter(function(t){
+        if(catFilter && t.category!==catFilter) return false;
+        if(searchTerm){
+          var hay = (t.category+' '+(t.note||'')).toLowerCase();
+          if(hay.indexOf(searchTerm)===-1) return false;
+        }
+        return true;
+      }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+    } else {
+      list = state.transactions
+        .filter(function(t){ return effectiveMonthKey(t)===key; })
+        .sort(function(a,b){ return b.date.localeCompare(a.date); });
+    }
 
     var ledgerEl = document.getElementById('ledgerList');
     if(list.length===0){
-      ledgerEl.innerHTML = '<div class="empty">Noch keine Buchungen in diesem Monat. Tippe unten auf „Buchen“.</div>';
+      ledgerEl.innerHTML = searching
+        ? '<div class="empty">Keine Buchungen gefunden.</div>'
+        : '<div class="empty">Noch keine Buchungen in diesem Monat. Tippe unten auf „Buchen“.</div>';
       return;
     }
     ledgerEl.innerHTML = list.map(function(t){
       var d = new Date(t.date);
-      var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
+      var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+(searching?'.'+d.getFullYear():'.');
       return '<div class="row"'+personTintStyle(t.createdBy)+'>'+
         '<div class="rdate num">'+dd+'</div>'+
         '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+(t.belongsNextMonth?' <span style="font-size:10px;color:var(--brass-strong);">· nächster Monat</span>':'')+'</div>'+
@@ -2817,6 +2862,9 @@
       });
     });
   }
+  document.getElementById('txSearchInput').addEventListener('input', renderLedgerList);
+  document.getElementById('txCategoryFilter').addEventListener('change', renderLedgerList);
+
 
   /* ================= Add form ================= */
   document.getElementById('modeOnetimeBtn').addEventListener('click', function(){
