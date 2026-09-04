@@ -2737,6 +2737,12 @@
     var catFilter = document.getElementById('txCategoryFilter').value;
     var searching = searchTerm.length>0 || catFilter.length>0;
 
+    // Reihenfolge innerhalb desselben Tages: zuletzt hinzugefügt zuerst.
+    // (Datum allein reicht bei mehreren Buchungen am selben Tag nicht als
+    // Sortierkriterium — der Array-Index verrät die tatsächliche Reihenfolge.)
+    var indexById = {};
+    state.transactions.forEach(function(t, i){ indexById[t.id] = i; });
+
     var list = state.transactions.filter(function(t){
       if(catFilter && t.category!==catFilter) return false;
       if(searchTerm){
@@ -2744,7 +2750,11 @@
         if(hay.indexOf(searchTerm)===-1) return false;
       }
       return true;
-    }).sort(function(a,b){ return b.date.localeCompare(a.date); });
+    }).sort(function(a,b){
+      var dc = b.date.localeCompare(a.date);
+      if(dc !== 0) return dc;
+      return indexById[b.id] - indexById[a.id];
+    });
 
     var ledgerEl = document.getElementById('ledgerList');
     if(list.length===0){
