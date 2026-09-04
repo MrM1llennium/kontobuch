@@ -1232,39 +1232,28 @@
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <button class="back-btn" data-back>‹ Dashboard</button>
+        <button class="back-btn" id="projectsBackBtn">‹ Dashboard</button>
       </div>
-      <p class="screen-title">Projekte</p>
+      <p class="screen-title" id="projectsScreenTitle">Projekte</p>
     </div>
     <div class="module-body" id="projectListWrap">
-      <p class="page-sub" style="padding:0 20px 4px;">Urlaube, Anschaffungen, größere Vorhaben — alles an einem Ort sammeln.</p>
+      <p class="page-sub" style="padding:18px 20px 4px;">Urlaube, Anschaffungen, größere Vorhaben — alles an einem Ort sammeln.</p>
       <div id="projectList" style="margin-top:10px;"></div>
       <div class="form-wrap">
         <button class="btn" id="openNewProjectBtn">+ Neues Projekt</button>
       </div>
     </div>
 
-    <div id="projectBoardView" style="display:none;">
-      <div class="topbar">
-        <div class="back-row">
-          <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-          </button>
-          <button class="back-btn" id="backToProjectListBtn">‹ Projekte</button>
+    <div class="module-body" id="projectBoardView" style="display:none;">
+      <div id="projectSummaryCard" style="margin:18px 0 6px;"></div>
+      <div id="projectItemsList"></div>
+      <div class="form-wrap">
+        <div style="display:flex; gap:8px;">
+          <button class="btn" id="openAddProjectItemBtn" style="flex:1;">+ Hinzufügen</button>
+          <button class="btn ghost" id="openAddProjectTodoBtn" style="flex:1;">+ Aufgabe</button>
         </div>
-        <p class="screen-title" id="projectBoardTitle">—</p>
-      </div>
-      <div class="module-body">
-        <div id="projectSummaryCard" style="margin:0 0 6px;"></div>
-        <div id="projectItemsList"></div>
-        <div class="form-wrap">
-          <div style="display:flex; gap:8px;">
-            <button class="btn" id="openAddProjectItemBtn" style="flex:1;">+ Hinzufügen</button>
-            <button class="btn ghost" id="openAddProjectTodoBtn" style="flex:1;">+ Aufgabe</button>
-          </div>
-          <button type="button" class="link-btn" id="editProjectMetaBtn" style="margin-top:14px;">Name, Notiz & Sparziel bearbeiten</button>
-          <button type="button" class="link-btn" id="deleteProjectBtn" style="margin-top:8px; color:var(--red);">Projekt löschen</button>
-        </div>
+        <button type="button" class="link-btn" id="editProjectMetaBtn" style="margin-top:14px;">Name, Notiz & Sparziel bearbeiten</button>
+        <button type="button" class="link-btn" id="deleteProjectBtn" style="margin-top:8px; color:var(--red);">Projekt löschen</button>
       </div>
     </div>
   </div>
@@ -4616,6 +4605,7 @@
     currentProjectId = id;
     document.getElementById('projectListWrap').style.display = 'none';
     document.getElementById('projectBoardView').style.display = 'block';
+    document.getElementById('projectsBackBtn').textContent = '‹ Projekte';
     window.scrollTo(0,0);
     renderProjectBoard();
   }
@@ -4623,10 +4613,16 @@
     currentProjectId = null;
     document.getElementById('projectBoardView').style.display = 'none';
     document.getElementById('projectListWrap').style.display = 'block';
+    document.getElementById('projectsScreenTitle').textContent = 'Projekte';
+    document.getElementById('projectsBackBtn').textContent = '‹ Dashboard';
   }
-  document.getElementById('backToProjectListBtn').addEventListener('click', function(){
-    closeProjectBoard();
-    renderProjectList();
+  document.getElementById('projectsBackBtn').addEventListener('click', function(){
+    if(currentProjectId){
+      closeProjectBoard();
+      renderProjectList();
+    } else {
+      goHome();
+    }
   });
   document.getElementById('deleteProjectBtn').addEventListener('click', function(){
     var p = state.projects.find(function(x){ return x.id===currentProjectId; });
@@ -4691,7 +4687,7 @@
   function renderProjectBoard(){
     var p = state.projects.find(function(x){ return x.id===currentProjectId; });
     if(!p) return;
-    document.getElementById('projectBoardTitle').textContent = p.name;
+    document.getElementById('projectsScreenTitle').textContent = p.name;
 
     var total = projectPlannedTotal(p);
     var goal = p.goalId ? state.savings.find(function(g){ return g.id===p.goalId; }) : null;
