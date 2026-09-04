@@ -1246,14 +1246,15 @@
 
     <div class="module-body" id="projectBoardView" style="display:none;">
       <div id="projectSummaryCard" style="margin:18px 0 6px;"></div>
-      <div id="projectItemsList"></div>
+      <div id="projectPinnedWrap"></div>
+      <div id="projectFoldersWrap"></div>
+      <div id="projectItemsList" style="display:none;"></div>
       <div class="form-wrap">
         <div style="display:flex; gap:8px;">
           <button class="btn" id="openAddProjectItemBtn" style="flex:1;">+ Hinzufügen</button>
           <button class="btn ghost" id="openAddProjectTodoBtn" style="flex:1;">+ Aufgabe</button>
         </div>
-        <button type="button" class="link-btn" id="editProjectMetaBtn" style="margin-top:14px;">Name, Notiz & Sparziel bearbeiten</button>
-        <button type="button" class="link-btn" id="deleteProjectBtn" style="margin-top:8px; color:var(--red);">Projekt löschen</button>
+        <button type="button" class="link-btn" id="deleteProjectBtn" style="margin-top:14px; color:var(--red);">Projekt löschen</button>
       </div>
     </div>
   </div>
@@ -1297,7 +1298,6 @@
         <button type="button" data-ptype="link" class="active" style="flex:1;">Link</button>
         <button type="button" data-ptype="note" style="flex:1;">Notiz</button>
         <button type="button" data-ptype="cost" style="flex:1;">Kosten</button>
-        <button type="button" data-ptype="image" style="flex:1;">Bild</button>
       </div>
 
       <div id="ptypeFieldsLink">
@@ -1329,15 +1329,10 @@
         </div>
       </div>
 
-      <div id="ptypeFieldsImage" style="display:none;">
-        <div class="field">
-          <label for="ptImageCaption">Bildunterschrift (optional)</label>
-          <input type="text" id="ptImageCaption" placeholder="z. B. Wunsch-Sofa">
-        </div>
-        <input type="file" id="ptImageInput" accept="image/*" style="display:none;">
-        <button type="button" class="btn ghost" id="ptImagePickBtn" style="width:100%;">Foto auswählen</button>
-        <img id="ptImagePreview" style="display:none; width:100%; border-radius:10px; margin-top:10px;">
-      </div>
+      <label style="display:flex; align-items:center; gap:8px; margin:-6px 0 18px; font-size:14.5px; color:var(--ink); cursor:pointer;">
+        <input type="checkbox" id="ptPinnedInput" style="width:18px; height:18px; accent-color:var(--brass);">
+        📌 Anpinnen
+      </label>
 
       <div class="btn-row" style="margin-top:16px;">
         <button class="btn ghost" id="cancelProjectItemBtn">Abbrechen</button>
@@ -4671,7 +4666,7 @@
     renderProjectList();
     if(currentProjectId) renderProjectBoard();
   });
-  document.getElementById('editProjectMetaBtn').addEventListener('click', function(){
+  function openEditProjectMetaModal(){
     var p = state.projects.find(function(x){ return x.id===currentProjectId; });
     if(!p) return;
     editingProjectId = p.id;
@@ -4682,7 +4677,7 @@
     document.getElementById('projectGoalSelect').value = p.goalId || '';
     resetProjectImagePicker(p.coverImage || null);
     document.getElementById('newProjectModal').style.display = 'flex';
-  });
+  }
 
   function openProjectBoard(id){
     currentProjectId = id;
@@ -4721,10 +4716,16 @@
   function editIconBtn(id){
     return '<button class="redit" data-pitemedit="'+id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>';
   }
+  var PROJECT_FOLDER_META = {
+    link:  { label: 'Links',    emoji: '🔗' },
+    note:  { label: 'Notizen',  emoji: '📝' },
+    cost:  { label: 'Kosten',   emoji: '💰' }
+  };
   function projectItemRowHtml(it){
+    var pin = it.pinned ? '📌 ' : '';
     if(it.type==='link'){
       return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
-        '<div class="stext"><a href="'+escapeHtml(it.url)+'" target="_blank" rel="noopener" style="color:var(--brass-strong); font-weight:600; text-decoration:none;">🔗 '+escapeHtml(it.title)+'</a>'+
+        '<div class="stext"><a href="'+escapeHtml(it.url)+'" target="_blank" rel="noopener" style="color:var(--brass-strong); font-weight:600; text-decoration:none;">'+pin+'🔗 '+escapeHtml(it.title)+'</a>'+
         '<div class="ssub" style="word-break:break-all;">'+escapeHtml(it.url)+'</div></div>'+
         avatarHtml(it.createdBy)+
         editIconBtn(it.id)+
@@ -4732,20 +4733,22 @@
     }
     if(it.type==='note'){
       return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
-        '<div class="stext"><div class="stitle">📝 '+escapeHtml(it.text)+'</div></div>'+
+        '<div class="stext"><div class="stitle">'+pin+'📝 '+escapeHtml(it.text)+'</div></div>'+
         avatarHtml(it.createdBy)+
         editIconBtn(it.id)+
       '</div>';
     }
     if(it.type==='cost'){
       return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
-        '<div class="stext"><div class="stitle">💰 '+escapeHtml(it.title)+'</div></div>'+
+        '<div class="stext"><div class="stitle">'+pin+'💰 '+escapeHtml(it.title)+'</div></div>'+
         '<div class="num" style="font-size:14px; flex-shrink:0;">'+fmtEUR(it.amount)+'</div>'+
         avatarHtml(it.createdBy)+
         editIconBtn(it.id)+
       '</div>';
     }
     if(it.type==='image'){
+      // Alttyp aus früheren Versionen — wird nur noch dargestellt, kann
+      // aber nicht mehr neu angelegt werden.
       return '<div class="simple-row" style="flex-wrap:wrap;'+personTintBg(it.createdBy)+'">'+
         '<img src="'+it.photo+'" style="width:100%; border-radius:10px; order:1;">'+
         (it.caption ? '<div class="stext" style="order:2;"><div class="stitle">'+escapeHtml(it.caption)+'</div></div>' : '<div style="order:2; flex:1;"></div>')+
@@ -4767,6 +4770,7 @@
     '</div>';
   }
 
+  var projectFolderOpen = { link:false, note:false, cost:false };
   function renderProjectBoard(){
     var p = state.projects.find(function(x){ return x.id===currentProjectId; });
     if(!p) return;
@@ -4776,9 +4780,12 @@
     var goal = p.goalId ? state.savings.find(function(g){ return g.id===p.goalId; }) : null;
     var summaryEl = document.getElementById('projectSummaryCard');
     var summaryHtml = '<div class="today-card" style="padding:16px 18px;">';
-    if(p.note) summaryHtml += '<div style="font-size:13.5px; color:var(--ink-soft); margin-bottom:10px;">'+escapeHtml(p.note)+'</div>';
-    summaryHtml += '<div style="font-size:12px; color:var(--ink-soft);">Geplante Kosten</div>';
+    summaryHtml += '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">';
+    summaryHtml += '<div style="font-size:12px; color:var(--ink-soft); padding-top:4px;">Geplante Kosten</div>';
+    summaryHtml += '<div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">'+projectCoverHtml(p)+editIconBtn('meta')+'</div>';
+    summaryHtml += '</div>';
     summaryHtml += '<div class="num" style="font-size:22px; font-weight:600;">'+fmtEUR(total)+'</div>';
+    if(p.note) summaryHtml += '<div style="font-size:13.5px; color:var(--ink-soft); margin-top:10px;">'+escapeHtml(p.note)+'</div>';
     if(goal){
       var pct = goal.target>0 ? Math.min(goal.saved/goal.target*100, 100) : 0;
       summaryHtml += '<div style="margin-top:12px; padding-top:12px; border-top:1px dotted var(--line);">'+
@@ -4789,30 +4796,70 @@
     }
     summaryHtml += '</div>';
     summaryEl.innerHTML = summaryHtml;
+    var editIconEl = summaryEl.querySelector('[data-pitemedit="meta"]');
+    if(editIconEl) editIconEl.addEventListener('click', openEditProjectMetaModal);
 
+    // Todos — bleiben direkt sichtbar, kein Ordner
     var todos = state.todos.filter(function(t){ return t.projectId===p.id; });
-    var items = (p.items||[]).slice().sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); });
-    var itemsEl = document.getElementById('projectItemsList');
-    if(items.length===0 && todos.length===0){
-      itemsEl.innerHTML = '<p class="empty">Noch nichts gesammelt — leg mit "+ Hinzufügen" oder "+ Aufgabe" los.</p>';
-    } else {
-      itemsEl.innerHTML = todos.map(projectTodoRowHtml).join('') + items.map(projectItemRowHtml).join('');
-    }
-    itemsEl.querySelectorAll('[data-pitemedit]').forEach(function(b){
-      b.addEventListener('click', function(){
-        openEditProjectItemModal(b.getAttribute('data-pitemedit'));
-      });
+    var todosEl = document.getElementById('projectItemsList');
+    todosEl.style.display = todos.length ? 'block' : 'none';
+    todosEl.innerHTML = todos.map(projectTodoRowHtml).join('');
+    todosEl.querySelectorAll('[data-ptodoedit]').forEach(function(b){
+      b.addEventListener('click', function(){ openEditTodoModal(b.getAttribute('data-ptodoedit')); });
     });
-    itemsEl.querySelectorAll('[data-ptodoedit]').forEach(function(b){
-      b.addEventListener('click', function(){
-        openEditTodoModal(b.getAttribute('data-ptodoedit'));
-      });
-    });
-    itemsEl.querySelectorAll('[data-ptodocheck]').forEach(function(c){
+    todosEl.querySelectorAll('[data-ptodocheck]').forEach(function(c){
       c.addEventListener('click', function(){
         var id = c.getAttribute('data-ptodocheck');
         var t = state.todos.find(function(x){ return x.id===id; });
         if(t){ t.done = !t.done; saveState(); renderProjectBoard(); }
+      });
+    });
+
+    // Angepinnte Einträge — über allen Ordnern
+    var items = p.items || [];
+    var pinned = items.filter(function(it){ return it.pinned; });
+    var pinnedEl = document.getElementById('projectPinnedWrap');
+    if(pinned.length===0){
+      pinnedEl.innerHTML = '';
+    } else {
+      pinnedEl.innerHTML = '<p class="section-title" style="padding:14px 20px 4px;">Angepinnt</p>' +
+        pinned.map(projectItemRowHtml).join('');
+    }
+
+    // Ordner nach Typ — Link / Notiz / Kosten, je aufklappbar
+    var foldersEl = document.getElementById('projectFoldersWrap');
+    var foldersHtml = '';
+    ['link','note','cost'].forEach(function(type){
+      var typeItems = items.filter(function(it){ return it.type===type; });
+      if(typeItems.length===0) return;
+      var meta = PROJECT_FOLDER_META[type];
+      var open = projectFolderOpen[type];
+      foldersHtml += '<div class="simple-row" data-folder="'+type+'" style="cursor:pointer;">'+
+        '<div class="stext"><div class="stitle">'+meta.emoji+' '+meta.label+'</div></div>'+
+        '<div style="color:var(--ink-soft); font-size:13px; flex-shrink:0;">'+typeItems.length+'</div>'+
+        '<span style="color:var(--ink-soft); font-size:15px; flex-shrink:0; display:inline-block; transform:rotate('+(open?90:0)+'deg); transition:transform .15s;">›</span>'+
+      '</div>';
+      foldersHtml += '<div data-folder-items="'+type+'" style="display:'+(open?'block':'none')+';">'+
+        typeItems.slice().sort(function(a,b){ return (b.createdAt||'').localeCompare(a.createdAt||''); }).map(projectItemRowHtml).join('') +
+      '</div>';
+    });
+    foldersEl.innerHTML = foldersHtml;
+
+    if(items.length===0 && todos.length===0){
+      foldersEl.innerHTML = '<p class="empty">Noch nichts gesammelt — leg mit "+ Hinzufügen" oder "+ Aufgabe" los.</p>';
+    }
+
+    foldersEl.querySelectorAll('[data-folder]').forEach(function(row){
+      row.addEventListener('click', function(){
+        var type = row.getAttribute('data-folder');
+        projectFolderOpen[type] = !projectFolderOpen[type];
+        renderProjectBoard();
+      });
+    });
+    document.querySelectorAll('#projectPinnedWrap [data-pitemedit], #projectFoldersWrap [data-pitemedit]').forEach(function(b){
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        openEditProjectItemModal(b.getAttribute('data-pitemedit'));
       });
     });
   }
@@ -4825,7 +4872,6 @@
     document.getElementById('ptypeFieldsLink').style.display = t==='link' ? 'block' : 'none';
     document.getElementById('ptypeFieldsNote').style.display = t==='note' ? 'block' : 'none';
     document.getElementById('ptypeFieldsCost').style.display = t==='cost' ? 'block' : 'none';
-    document.getElementById('ptypeFieldsImage').style.display = t==='image' ? 'block' : 'none';
   }
   document.querySelectorAll('#projectItemTypeSwitch button').forEach(function(b){
     b.addEventListener('click', function(){ setProjectItemType(b.getAttribute('data-ptype')); });
@@ -4843,9 +4889,7 @@
     document.getElementById('ptNoteText').value = '';
     document.getElementById('ptCostTitle').value = '';
     document.getElementById('ptCostAmount').value = '';
-    document.getElementById('ptImageCaption').value = '';
-    document.getElementById('ptImagePreview').style.display = 'none';
-    document.getElementById('ptImagePreview').removeAttribute('data-photo');
+    document.getElementById('ptPinnedInput').checked = false;
     document.getElementById('projectItemModal').style.display = 'flex';
   });
   function openEditProjectItemModal(id){
@@ -4857,7 +4901,7 @@
     document.getElementById('projectItemModalTitle').textContent = 'Eintrag bearbeiten';
     document.getElementById('saveProjectItemBtn').textContent = 'Speichern';
     document.getElementById('deleteProjectItemBtn').style.display = 'block';
-    // Typ steht beim Bearbeiten fest (kein Wechsel zwischen Link/Notiz/Kosten/Bild)
+    // Typ steht beim Bearbeiten fest (kein Wechsel zwischen Link/Notiz/Kosten)
     document.querySelectorAll('#projectItemTypeSwitch button').forEach(function(b){ b.disabled = true; b.style.opacity = '.4'; });
     setProjectItemType(it.type);
     document.getElementById('ptLinkTitle').value = it.title || '';
@@ -4865,16 +4909,7 @@
     document.getElementById('ptNoteText').value = it.text || '';
     document.getElementById('ptCostTitle').value = it.title || '';
     document.getElementById('ptCostAmount').value = it.amount || '';
-    document.getElementById('ptImageCaption').value = it.caption || '';
-    var img = document.getElementById('ptImagePreview');
-    if(it.type==='image' && it.photo){
-      img.src = it.photo;
-      img.setAttribute('data-photo', it.photo);
-      img.style.display = 'block';
-    } else {
-      img.style.display = 'none';
-      img.removeAttribute('data-photo');
-    }
+    document.getElementById('ptPinnedInput').checked = !!it.pinned;
     document.getElementById('projectItemModal').style.display = 'flex';
   }
   document.getElementById('deleteProjectItemBtn').addEventListener('click', function(){
@@ -4892,25 +4927,10 @@
     document.getElementById('projectItemModal').style.display = 'none';
     editingProjectItemId = null;
   });
-  document.getElementById('ptImagePickBtn').addEventListener('click', function(){
-    document.getElementById('ptImageInput').click();
-  });
-  document.getElementById('ptImageInput').addEventListener('change', function(e){
-    var file = e.target.files[0];
-    if(!file) return;
-    resizeImageFile(file, 640, 0.72).then(function(dataUrl){
-      var img = document.getElementById('ptImagePreview');
-      img.src = dataUrl;
-      img.setAttribute('data-photo', dataUrl);
-      img.style.display = 'block';
-    }).catch(function(){
-      alert('Foto konnte nicht verarbeitet werden.');
-    });
-    e.target.value = '';
-  });
   document.getElementById('saveProjectItemBtn').addEventListener('click', function(){
     var p = state.projects.find(function(x){ return x.id===currentProjectId; });
     if(!p) return;
+    var pinned = document.getElementById('ptPinnedInput').checked;
 
     if(editingProjectItemId){
       var it = p.items.find(function(x){ return x.id===editingProjectItemId; });
@@ -4930,12 +4950,8 @@
         var amount = parseFloat(document.getElementById('ptCostAmount').value);
         if(!ctitle || !amount || amount<=0) return;
         it.title = ctitle; it.amount = Math.round(amount*100)/100;
-      } else if(it.type==='image'){
-        var photo = document.getElementById('ptImagePreview').getAttribute('data-photo');
-        if(!photo) return;
-        it.photo = photo;
-        it.caption = document.getElementById('ptImageCaption').value.trim();
       }
+      it.pinned = pinned;
       saveState();
       editingProjectItemId = null;
       document.getElementById('projectItemModal').style.display = 'none';
@@ -4944,7 +4960,7 @@
       return;
     }
 
-    var base = { id: uid(), type: projectItemType, createdBy: currentUserId, createdAt: new Date().toISOString() };
+    var base = { id: uid(), type: projectItemType, pinned: pinned, createdBy: currentUserId, createdAt: new Date().toISOString() };
     if(projectItemType==='link'){
       var title2 = document.getElementById('ptLinkTitle').value.trim();
       var url2 = document.getElementById('ptLinkUrl').value.trim();
@@ -4960,11 +4976,6 @@
       var amount2 = parseFloat(document.getElementById('ptCostAmount').value);
       if(!ctitle2 || !amount2 || amount2<=0) return;
       base.title = ctitle2; base.amount = Math.round(amount2*100)/100;
-    } else if(projectItemType==='image'){
-      var photo2 = document.getElementById('ptImagePreview').getAttribute('data-photo');
-      if(!photo2) return;
-      base.photo = photo2;
-      base.caption = document.getElementById('ptImageCaption').value.trim();
     }
     p.items.push(base);
     saveState();
