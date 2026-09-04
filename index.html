@@ -437,10 +437,21 @@
   .goal-track{ height:9px; background:var(--paper-dark); border-radius:4px; overflow:hidden; margin-bottom:10px; }
   .goal-fill{ height:100%; background:linear-gradient(90deg, var(--green), #4a8f6f); }
   .goal-actions{ display:flex; gap:8px; }
-  .goal-actions button{ flex:1; padding:9px; font-size:13px; border-radius:5px; border:1px solid var(--line); background:var(--paper); cursor:pointer; }
+  .goal-actions .dep-toggle{
+    flex:1; padding:10px; font-size:13.5px; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper-raised); color:var(--ink); cursor:pointer;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+  }
+  .goal-actions .dep-toggle.active{ background:var(--brass-soft); border-color:var(--brass); color:var(--brass-strong); font-weight:600; }
+  .goal-actions .goal-gear-btn{
+    flex:0 0 auto; width:40px; height:40px; padding:0; border-radius:8px; border:1px solid var(--line);
+    background:var(--paper-raised); display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .goal-actions .goal-gear-btn svg{ width:18px; height:18px; color:var(--ink-soft); }
   .deposit-row{ display:flex; gap:8px; margin-top:10px; }
   .deposit-row input{ flex:1; padding:9px; border:1px solid var(--line); border-radius:5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; }
-  .deposit-row button{ padding:9px 14px; border:none; border-radius:5px; background:var(--green); color:var(--paper); font-size:13px; }
+  .deposit-row button{ padding:9px 14px; border:none; border-radius:5px; background:var(--green); color:var(--paper); font-size:13px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; }
+  .deposit-row.withdraw-mode button{ background:var(--red); }
 
   /* ---------- Tabbar ---------- */
   .tabbar{
@@ -3512,8 +3523,9 @@
           deadlineHtml +
           '<div class="goal-track"><div class="goal-fill" style="width:'+pct+'%"></div></div>'+
           '<div class="goal-actions">'+
-            '<button type="button" class="dep-toggle">Einzahlen</button>'+
-            '<button type="button" class="redit goal-edit-btn" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
+            '<button type="button" class="dep-toggle" data-mode="deposit">Einzahlen</button>'+
+            '<button type="button" class="dep-toggle" data-mode="withdraw">Auszahlen</button>'+
+            '<button type="button" class="goal-gear-btn goal-edit-btn" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
           '</div>'+
           '<div class="deposit-row" style="display:none;">'+
             '<input type="number" inputmode="decimal" step="0.01" min="0" placeholder="Betrag">'+
@@ -3524,20 +3536,36 @@
     }
     el.querySelectorAll('.dep-toggle').forEach(function(btn){
       btn.addEventListener('click', function(){
-        var row = btn.closest('.goal-card').querySelector('.deposit-row');
-        row.style.display = row.style.display==='flex' ? 'none' : 'flex';
-        if(row.style.display==='flex') row.querySelector('input').focus();
+        var card = btn.closest('.goal-card');
+        var row = card.querySelector('.deposit-row');
+        var mode = btn.getAttribute('data-mode');
+        var alreadyOpenSameMode = row.style.display==='flex' && row.getAttribute('data-mode')===mode;
+        card.querySelectorAll('.dep-toggle').forEach(function(b){ b.classList.remove('active'); });
+        if(alreadyOpenSameMode){
+          row.style.display = 'none';
+          return;
+        }
+        btn.classList.add('active');
+        row.setAttribute('data-mode', mode);
+        row.classList.toggle('withdraw-mode', mode==='withdraw');
+        row.querySelector('button.dep-confirm').textContent = mode==='withdraw' ? 'Auszahlen' : 'Einzahlen';
+        row.style.display = 'flex';
+        row.querySelector('input').value = '';
+        row.querySelector('input').focus();
       });
     });
     el.querySelectorAll('.dep-confirm').forEach(function(btn){
       btn.addEventListener('click', function(){
         var card = btn.closest('.goal-card');
+        var row = card.querySelector('.deposit-row');
         var id = card.getAttribute('data-id');
-        var input = card.querySelector('.deposit-row input');
+        var mode = row.getAttribute('data-mode') || 'deposit';
+        var input = row.querySelector('input');
         var val = parseFloat(input.value);
         if(val>0){
           var goal = state.savings.find(function(g){ return g.id===id; });
-          goal.saved = Math.round((goal.saved+val)*100)/100;
+          var delta = mode==='withdraw' ? -val : val;
+          goal.saved = Math.max(0, Math.round((goal.saved+delta)*100)/100);
           saveState();
           renderSavings();
         }
