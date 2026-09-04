@@ -4572,10 +4572,10 @@
   }
   function projectCoverHtmlLarge(p){
     if(p.coverImage){
-      return '<img src="'+p.coverImage+'" style="align-self:stretch; aspect-ratio:1/1; border-radius:14px; object-fit:cover; flex-shrink:0;">';
+      return '<img src="'+p.coverImage+'" style="width:68px; height:68px; max-width:68px; max-height:68px; border-radius:14px; object-fit:cover; flex-shrink:0;">';
     }
     var emoji = detectProjectEmoji(p.name);
-    return '<div style="align-self:stretch; aspect-ratio:1/1; border-radius:14px; background:var(--brass-soft); display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0;">'+emoji+'</div>';
+    return '<div style="width:68px; height:68px; border-radius:14px; background:var(--brass-soft); display:flex; align-items:center; justify-content:center; font-size:30px; flex-shrink:0;">'+emoji+'</div>';
   }
   function renderProjectList(){
     var el = document.getElementById('projectList');
