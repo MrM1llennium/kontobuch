@@ -398,7 +398,7 @@
   .rec-card{
     margin:0 20px 10px; padding:14px 16px; background:var(--paper-raised);
     border:1px solid var(--line); border-radius:8px;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
     cursor:pointer;
   }
   .rec-card.paused{ opacity:.55; }
@@ -1065,24 +1065,6 @@
     </div>
   </div>
 
-  <div id="recurringListModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
-    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
-      <p class="section-title" style="padding:0 0 12px;">Wiederkehrende Buchungen</p>
-      <p class="page-sub" style="padding:0 0 12px;">Zum Bearbeiten oder Löschen antippen.</p>
-      <div id="recurringList"></div>
-      <button type="button" class="btn ghost" id="closeRecurringListBtn" style="margin-top:16px;">Schließen</button>
-    </div>
-  </div>
-
-  <div id="plannedTxModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
-    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
-      <p class="section-title" style="padding:0 0 12px;">Geplante Zahlungen/Einnahmen</p>
-      <p class="page-sub" style="padding:0 0 12px;">Bereits eingetragene Buchungen mit einem Datum in der Zukunft — zählen erst am jeweiligen Tag zu eurem Guthaben dazu. Zum Bearbeiten antippen.</p>
-      <div id="plannedTxList"></div>
-      <button type="button" class="btn ghost" id="closePlannedTxBtn" style="margin-top:16px;">Schließen</button>
-    </div>
-  </div>
-
   <div id="editTxModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
       <p class="section-title" style="padding:0 0 12px;">Buchung bearbeiten</p>
@@ -1119,34 +1101,29 @@
     </div>
   </div>
 
-  <div id="reconcileModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
-    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
-      <p class="section-title" style="padding:0 0 10px;">Kontostand abgleichen</p>
-      <p class="page-sub" style="padding:0 0 14px;">Trag den echten Stand beider Konten zusammengerechnet ein (heutiger Stand, alle bekannten Abbuchungen mit drin). Die App berechnet die Differenz zu eurem Gesamtguthaben und legt bei Bedarf eine einzelne Ausgleichsbuchung an.</p>
-      <div class="field">
-        <label for="reconcileInput">Echter Kontostand (beide Konten zusammen)</label>
-        <input type="number" inputmode="decimal" step="0.01" id="reconcileInput" class="num-input" placeholder="0,00">
-      </div>
-      <div class="field">
-        <label for="reconcileDateInput">Stand vom</label>
-        <input type="date" id="reconcileDateInput">
-      </div>
-      <div id="reconcileResult" style="display:none; margin-bottom:14px; font-size:14px;"></div>
-      <div class="btn-row">
-        <button class="btn ghost" id="cancelReconcileBtn">Abbrechen</button>
-        <button class="btn" id="calcReconcileBtn">Vergleichen</button>
-      </div>
-      <button class="btn" id="confirmReconcileBtn" style="display:none; margin-top:10px;">Ausgleichsbuchung anlegen</button>
+  <div id="fixedExpensesModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 6px;">Fixkosten</p>
+      <p class="page-sub" style="padding:0 0 12px;">Miete, Strom, Kredite, Abos … Automatisch bucht am festen Tag von selbst, Manuell bucht erst, wenn ihr's antippt.</p>
+      <div id="fixedExpensesList"></div>
+      <button type="button" class="btn" id="addFixedExpenseBtn" style="margin-top:14px;">+ Neue Fixkosten</button>
+      <button type="button" class="btn ghost" id="closeFixedExpensesBtn" style="margin-top:10px;">Schließen</button>
+    </div>
+  </div>
+
+  <div id="fixedIncomeModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 6px;">Einnahmen</p>
+      <p class="page-sub" style="padding:0 0 12px;">Gehalt & Co. Automatisch bucht am festen Tag von selbst, Manuell bucht erst, wenn ihr's antippt — praktisch, wenn's Datum mal schwankt.</p>
+      <div id="fixedIncomeList"></div>
+      <button type="button" class="btn" id="addFixedIncomeBtn" style="margin-top:14px;">+ Neue Einnahme</button>
+      <button type="button" class="btn ghost" id="closeFixedIncomeBtn" style="margin-top:10px;">Schließen</button>
     </div>
   </div>
 
   <div id="editRecurringModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
-      <p class="section-title" style="padding:0 0 12px;">Wiederkehrende Buchung bearbeiten</p>
-      <div class="type-switch" style="margin-bottom:20px;">
-        <button type="button" id="editRecTypeIncomeBtn" class="income">Einnahme</button>
-        <button type="button" id="editRecTypeExpenseBtn" class="expense active">Ausgabe</button>
-      </div>
+      <p class="section-title" id="editRecModalTitle" style="padding:0 0 12px;">Wiederkehrende Buchung bearbeiten</p>
       <div class="field">
         <label for="editRecName">Bezeichnung</label>
         <input type="text" id="editRecName" placeholder="z. B. Gehalt, Miete, Netflix">
@@ -1160,6 +1137,14 @@
         <select id="editRecCategory"></select>
       </div>
       <div class="field">
+        <label>Buchungsart</label>
+        <div class="mode-switch" id="editRecModeSwitch" style="margin-bottom:0;">
+          <button type="button" data-recmode="auto" class="active">Automatisch</button>
+          <button type="button" data-recmode="manual">Manuell</button>
+        </div>
+        <p class="page-sub" id="editRecModeHint" style="padding:8px 0 0;">Wird jeden Monat am Tag unten automatisch gebucht.</p>
+      </div>
+      <div class="field" id="editRecDayWrap">
         <label for="editRecDay">Tag im Monat</label>
         <input type="number" inputmode="numeric" min="1" max="31" id="editRecDay" placeholder="z. B. 1">
       </div>
@@ -1190,7 +1175,7 @@
         <input type="checkbox" id="editRecBelongsNextMonthInput">
         <label for="editRecBelongsNextMonthInput">Gehört zum nächsten Monat</label>
       </div>
-      <div class="checkbox-row">
+      <div class="checkbox-row" id="editRecActiveWrap">
         <input type="checkbox" id="editRecActiveInput" checked>
         <label for="editRecActiveInput">Aktiv (bei Abwahl wird komplett pausiert, ohne zu löschen)</label>
       </div>
@@ -1370,8 +1355,6 @@
       <p class="section-title">Finanzen</p>
       <div class="settings-group">
         <button type="button" class="settings-row" id="openStartingBalanceBtn">Startguthaben <span class="chev">›</span></button>
-        <button type="button" class="settings-row" id="showRecurringListBtn">Wiederkehrende Buchungen anzeigen <span class="chev">›</span></button>
-        <button type="button" class="settings-row" id="showPlannedTxBtn">Geplante Zahlungen/Einnahmen <span class="chev">›</span></button>
         <button type="button" class="settings-row" id="openCategoriesBtn">Kategorien <span class="chev">›</span></button>
       </div>
 
@@ -1459,34 +1442,17 @@
     </div>
 
     <main class="view active" id="view-overview">
-      <div class="month-nav light" style="padding:14px 20px 6px;">
-        <button id="prevMonth" aria-label="Vorheriger Monat">‹</button>
-        <div class="month-label" id="monthLabel" style="color:var(--ink); font-size:16px;">—</div>
-        <button id="nextMonth" aria-label="Nächster Monat">›</button>
-      </div>
       <div class="hero">
-        <p class="label">Gesamtguthaben <span id="cumulativeAsOf" style="font-weight:400;"></span></p>
+        <p class="label">Aktuelles Guthaben</p>
         <p class="balance num" id="heroCumulative">0,00 €</p>
-        <button type="button" class="link-btn" id="openReconcileBtn" style="margin-top:8px;">Kontostand abgleichen</button>
-        <div style="margin-top:14px; padding-top:14px; border-top:1px dotted var(--line);">
-          <p class="label" style="margin-bottom:4px;">Saldo diesen Monat</p>
-          <p class="num" id="heroBalance" style="font-size:22px; font-weight:600; margin:0;">0,00 €</p>
-          <div class="delta" id="heroDelta" style="margin-top:6px;"></div>
-        </div>
-        <p id="heroForecast" style="font-size:12.5px;color:var(--ink-soft);margin:14px 0 0;display:none;line-height:1.6;"></p>
       </div>
-      <div class="flow">
-        <div class="flow-col">
-          <div class="flabel"><span>Einnahmen</span><span class="num" id="incVal"></span></div>
-        </div>
-        <div class="flow-col" style="text-align:right;">
-          <div class="flabel"><span class="num" id="expVal"></span><span>Ausgaben</span></div>
-        </div>
+
+      <p class="section-title">Fortlaufende Buchungen</p>
+      <div class="settings-group">
+        <button type="button" class="settings-row" id="openFixedExpensesBtn">Fixkosten <span class="chev">›</span></button>
+        <button type="button" class="settings-row" id="openFixedIncomeBtn">Einnahmen <span class="chev">›</span></button>
       </div>
-      <div class="ratio-bar-track">
-        <div id="ratioIncBar" class="ratio-bar-inc"></div>
-        <div id="ratioExpBar" class="ratio-bar-exp"></div>
-      </div>
+
       <p class="section-title">Buchungen</p>
       <div style="display:flex; gap:8px; padding:0 20px 12px;">
         <input type="text" id="txSearchInput" placeholder="Suchen…" style="flex:1; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--paper-raised); font-size:14.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
@@ -1499,86 +1465,30 @@
 
     <main class="view" id="view-add">
       <h2 class="page-title">Buchen</h2>
-      <div class="form-wrap" style="padding-bottom:0;">
-        <div class="mode-switch">
-          <button type="button" id="modeOnetimeBtn" class="active">Einmalig</button>
-          <button type="button" id="modeRecurringBtn">Wiederkehrend</button>
+      <div class="form-wrap" style="padding-top:0;">
+        <p class="page-sub" style="padding:0 0 14px;">Wird mit dem heutigen Datum gebucht. Fixkosten & feste Einnahmen legt ihr stattdessen in der Übersicht an.</p>
+        <div class="type-switch">
+          <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
+          <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
         </div>
-      </div>
-      <div id="addOnetime">
-        <div class="form-wrap" style="padding-top:0;">
-          <div class="type-switch">
-            <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
-            <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
-          </div>
-          <div class="field">
-            <label for="amountInput">Betrag</label>
-            <input type="number" inputmode="decimal" step="0.01" min="0" id="amountInput" class="num-input" placeholder="0,00">
-          </div>
-          <div class="field">
-            <label for="categorySelect">Kategorie</label>
-            <select id="categorySelect"></select>
-            <button type="button" class="link-btn" id="showNewCat" style="margin-top:10px;">+ neue Kategorie</button>
-            <div class="new-cat-row" id="newCatRow" style="display:none;">
-              <input type="text" id="newCatInput" placeholder="Kategoriename">
-              <button type="button" class="btn" style="width:auto;padding:10px 14px;" id="addCatBtn">OK</button>
-            </div>
-          </div>
-          <div class="field">
-            <label for="dateInput">Datum</label>
-            <input type="date" id="dateInput">
-          </div>
-          <div class="field">
-            <label for="noteInput">Notiz (optional)</label>
-            <input type="text" id="noteInput" placeholder="z. B. Wocheneinkauf">
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="belongsNextMonthInput">
-            <label for="belongsNextMonthInput">Gehört zum nächsten Monat (z. B. Gehalt Ende des Monats für den Folgemonat)</label>
-          </div>
-          <button class="btn" id="saveEntryBtn">Buchen</button>
+        <div class="field">
+          <label for="amountInput">Betrag</label>
+          <input type="number" inputmode="decimal" step="0.01" min="0" id="amountInput" class="num-input" placeholder="0,00">
         </div>
-      </div>
-      <div id="addRecurring" style="display:none;">
-        <p class="page-sub">Wird ab jetzt automatisch am gewählten Tag jeden Monat gebucht — z. B. Gehalt, Miete, Strom, Versicherungen.</p>
-        <div class="form-wrap" style="padding-top:14px;">
-          <div class="type-switch" style="margin-bottom:20px;">
-            <button type="button" id="recTypeIncomeBtn" class="income">Einnahme</button>
-            <button type="button" id="recTypeExpenseBtn" class="expense active">Ausgabe</button>
+        <div class="field">
+          <label for="categorySelect">Kategorie</label>
+          <select id="categorySelect"></select>
+          <button type="button" class="link-btn" id="showNewCat" style="margin-top:10px;">+ neue Kategorie</button>
+          <div class="new-cat-row" id="newCatRow" style="display:none;">
+            <input type="text" id="newCatInput" placeholder="Kategoriename">
+            <button type="button" class="btn" style="width:auto;padding:10px 14px;" id="addCatBtn">OK</button>
           </div>
-          <div class="field">
-            <label for="recName">Bezeichnung</label>
-            <input type="text" id="recName" placeholder="z. B. Gehalt, Miete, Netflix">
-          </div>
-          <div class="field">
-            <label for="recAmount">Betrag</label>
-            <input type="number" inputmode="decimal" step="0.01" min="0" id="recAmount" class="num-input" placeholder="0,00">
-          </div>
-          <div class="field">
-            <label for="recCategory">Kategorie</label>
-            <select id="recCategory"></select>
-          </div>
-          <div class="field">
-            <label for="recDay">Tag im Monat</label>
-            <input type="number" inputmode="numeric" min="1" max="31" id="recDay" placeholder="z. B. 1">
-          </div>
-          <button type="button" class="link-btn" id="toggleRecDatesBtn" style="margin-bottom:16px;">Start-/Enddatum festlegen</button>
-          <div id="recDatesWrap" style="display:none;">
-            <div class="field">
-              <label for="recStartDate">Start (optional, sonst ab heute)</label>
-              <input type="date" id="recStartDate">
-            </div>
-            <div class="field">
-              <label for="recEndDate">Ende (optional, sonst unbegrenzt)</label>
-              <input type="date" id="recEndDate">
-            </div>
-          </div>
-          <div class="checkbox-row">
-            <input type="checkbox" id="recBelongsNextMonthInput">
-            <label for="recBelongsNextMonthInput">Gehört zum nächsten Monat (z. B. Gehalt Ende des Monats für den Folgemonat)</label>
-          </div>
-          <button class="btn" id="saveRecurringBtn">Wiederkehrende Buchung anlegen</button>
         </div>
+        <div class="field">
+          <label for="noteInput">Notiz (optional)</label>
+          <input type="text" id="noteInput" placeholder="z. B. Wocheneinkauf">
+        </div>
+        <button class="btn" id="saveEntryBtn">Buchen</button>
       </div>
     </main>
 
@@ -2262,44 +2172,6 @@
     renderOverview();
     document.getElementById('startingBalanceModal').style.display = 'none';
   });
-  document.getElementById('showRecurringListBtn').addEventListener('click', function(){
-    renderRecurring();
-    document.getElementById('recurringListModal').style.display = 'flex';
-  });
-  document.getElementById('closeRecurringListBtn').addEventListener('click', function(){
-    document.getElementById('recurringListModal').style.display = 'none';
-  });
-  function renderPlannedTx(){
-    var el = document.getElementById('plannedTxList');
-    var todayStr = todayISO();
-    var list = state.transactions
-      .filter(function(t){ return t.date > todayStr; })
-      .sort(function(a,b){ return a.date.localeCompare(b.date); });
-    if(list.length===0){
-      el.innerHTML = '<p class="empty">Keine zukunftsdatierten Buchungen.</p>';
-      return;
-    }
-    el.innerHTML = list.map(function(t){
-      return '<div class="simple-row" data-plannedtx="'+t.id+'" style="cursor:pointer;"'+personTintStyle(t.createdBy)+'>'+
-        '<div class="stext"><div class="stitle">'+escapeHtml(t.category)+'</div>'+
-        '<div class="ssub">'+fmtDate(t.date)+(t.note?' · '+escapeHtml(t.note):'')+'</div></div>'+
-        '<div class="num '+t.type+'" style="font-size:14px; flex-shrink:0; color:'+(t.type==='income'?'var(--green)':'var(--red)')+';">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
-      '</div>';
-    }).join('');
-    el.querySelectorAll('[data-plannedtx]').forEach(function(row){
-      row.addEventListener('click', function(){
-        document.getElementById('plannedTxModal').style.display = 'none';
-        openEditTxModal(row.getAttribute('data-plannedtx'));
-      });
-    });
-  }
-  document.getElementById('showPlannedTxBtn').addEventListener('click', function(){
-    renderPlannedTx();
-    document.getElementById('plannedTxModal').style.display = 'flex';
-  });
-  document.getElementById('closePlannedTxBtn').addEventListener('click', function(){
-    document.getElementById('plannedTxModal').style.display = 'none';
-  });
   document.getElementById('openCategoriesBtn').addEventListener('click', function(){
     renderCategoryManage();
     document.getElementById('categoriesModal').style.display = 'flex';
@@ -2368,7 +2240,7 @@
     saveState();
     renderCategoryManage();
     populateCategorySelect();
-    populateRecCategorySelect();
+    populateEditRecCategorySelect();
     renderOverview();
     renderBudget();
     renderStats();
@@ -2379,7 +2251,7 @@
     saveState();
     renderCategoryManage();
     populateCategorySelect();
-    populateRecCategorySelect();
+    populateEditRecCategorySelect();
     renderBudget();
   }
   document.getElementById('addCategoryBtn').addEventListener('click', function(){
@@ -2395,7 +2267,7 @@
     input.value = '';
     renderCategoryManage();
     populateCategorySelect();
-    populateRecCategorySelect();
+    populateEditRecCategorySelect();
   });
 
   /* ================= Sidebar ================= */  document.querySelectorAll('[data-open-sidebar]').forEach(function(b){
@@ -2714,14 +2586,6 @@
     if(name==='stats') renderStats();
   }
 
-  document.getElementById('prevMonth').addEventListener('click', function(){
-    viewingDate.setMonth(viewingDate.getMonth()-1);
-    renderAll();
-  });
-  document.getElementById('nextMonth').addEventListener('click', function(){
-    viewingDate.setMonth(viewingDate.getMonth()+1);
-    renderAll();
-  });
   document.getElementById('statsPrevMonth').addEventListener('click', function(){
     viewingDate.setMonth(viewingDate.getMonth()-1);
     renderAll();
@@ -2741,7 +2605,6 @@
 
   function renderAll(){
     var monthText = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
-    document.getElementById('monthLabel').textContent = monthText;
     document.getElementById('statsMonthNavLabel').textContent = monthText;
     document.getElementById('budgetMonthNavLabel').textContent = monthText;
     renderOverview();
@@ -2749,7 +2612,6 @@
     renderSavings();
     renderStats();
     populateCategorySelect();
-    populateRecCategorySelect();
   }
 
   /* ================= Wiederkehrende Buchungen ================= */
@@ -2776,6 +2638,7 @@
     var changed = false;
     state.recurring.forEach(function(r){
       if(!r.active) return;
+      if(r.mode==='manual') return; // Manuell: nie automatisch buchen, nur auf Antippen
       var bookDay = Math.min(r.day, daysInMonth);
       if(todayDate < bookDay) return;
       var already = state.transactions.some(function(t){ return t.recurringId===r.id && dateToKey(t.date)===todayKey; });
@@ -2792,45 +2655,12 @@
     if(changed) await saveState();
   }
 
-  function pendingRecurringForMonth(viewDate){
-    var today = new Date();
-    var todayKey = monthKey(today);
-    var viewedKey = monthKey(viewDate);
-    if(viewedKey < todayKey) return null; // Vergangenheit: keine Prognose
-    var pendingInc = 0, pendingExp = 0;
-    if(viewedKey === todayKey){
-      var todayDate = today.getDate();
-      var daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
-      (state.recurring||[]).forEach(function(r){
-        if(!r.active) return;
-        var already = state.transactions.some(function(t){ return t.recurringId===r.id && dateToKey(t.date)===todayKey; });
-        if(already) return;
-        var bookDay = Math.min(r.day, daysInMonth);
-        if(bookDay > todayDate){
-          var dateStr = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(bookDay).padStart(2,'0');
-          if(!recurringActiveOnDate(r, dateStr)) return;
-          if(r.type==='income') pendingInc += r.amount; else pendingExp += r.amount;
-        }
-      });
-    } else {
-      // Künftiger Monat: alle aktiven, wiederkehrenden Regeln einmal komplett einrechnen
-      var y = viewDate.getFullYear(), m = viewDate.getMonth();
-      var daysInViewedMonth = new Date(y, m+1, 0).getDate();
-      (state.recurring||[]).forEach(function(r){
-        if(!r.active) return;
-        var bookDay = Math.min(r.day, daysInViewedMonth);
-        var dateStr = y+'-'+String(m+1).padStart(2,'0')+'-'+String(bookDay).padStart(2,'0');
-        if(!recurringActiveOnDate(r, dateStr)) return;
-        if(r.type==='income') pendingInc += r.amount; else pendingExp += r.amount;
-      });
-    }
-    return { pendingInc: pendingInc, pendingExp: pendingExp };
-  }
-
   /* ================= Overview ================= */
   // Berücksichtigt das "Gehört zum nächsten Monat"-Häkchen: eine Buchung
-  // zählt dann komplett für den Folgemonat (Statistik, Liste, Guthaben),
-  // unabhängig vom tatsächlichen Buchungsdatum (z. B. Gehalt am 27.08. für September).
+  // zählt dann komplett für den Folgemonat (Statistik, Budget), unabhängig
+  // vom tatsächlichen Buchungsdatum (z. B. Gehalt am 27.08. für September).
+  // Wird nur noch von Budget/Statistik genutzt — die Übersicht selbst
+  // kennt seit dem Umbau keine Monatszuordnung mehr.
   function effectiveMonthKey(t){
     if(t.belongsNextMonth){
       var d = new Date(t.date+'T00:00:00');
@@ -2851,157 +2681,22 @@
     return {inc:inc, exp:exp};
   }
 
-  // Kumuliertes Guthaben: Summe aller Buchungen bis einschließlich des
-  // angezeigten Monats (plus optionales Startguthaben) — läuft automatisch
-  // in den Folgemonat mit, statt jeden Monat bei 0 zu beginnen. Zählt nach
-  // dem ECHTEN Buchungsdatum (Geld ist real ab diesem Tag da), unabhängig
-  // von "gehört zum nächsten Monat" — das betrifft nur die Monats-Statistik.
-  function cumulativeBalanceThroughMonth(viewedKey){
+  // Aktuelles Guthaben: einfache, laufende Summe über ALLE Buchungen —
+  // bewusst ohne Monatszuordnung und ohne Datums-Deckelung. Läuft einfach
+  // weiter, wird geändert, sobald ihr eine Buchung einträgt.
+  function totalGuthaben(){
     var total = 0;
     state.transactions.forEach(function(t){
-      if(dateToKey(t.date) <= viewedKey){
-        total += (t.type==='income' ? t.amount : -t.amount);
-      }
+      total += (t.type==='income' ? t.amount : -t.amount);
     });
     return total;
   }
-
-  // Wie cumulativeBalanceThroughMonth, aber taggenau statt monatsgenau —
-  // wichtig für den Kontoabgleich, damit zukunftsdatierte Buchungen nicht
-  // fälschlich schon mitgezählt werden. Nimmt ein Stichdatum entgegen
-  // (Standard: heute), damit man den Abgleich auch rückwirkend datieren kann.
-  function cumulativeBalanceThroughDate(dateStr){
-    var total = 0;
-    state.transactions.forEach(function(t){
-      if(t.date <= dateStr){
-        total += (t.type==='income' ? t.amount : -t.amount);
-      }
-    });
-    return total;
-  }
-
-  var pendingReconcileDiff = 0;
-  document.getElementById('openReconcileBtn').addEventListener('click', function(){
-    document.getElementById('reconcileInput').value = '';
-    document.getElementById('reconcileDateInput').value = todayISO();
-    document.getElementById('reconcileResult').style.display = 'none';
-    document.getElementById('confirmReconcileBtn').style.display = 'none';
-    document.getElementById('reconcileModal').style.display = 'flex';
-  });
-  document.getElementById('cancelReconcileBtn').addEventListener('click', function(){
-    document.getElementById('reconcileModal').style.display = 'none';
-  });
-  document.getElementById('calcReconcileBtn').addEventListener('click', function(){
-    var real = parseFloat(document.getElementById('reconcileInput').value);
-    var dateStr = document.getElementById('reconcileDateInput').value || todayISO();
-    if(isNaN(real)){
-      document.getElementById('reconcileInput').focus();
-      return;
-    }
-    var current = cumulativeBalanceThroughDate(dateStr);
-    var diff = Math.round((real-current)*100)/100;
-    var resultEl = document.getElementById('reconcileResult');
-    var confirmBtn = document.getElementById('confirmReconcileBtn');
-    resultEl.style.display = 'block';
-    if(Math.abs(diff) < 0.01){
-      resultEl.innerHTML = '<span style="color:var(--green);">Stimmt genau überein — keine Ausgleichsbuchung nötig.</span>';
-      confirmBtn.style.display = 'none';
-    } else {
-      pendingReconcileDiff = diff;
-      resultEl.innerHTML = 'App-Guthaben zum '+fmtDate(dateStr)+': <span class="num">'+fmtEUR(current)+'</span><br>'+
-        'Unterschied: <span class="num" style="color:'+(diff>0?'var(--green)':'var(--red)')+';">'+(diff>0?'+':'')+fmtEUR(diff)+'</span> '+
-        (diff>0 ? '(App zeigt weniger als real vorhanden)' : '(App zeigt mehr als real vorhanden)');
-      confirmBtn.style.display = 'block';
-    }
-  });
-  document.getElementById('confirmReconcileBtn').addEventListener('click', function(){
-    var dateStr = document.getElementById('reconcileDateInput').value || todayISO();
-    state.transactions.push({
-      id: uid(), type: pendingReconcileDiff>0 ? 'income' : 'expense',
-      amount: Math.abs(pendingReconcileDiff), category: 'Kontoabgleich',
-      date: dateStr, note: 'Kontoabgleich', isReconciliation: true,
-      createdBy: currentUserId
-    });
-    saveState();
-    document.getElementById('reconcileModal').style.display = 'none';
-    renderOverview();
-  });
 
   function renderOverview(){
-    var key = monthKey(viewingDate);
-    var prev = new Date(viewingDate); prev.setMonth(prev.getMonth()-1);
-    var prevKey = monthKey(prev);
-
-    var todayRealKey = monthKey(new Date());
-    var isFuture = key > todayRealKey;
-    var isPast = key < todayRealKey;
-
-    // Im aktuell laufenden Monat nur das zählen, was bis heute schon
-    // wirklich fällig war/ist — noch nicht fällige (zukunftsdatierte)
-    // Buchungen tauchen stattdessen in "Monat nach geplanten Buchungen"
-    // weiter unten auf, nicht schon im normalen Saldo.
-    var capToday = (!isFuture && !isPast) ? todayISO() : null;
-    var cur = sumsForMonth(key, capToday);
-    var prv = sumsForMonth(prevKey);
-    var balance = cur.inc - cur.exp;
-    var prevBalance = prv.inc - prv.exp;
-
-    // --- Gesamtguthaben (groß, oben) ---
-    var cumulative, cumLabel;
-    if(isFuture){
-      cumulative = cumulativeBalanceThroughDate(todayISO());
-      var now = new Date();
-      cumLabel = '(Stand '+MONTH_NAMES[now.getMonth()]+' '+now.getFullYear()+')';
-    } else if(!isPast){
-      cumulative = cumulativeBalanceThroughDate(todayISO());
-      cumLabel = '(Aktuell)';
-    } else {
-      cumulative = cumulativeBalanceThroughMonth(key);
-      cumLabel = '(Stand Ende '+MONTH_NAMES[viewingDate.getMonth()]+')';
-    }
+    var total = totalGuthaben();
     var cumEl = document.getElementById('heroCumulative');
-    cumEl.textContent = fmtEUR(cumulative);
-    cumEl.className = 'balance num ' + (cumulative<0 ? 'neg':'pos');
-    document.getElementById('cumulativeAsOf').textContent = cumLabel;
-
-    // --- Saldo diesen Monat (kleiner, mit Farbe) ---
-    var balEl = document.getElementById('heroBalance');
-    balEl.textContent = fmtEUR(balance);
-    balEl.style.color = balance<0 ? 'var(--red)' : (balance>0 ? 'var(--green)' : 'var(--ink)');
-
-    var deltaEl = document.getElementById('heroDelta');
-    var diff = balance - prevBalance;
-    if(prv.inc===0 && prv.exp===0){
-      deltaEl.innerHTML = '<span>Kein Vergleichsmonat</span>';
-    } else {
-      var up = diff>=0;
-      deltaEl.innerHTML = '<span class="tag '+(up?'up':'down')+'">'+(up?'▲':'▼')+' '+fmtEUR(Math.abs(diff))+'</span><span>ggü. '+MONTH_NAMES[prev.getMonth()]+'</span>';
-    }
-
-    var forecastEl = document.getElementById('heroForecast');
-    var pending = pendingRecurringForMonth(viewingDate);
-    if(pending && (pending.pendingInc>0 || pending.pendingExp>0)){
-      var forecastBalance = balance + pending.pendingInc - pending.pendingExp;
-      var forecastCumulative = cumulative + pending.pendingInc - pending.pendingExp;
-      var parts = [];
-      if(pending.pendingInc>0) parts.push('+'+fmtEUR(pending.pendingInc)+' erwartet');
-      if(pending.pendingExp>0) parts.push('−'+fmtEUR(pending.pendingExp)+' fällig');
-      forecastEl.style.display = 'block';
-      forecastEl.innerHTML =
-        'Monat nach geplanten Buchungen: <span class="num" style="color:var(--ink);">'+fmtEUR(forecastBalance)+'</span><br>'+
-        'Guthaben nach geplanten Buchungen: <span class="num" style="color:var(--ink);">'+fmtEUR(forecastCumulative)+'</span><br>'+
-        parts.join(' · ');
-    } else {
-      forecastEl.style.display = 'none';
-    }
-
-    document.getElementById('incVal').textContent = fmtEUR(cur.inc);
-    document.getElementById('expVal').textContent = fmtEUR(cur.exp);
-    var totalFlow = cur.inc + cur.exp;
-    var incPct = totalFlow>0 ? (cur.inc/totalFlow*100) : 50;
-    var expPct = totalFlow>0 ? (cur.exp/totalFlow*100) : 50;
-    document.getElementById('ratioIncBar').style.width = incPct+'%';
-    document.getElementById('ratioExpBar').style.width = expPct+'%';
+    cumEl.textContent = fmtEUR(total);
+    cumEl.className = 'balance num ' + (total<0 ? 'neg':'pos');
 
     populateTxCategoryFilter();
     renderLedgerList();
@@ -3034,55 +2729,67 @@
       '<button class="redit" data-id="'+t.id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
     '</div>';
   }
+  // Merkt sich pro Monat, ob die Gruppe gerade auf- oder zugeklappt ist.
+  // Der laufende Monat startet offen, alle anderen erstmal zu.
+  var ledgerMonthOpen = {};
   function renderLedgerList(){
-    var key = monthKey(viewingDate);
     var searchTerm = (document.getElementById('txSearchInput').value||'').trim().toLowerCase();
     var catFilter = document.getElementById('txCategoryFilter').value;
     var searching = searchTerm.length>0 || catFilter.length>0;
 
-    var list;
-    if(searching){
-      list = state.transactions.filter(function(t){
-        if(catFilter && t.category!==catFilter) return false;
-        if(searchTerm){
-          var hay = (t.category+' '+(t.note||'')).toLowerCase();
-          if(hay.indexOf(searchTerm)===-1) return false;
-        }
-        return true;
-      }).sort(function(a,b){ return b.date.localeCompare(a.date); });
-    } else {
-      list = state.transactions
-        .filter(function(t){ return effectiveMonthKey(t)===key; })
-        .sort(function(a,b){ return b.date.localeCompare(a.date); });
-    }
+    var list = state.transactions.filter(function(t){
+      if(catFilter && t.category!==catFilter) return false;
+      if(searchTerm){
+        var hay = (t.category+' '+(t.note||'')).toLowerCase();
+        if(hay.indexOf(searchTerm)===-1) return false;
+      }
+      return true;
+    }).sort(function(a,b){ return b.date.localeCompare(a.date); });
 
     var ledgerEl = document.getElementById('ledgerList');
     if(list.length===0){
       ledgerEl.innerHTML = searching
         ? '<div class="empty">Keine Buchungen gefunden.</div>'
-        : '<div class="empty">Noch keine Buchungen in diesem Monat. Tippe unten auf „Buchen“.</div>';
+        : '<div class="empty">Noch keine Buchungen. Tippe unten auf „Buchen".</div>';
       return;
     }
 
-    if(searching){
-      // Bei der Suche über mehrere Monate hinweg: Ergebnisse gruppiert mit
-      // Monats-Überschriften darstellen statt Jahreszahl in jede Zeile zu quetschen.
-      var html = '';
-      var lastGroup = null;
-      list.forEach(function(t){
-        var d = new Date(t.date);
-        var groupLabel = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
-        if(groupLabel !== lastGroup){
-          html += '<p class="section-title" style="padding:16px 20px 6px;">'+groupLabel+'</p>';
-          lastGroup = groupLabel;
-        }
-        html += ledgerRowHtml(t);
-      });
-      ledgerEl.innerHTML = html;
-    } else {
-      ledgerEl.innerHTML = list.map(ledgerRowHtml).join('');
-    }
+    // Nach Monat gruppieren
+    var groups = []; // [{key, label, items:[]}]
+    var byKey = {};
+    list.forEach(function(t){
+      var k = effectiveMonthKey(t);
+      if(!byKey[k]){
+        var d = new Date(t.date+'T00:00:00');
+        var label = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+        byKey[k] = { key:k, label:label, items:[] };
+        groups.push(byKey[k]);
+      }
+      byKey[k].items.push(t);
+    });
+    groups.sort(function(a,b){ return b.key.localeCompare(a.key); });
 
+    var todayKey = monthKey(new Date());
+    var html = groups.map(function(g){
+      if(!(g.key in ledgerMonthOpen)) ledgerMonthOpen[g.key] = (g.key===todayKey);
+      var open = searching ? true : ledgerMonthOpen[g.key];
+      return '<button type="button" class="settings-row" data-monthtoggle="'+g.key+'" style="font-weight:600;">'+
+          g.label+' <span style="font-weight:400; color:var(--ink-soft);">('+g.items.length+')</span>'+
+          '<span class="chev" style="transform:rotate('+(open?90:0)+'deg); transition:transform .15s;">›</span>'+
+        '</button>'+
+        '<div data-monthitems="'+g.key+'" style="display:'+(open?'block':'none')+';">'+
+          g.items.map(ledgerRowHtml).join('') +
+        '</div>';
+    }).join('');
+    ledgerEl.innerHTML = html;
+
+    ledgerEl.querySelectorAll('[data-monthtoggle]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var k = btn.getAttribute('data-monthtoggle');
+        ledgerMonthOpen[k] = !ledgerMonthOpen[k];
+        renderLedgerList();
+      });
+    });
     ledgerEl.querySelectorAll('.redit').forEach(function(btn){
       btn.addEventListener('click', function(){
         openEditTxModal(btn.getAttribute('data-id'));
@@ -3162,22 +2869,7 @@
   });
 
 
-  /* ================= Add form ================= */
-  document.getElementById('modeOnetimeBtn').addEventListener('click', function(){
-    document.getElementById('modeOnetimeBtn').classList.add('active');
-    document.getElementById('modeRecurringBtn').classList.remove('active');
-    document.getElementById('addOnetime').style.display = 'block';
-    document.getElementById('addRecurring').style.display = 'none';
-  });
-  document.getElementById('modeRecurringBtn').addEventListener('click', function(){
-    document.getElementById('modeRecurringBtn').classList.add('active');
-    document.getElementById('modeOnetimeBtn').classList.remove('active');
-    document.getElementById('addRecurring').style.display = 'block';
-    document.getElementById('addOnetime').style.display = 'none';
-    renderRecurring();
-    populateRecCategorySelect();
-  });
-
+  /* ================= Add form (immer Einmalig, heutiges Datum) ================= */
   document.getElementById('typeIncomeBtn').addEventListener('click', function(){ setType('income'); });
   document.getElementById('typeExpenseBtn').addEventListener('click', function(){ setType('expense'); });
   function setType(t){
@@ -3192,50 +2884,102 @@
     sel.innerHTML = list.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
   }
 
-  var recCurrentType = 'expense';
-  document.getElementById('recTypeIncomeBtn').addEventListener('click', function(){ setRecType('income'); });
-  document.getElementById('recTypeExpenseBtn').addEventListener('click', function(){ setRecType('expense'); });
-  function setRecType(t){
-    recCurrentType = t;
-    document.getElementById('recTypeIncomeBtn').classList.toggle('active', t==='income');
-    document.getElementById('recTypeExpenseBtn').classList.toggle('active', t==='expense');
-    populateRecCategorySelect();
+  /* ================= Fixkosten / Einnahmen (fortlaufende Buchungen) ================= */
+  function fixedRowHtml(r){
+    var pausedFully = r.active===false;
+    var todayStr = todayISO();
+    var inTempPause = !!(r.pauseStart && r.pauseEnd && todayStr>=r.pauseStart && todayStr<=r.pauseEnd);
+    var visuallyPaused = pausedFully || inTempPause;
+    var mode = r.mode || 'auto';
+    var rangeParts = [];
+    if(r.startDate) rangeParts.push('ab '+fmtDate(r.startDate));
+    if(r.endDate) rangeParts.push('bis '+fmtDate(r.endDate));
+    if(r.pauseStart && r.pauseEnd) rangeParts.push('Pause '+fmtDate(r.pauseStart)+'–'+fmtDate(r.pauseEnd));
+    var bookedToday = state.transactions.some(function(t){ return t.recurringId===r.id && t.date===todayStr; });
+    return '<div class="rec-card'+(visuallyPaused?' paused':'')+'" data-editrec="'+r.id+'" style="flex-wrap:wrap;">'+
+      '<div class="rec-info"><div class="rec-name">'+escapeHtml(r.name)+'</div>'+
+      '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'.'+
+      (rangeParts.length ? ' · '+rangeParts.join(', ') : '')+'</div>'+
+      (pausedFully ? '<span class="pause-tag">Pausiert</span>' : (inTempPause ? '<span class="pause-tag">Pausiert bis '+fmtDate(r.pauseEnd)+'</span>' : ''))+
+      '</div>'+
+      '<div class="rec-amt '+r.type+'">'+(r.type==='income'?'+':'−')+fmtEUR(r.amount)+'</div>'+
+      '<div style="width:100%; display:flex; align-items:center; gap:8px; margin-top:10px;" onclick="event.stopPropagation();">'+
+        '<div class="mode-switch" style="flex:1; margin-bottom:0;">'+
+          '<button type="button" data-recmodebtn="auto" data-recid="'+r.id+'" class="'+(mode==='auto'?'active':'')+'" style="padding:7px; font-size:12.5px;">Automatisch</button>'+
+          '<button type="button" data-recmodebtn="manual" data-recid="'+r.id+'" class="'+(mode==='manual'?'active':'')+'" style="padding:7px; font-size:12.5px;">Manuell</button>'+
+        '</div>'+
+        (mode==='manual' && !visuallyPaused ? '<button type="button" data-booknow="'+r.id+'" class="btn" style="width:auto; padding:8px 12px; font-size:12.5px; flex-shrink:0;" '+(bookedToday?'disabled':'')+'>'+(bookedToday?'Heute schon gebucht':'Heute buchen')+'</button>' : '')+
+      '</div>'+
+    '</div>';
   }
-  function populateRecCategorySelect(){
-    var sel = document.getElementById('recCategory');
-    var list = state.categories[recCurrentType];
-    sel.innerHTML = list.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
-  }
-
-  function renderRecurring(){
-    var el = document.getElementById('recurringList');
-    if(!state.recurring || state.recurring.length===0){
-      el.innerHTML = '<p class="empty">Noch keine wiederkehrenden Buchungen.</p>';
+  function renderFixedList(type, containerId){
+    var el = document.getElementById(containerId);
+    var list = (state.recurring||[]).filter(function(r){ return r.type===type; }).sort(function(a,b){ return a.day-b.day; });
+    if(list.length===0){
+      el.innerHTML = '<p class="empty">Noch nichts eingetragen.</p>';
       return;
     }
-    var sorted = state.recurring.slice().sort(function(a,b){ return a.day-b.day; });
-    var todayStr = todayISO();
-    el.innerHTML = sorted.map(function(r){
-      var pausedFully = r.active===false;
-      var inTempPause = !!(r.pauseStart && r.pauseEnd && todayStr>=r.pauseStart && todayStr<=r.pauseEnd);
-      var visuallyPaused = pausedFully || inTempPause;
-      var rangeParts = [];
-      if(r.startDate) rangeParts.push('ab '+fmtDate(r.startDate));
-      if(r.endDate) rangeParts.push('bis '+fmtDate(r.endDate));
-      if(r.pauseStart && r.pauseEnd) rangeParts.push('Pause '+fmtDate(r.pauseStart)+'–'+fmtDate(r.pauseEnd));
-      return '<div class="rec-card'+(visuallyPaused?' paused':'')+'" data-editrec="'+r.id+'">'+
-        '<div class="rec-info"><div class="rec-name">'+escapeHtml(r.name)+'</div>'+
-        '<div class="rec-meta">'+escapeHtml(r.category)+' · jeden '+r.day+'. · '+(r.type==='income'?'Einnahme':'Ausgabe')+
-        (rangeParts.length ? ' · '+rangeParts.join(', ') : '')+'</div>'+
-        (pausedFully ? '<span class="pause-tag">Pausiert</span>' : (inTempPause ? '<span class="pause-tag">Pausiert bis '+fmtDate(r.pauseEnd)+'</span>' : ''))+
-        '</div>'+
-        '<div class="rec-amt '+r.type+'">'+(r.type==='income'?'+':'−')+fmtEUR(r.amount)+'</div>'+
-      '</div>';
-    }).join('');
+    el.innerHTML = list.map(fixedRowHtml).join('');
     el.querySelectorAll('[data-editrec]').forEach(function(card){
       card.addEventListener('click', function(){ openEditRecurring(card.getAttribute('data-editrec')); });
     });
+    el.querySelectorAll('[data-recmodebtn]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var r = state.recurring.find(function(x){ return x.id===btn.getAttribute('data-recid'); });
+        if(!r) return;
+        r.mode = btn.getAttribute('data-recmodebtn');
+        saveState();
+        renderFixedList(type, containerId);
+      });
+    });
+    el.querySelectorAll('[data-booknow]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        bookRecurringNow(btn.getAttribute('data-booknow'));
+        renderFixedList(type, containerId);
+      });
+    });
   }
+  function bookRecurringNow(id){
+    var r = state.recurring.find(function(x){ return x.id===id; });
+    if(!r) return;
+    var todayStr = todayISO();
+    var already = state.transactions.some(function(t){ return t.recurringId===r.id && t.date===todayStr; });
+    if(already) return;
+    state.transactions.push({
+      id: uid(), type: r.type, amount: r.amount, category: r.category,
+      date: todayStr, note: r.name, recurringId: r.id, auto: true,
+      belongsNextMonth: !!r.belongsNextMonth
+    });
+    saveState();
+    renderOverview();
+    renderBudget();
+  }
+  document.getElementById('openFixedExpensesBtn').addEventListener('click', function(){
+    renderFixedList('expense', 'fixedExpensesList');
+    document.getElementById('fixedExpensesModal').style.display = 'flex';
+  });
+  document.getElementById('closeFixedExpensesBtn').addEventListener('click', function(){
+    document.getElementById('fixedExpensesModal').style.display = 'none';
+    renderOverview(); renderBudget();
+  });
+  document.getElementById('openFixedIncomeBtn').addEventListener('click', function(){
+    renderFixedList('income', 'fixedIncomeList');
+    document.getElementById('fixedIncomeModal').style.display = 'flex';
+  });
+  document.getElementById('closeFixedIncomeBtn').addEventListener('click', function(){
+    document.getElementById('fixedIncomeModal').style.display = 'none';
+    renderOverview(); renderBudget();
+  });
+  document.getElementById('addFixedExpenseBtn').addEventListener('click', function(){
+    document.getElementById('fixedExpensesModal').style.display = 'none';
+    openNewRecurring('expense');
+  });
+  document.getElementById('addFixedIncomeBtn').addEventListener('click', function(){
+    document.getElementById('fixedIncomeModal').style.display = 'none';
+    openNewRecurring('income');
+  });
 
   var editingRecurringId = null;
   var editRecCurrentType = 'expense';
@@ -3245,19 +2989,44 @@
       return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>';
     }).join('');
   }
-  document.getElementById('editRecTypeIncomeBtn').addEventListener('click', function(){ setEditRecType('income'); });
-  document.getElementById('editRecTypeExpenseBtn').addEventListener('click', function(){ setEditRecType('expense'); });
-  function setEditRecType(t){
-    editRecCurrentType = t;
-    document.getElementById('editRecTypeIncomeBtn').classList.toggle('active', t==='income');
-    document.getElementById('editRecTypeExpenseBtn').classList.toggle('active', t==='expense');
+  function setEditRecMode(m){
+    document.querySelectorAll('#editRecModeSwitch button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-recmode')===m);
+    });
+    document.getElementById('editRecModeHint').textContent = m==='manual'
+      ? 'Bucht erst, wenn ihr sie in der Übersicht antippt — mit dem Datum von heute.'
+      : 'Wird jeden Monat am Tag unten automatisch gebucht.';
+  }
+  document.querySelectorAll('#editRecModeSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){ setEditRecMode(b.getAttribute('data-recmode')); });
+  });
+  function openNewRecurring(type){
+    editingRecurringId = null;
+    editRecCurrentType = type;
+    document.getElementById('editRecModalTitle').textContent = type==='income' ? 'Neue Einnahme' : 'Neue Fixkosten';
+    document.getElementById('editRecName').value = '';
+    document.getElementById('editRecAmount').value = '';
     populateEditRecCategorySelect();
+    document.getElementById('editRecDay').value = '';
+    document.getElementById('editRecStartDate').value = '';
+    document.getElementById('editRecEndDate').value = '';
+    document.getElementById('editRecDatesWrap').style.display = 'none';
+    document.getElementById('editRecPauseStart').value = '';
+    document.getElementById('editRecPauseEnd').value = '';
+    document.getElementById('editRecPauseWrap').style.display = 'none';
+    document.getElementById('editRecBelongsNextMonthInput').checked = false;
+    document.getElementById('editRecActiveInput').checked = true;
+    document.getElementById('editRecActiveWrap').style.display = 'none';
+    document.getElementById('deleteEditRecurringBtn').style.display = 'none';
+    setEditRecMode('auto');
+    document.getElementById('editRecurringModal').style.display = 'flex';
   }
   function openEditRecurring(id){
     var r = state.recurring.find(function(x){ return x.id===id; });
     if(!r) return;
     editingRecurringId = id;
-    setEditRecType(r.type);
+    editRecCurrentType = r.type;
+    document.getElementById('editRecModalTitle').textContent = 'Bearbeiten';
     document.getElementById('editRecName').value = r.name;
     document.getElementById('editRecAmount').value = r.amount;
     populateEditRecCategorySelect();
@@ -3271,6 +3040,9 @@
     document.getElementById('editRecPauseWrap').style.display = (r.pauseStart || r.pauseEnd) ? 'block' : 'none';
     document.getElementById('editRecBelongsNextMonthInput').checked = !!r.belongsNextMonth;
     document.getElementById('editRecActiveInput').checked = r.active!==false;
+    document.getElementById('editRecActiveWrap').style.display = 'flex';
+    document.getElementById('deleteEditRecurringBtn').style.display = 'block';
+    setEditRecMode(r.mode || 'auto');
     document.getElementById('editRecurringModal').style.display = 'flex';
   }
   document.getElementById('toggleEditRecDatesBtn').addEventListener('click', function(){
@@ -3286,8 +3058,6 @@
     editingRecurringId = null;
   });
   document.getElementById('saveEditRecurringBtn').addEventListener('click', async function(){
-    var r = state.recurring.find(function(x){ return x.id===editingRecurringId; });
-    if(!r) return;
     var name = document.getElementById('editRecName').value.trim();
     var amount = parseFloat(document.getElementById('editRecAmount').value);
     var day = parseInt(document.getElementById('editRecDay').value, 10);
@@ -3295,6 +3065,7 @@
     var endDate = document.getElementById('editRecEndDate').value || null;
     var pauseStart = document.getElementById('editRecPauseStart').value || null;
     var pauseEnd = document.getElementById('editRecPauseEnd').value || null;
+    var mode = document.querySelector('#editRecModeSwitch button.active').getAttribute('data-recmode');
     if(!name || !amount || amount<=0 || !day || day<1 || day>31){
       alert('Bitte Bezeichnung, Betrag und einen gültigen Tag (1–31) angeben.');
       return;
@@ -3311,6 +3082,11 @@
       alert('Das "Pausiert bis"-Datum darf nicht vor "Pausiert von" liegen.');
       return;
     }
+    var r = editingRecurringId ? state.recurring.find(function(x){ return x.id===editingRecurringId; }) : null;
+    if(!r){
+      r = { id: uid(), active: true };
+      state.recurring.push(r);
+    }
     r.name = name;
     r.type = editRecCurrentType;
     r.amount = Math.round(amount*100)/100;
@@ -3320,12 +3096,13 @@
     r.endDate = endDate;
     r.pauseStart = pauseStart;
     r.pauseEnd = pauseEnd;
+    r.mode = mode;
     r.belongsNextMonth = document.getElementById('editRecBelongsNextMonthInput').checked;
-    r.active = document.getElementById('editRecActiveInput').checked;
+    if(editingRecurringId) r.active = document.getElementById('editRecActiveInput').checked;
+    await generateDueRecurring();
     await saveState();
     document.getElementById('editRecurringModal').style.display = 'none';
     editingRecurringId = null;
-    renderRecurring();
     renderOverview();
     renderBudget();
   });
@@ -3336,46 +3113,8 @@
     saveState();
     document.getElementById('editRecurringModal').style.display = 'none';
     editingRecurringId = null;
-    renderRecurring();
-  });
-
-  document.getElementById('saveRecurringBtn').addEventListener('click', async function(){
-    var name = document.getElementById('recName').value.trim();
-    var amount = parseFloat(document.getElementById('recAmount').value);
-    var category = document.getElementById('recCategory').value;
-    var day = parseInt(document.getElementById('recDay').value, 10);
-    var startDate = document.getElementById('recStartDate').value || null;
-    var endDate = document.getElementById('recEndDate').value || null;
-    if(!name || !amount || amount<=0 || !day || day<1 || day>31){
-      alert('Bitte Bezeichnung, Betrag und einen gültigen Tag (1–31) angeben.');
-      return;
-    }
-    if(startDate && endDate && endDate < startDate){
-      alert('Das Enddatum darf nicht vor dem Startdatum liegen.');
-      return;
-    }
-    state.recurring.push({
-      id: uid(), type: recCurrentType, category: category,
-      amount: Math.round(amount*100)/100, day: day, name: name, active: true,
-      startDate: startDate, endDate: endDate,
-      belongsNextMonth: document.getElementById('recBelongsNextMonthInput').checked
-    });
-    await generateDueRecurring();
-    await saveState();
-    document.getElementById('recName').value = '';
-    document.getElementById('recAmount').value = '';
-    document.getElementById('recDay').value = '';
-    document.getElementById('recStartDate').value = '';
-    document.getElementById('recEndDate').value = '';
-    document.getElementById('recDatesWrap').style.display = 'none';
-    document.getElementById('recBelongsNextMonthInput').checked = false;
-    renderRecurring();
     renderOverview();
     renderBudget();
-  });
-  document.getElementById('toggleRecDatesBtn').addEventListener('click', function(){
-    var el = document.getElementById('recDatesWrap');
-    el.style.display = el.style.display==='block' ? 'none' : 'block';
   });
 
   document.getElementById('showNewCat').addEventListener('click', function(){
@@ -3390,12 +3129,10 @@
       saveState();
     }
     populateCategorySelect();
-    populateRecCategorySelect();
     document.getElementById('categorySelect').value = val;
     document.getElementById('newCatInput').value = '';
     document.getElementById('newCatRow').style.display = 'none';
   });
-  document.getElementById('dateInput').value = todayISO();
 
   document.getElementById('saveEntryBtn').addEventListener('click', function(){
     var amount = parseFloat(document.getElementById('amountInput').value);
@@ -3404,18 +3141,14 @@
       return;
     }
     var category = document.getElementById('categorySelect').value;
-    var date = document.getElementById('dateInput').value || todayISO();
     var note = document.getElementById('noteInput').value.trim();
-    var belongsNextMonth = document.getElementById('belongsNextMonthInput').checked;
     state.transactions.push({
       id: uid(), type: currentType, amount: Math.round(amount*100)/100,
-      category: category, date: date, note: note, createdBy: currentUserId,
-      belongsNextMonth: belongsNextMonth
+      category: category, date: todayISO(), note: note, createdBy: currentUserId
     });
     saveState();
     document.getElementById('amountInput').value = '';
     document.getElementById('noteInput').value = '';
-    document.getElementById('belongsNextMonthInput').checked = false;
     switchView('overview');
   });
 
@@ -5724,11 +5457,9 @@
     if(nameForIdentity){ await resolveIdentity(nameForIdentity); }
     await generateDueRecurring();
     setType('expense');
-    setRecType('expense');
     renderCurrentScreen();
     window.scrollTo(0, 0);
     var startMonthText = MONTH_NAMES[viewingDate.getMonth()] + " " + viewingDate.getFullYear();
-    document.getElementById('monthLabel').textContent = startMonthText;
     document.getElementById('statsMonthNavLabel').textContent = startMonthText;
     document.getElementById('budgetMonthNavLabel').textContent = startMonthText;
     subscribeRealtime();
