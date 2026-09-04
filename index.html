@@ -305,6 +305,11 @@
     border:none; background:none; color:var(--ink-soft); opacity:.45;
     font-size:16px; padding:4px 2px; cursor:pointer; flex-shrink:0;
   }
+  .row .redit{
+    border:none; background:none; color:var(--ink-soft); opacity:.5;
+    padding:4px; cursor:pointer; flex-shrink:0; display:flex; align-items:center;
+  }
+  .row .redit svg{ width:17px; height:17px; }
   .empty{ padding:30px 20px; color:var(--ink-soft); font-size:14px; text-align:center; }
 
   /* ---------- Forms ---------- */
@@ -952,6 +957,42 @@
       <p class="page-sub" style="padding:0 0 12px;">Zum Bearbeiten oder Löschen antippen.</p>
       <div id="recurringList"></div>
       <button type="button" class="btn ghost" id="closeRecurringListBtn" style="margin-top:16px;">Schließen</button>
+    </div>
+  </div>
+
+  <div id="editTxModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 12px;">Buchung bearbeiten</p>
+      <p class="page-sub" id="editTxAutoNote" style="padding:0 0 12px; display:none;">Diese Buchung wurde automatisch durch eine wiederkehrende Regel erzeugt. Änderungen betreffen nur diesen einen Eintrag — die Regel selbst bucht künftig unverändert weiter.</p>
+      <div class="type-switch" id="editTxTypeSwitch">
+        <button type="button" data-edit-type="income" class="income">Einnahme</button>
+        <button type="button" data-edit-type="expense" class="expense">Ausgabe</button>
+      </div>
+      <div class="field">
+        <label for="editTxAmount">Betrag</label>
+        <input type="number" inputmode="decimal" step="0.01" min="0" id="editTxAmount" class="num-input" placeholder="0,00">
+      </div>
+      <div class="field">
+        <label for="editTxCategory">Kategorie</label>
+        <select id="editTxCategory"></select>
+      </div>
+      <div class="field">
+        <label for="editTxDate">Datum</label>
+        <input type="date" id="editTxDate">
+      </div>
+      <div class="field">
+        <label for="editTxNote">Notiz (optional)</label>
+        <input type="text" id="editTxNote" placeholder="z. B. Wocheneinkauf">
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; margin:-6px 0 18px; font-size:14px; color:var(--ink); cursor:pointer;">
+        <input type="checkbox" id="editTxBelongsNext" style="width:18px; height:18px; accent-color:var(--brass);">
+        Gehört zum nächsten Monat
+      </label>
+      <div class="btn-row">
+        <button class="btn ghost" id="cancelEditTxBtn">Abbrechen</button>
+        <button class="btn" id="saveEditTxBtn">Speichern</button>
+      </div>
+      <button type="button" class="link-btn" id="deleteEditTxBtn" style="margin-top:16px; color:var(--red);">Buchung löschen</button>
     </div>
   </div>
 
@@ -2815,7 +2856,7 @@
       (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
       '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
       avatarHtml(t.createdBy) +
-      '<button class="rdel" data-id="'+t.id+'" data-auto="'+(t.auto?'1':'0')+'" aria-label="Löschen">×</button>'+
+      '<button class="redit" data-id="'+t.id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
     '</div>';
   }
   function renderLedgerList(){
@@ -2867,22 +2908,83 @@
       ledgerEl.innerHTML = list.map(ledgerRowHtml).join('');
     }
 
-    ledgerEl.querySelectorAll('.rdel').forEach(function(btn){
+    ledgerEl.querySelectorAll('.redit').forEach(function(btn){
       btn.addEventListener('click', function(){
-        var id = btn.getAttribute('data-id');
-        var isAuto = btn.getAttribute('data-auto')==='1';
-        if(isAuto){
-          if(!confirm('Diese Buchung wurde automatisch durch eine wiederkehrende Regel erzeugt. Löschen entfernt nur diesen einen Eintrag — die Regel selbst bleibt bestehen und bucht künftig normal weiter. Trotzdem löschen?')) return;
-        }
-        state.transactions = state.transactions.filter(function(t){ return t.id!==id; });
-        saveState();
-        renderOverview();
-        renderBudget();
+        openEditTxModal(btn.getAttribute('data-id'));
       });
     });
   }
   document.getElementById('txSearchInput').addEventListener('input', renderLedgerList);
   document.getElementById('txCategoryFilter').addEventListener('change', renderLedgerList);
+
+  /* ---- Buchung bearbeiten ---- */
+  var editingTxId = null;
+  var editTxType = 'expense';
+  function setEditTxType(t){
+    editTxType = t;
+    document.querySelectorAll('#editTxTypeSwitch button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-edit-type')===t);
+    });
+    var sel = document.getElementById('editTxCategory');
+    var current = sel.value;
+    sel.innerHTML = state.categories[t].map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
+    if(state.categories[t].indexOf(current)!==-1) sel.value = current;
+  }
+  document.querySelectorAll('#editTxTypeSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){ setEditTxType(b.getAttribute('data-edit-type')); });
+  });
+  function openEditTxModal(id){
+    var t = state.transactions.find(function(x){ return x.id===id; });
+    if(!t) return;
+    editingTxId = id;
+    setEditTxType(t.type);
+    document.getElementById('editTxCategory').value = t.category;
+    document.getElementById('editTxAmount').value = t.amount;
+    document.getElementById('editTxDate').value = t.date;
+    document.getElementById('editTxNote').value = t.note || '';
+    document.getElementById('editTxBelongsNext').checked = !!t.belongsNextMonth;
+    document.getElementById('editTxAutoNote').style.display = t.auto ? 'block' : 'none';
+    document.getElementById('editTxModal').style.display = 'flex';
+  }
+  document.getElementById('cancelEditTxBtn').addEventListener('click', function(){
+    document.getElementById('editTxModal').style.display = 'none';
+    editingTxId = null;
+  });
+  document.getElementById('saveEditTxBtn').addEventListener('click', function(){
+    if(!editingTxId) return;
+    var t = state.transactions.find(function(x){ return x.id===editingTxId; });
+    if(!t) return;
+    var amount = parseFloat(document.getElementById('editTxAmount').value);
+    if(!amount || amount<=0){ alert('Bitte einen gültigen Betrag eingeben.'); return; }
+    var date = document.getElementById('editTxDate').value;
+    if(!date){ alert('Bitte ein Datum wählen.'); return; }
+    t.type = editTxType;
+    t.category = document.getElementById('editTxCategory').value;
+    t.amount = Math.round(amount*100)/100;
+    t.date = date;
+    t.note = document.getElementById('editTxNote').value.trim();
+    t.belongsNextMonth = document.getElementById('editTxBelongsNext').checked;
+    saveState();
+    document.getElementById('editTxModal').style.display = 'none';
+    editingTxId = null;
+    renderOverview();
+    renderBudget();
+  });
+  document.getElementById('deleteEditTxBtn').addEventListener('click', function(){
+    if(!editingTxId) return;
+    var t = state.transactions.find(function(x){ return x.id===editingTxId; });
+    if(t && t.auto){
+      if(!confirm('Diese Buchung wurde automatisch durch eine wiederkehrende Regel erzeugt. Löschen entfernt nur diesen einen Eintrag — die Regel selbst bleibt bestehen und bucht künftig normal weiter. Trotzdem löschen?')) return;
+    } else {
+      if(!confirm('Diese Buchung wirklich löschen?')) return;
+    }
+    state.transactions = state.transactions.filter(function(x){ return x.id!==editingTxId; });
+    saveState();
+    document.getElementById('editTxModal').style.display = 'none';
+    editingTxId = null;
+    renderOverview();
+    renderBudget();
+  });
 
 
   /* ================= Add form ================= */
