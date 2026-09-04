@@ -1568,7 +1568,7 @@
 
   <div id="pantryAddModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
-      <p class="section-title" style="padding:0 0 12px;">Zur Vorratskammer hinzufügen</p>
+      <p class="section-title" id="pantryModalTitle" style="padding:0 0 12px;">Zur Vorratskammer hinzufügen</p>
       <div class="field">
         <label for="pantryAmountInput">Menge (optional)</label>
         <input type="text" id="pantryAmountInput" placeholder="z. B. 500g">
@@ -1581,6 +1581,7 @@
         <button class="btn ghost" id="cancelPantryAddBtn">Abbrechen</button>
         <button class="btn" id="addPantryBtn">Hinzufügen</button>
       </div>
+      <button type="button" class="link-btn" id="deletePantryBtn" style="margin-top:16px; color:var(--red); display:none;">Artikel löschen</button>
     </div>
   </div>
 
@@ -3752,7 +3753,7 @@
       '<div class="stext"><div class="stitle">'+label+'</div></div>'+
       '<button type="button" class="cat-badge" data-pantrycatedit="'+it.id+'">'+escapeHtml(it.category||'Sonstiges')+'</button>'+
       avatarHtml(it.createdBy) +
-      '<button class="sdel" data-pantrydel="'+it.id+'">×</button>'+
+      '<button class="redit" data-pantryedit="'+it.id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
     '</div>';
   }
   function renderPantry(){
@@ -3777,30 +3778,63 @@
       html += groups[catName].map(pantryRowHtml).join('');
     });
     el.innerHTML = html;
-    el.querySelectorAll('[data-pantrydel]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var id = b.getAttribute('data-pantrydel');
-        state.pantry = state.pantry.filter(function(p){ return p.id!==id; });
-        saveState();
-        renderPantry();
-      });
+    el.querySelectorAll('[data-pantryedit]').forEach(function(b){
+      b.addEventListener('click', function(){ openEditPantryModal(b.getAttribute('data-pantryedit')); });
     });
     el.querySelectorAll('[data-pantrycatedit]').forEach(function(b){
       b.addEventListener('click', function(){ openCategoryEditModal(b.getAttribute('data-pantrycatedit'), 'pantry'); });
     });
   }
+  var editingPantryId = null;
   document.getElementById('openPantryAddBtn').addEventListener('click', function(){
+    editingPantryId = null;
+    document.getElementById('pantryModalTitle').textContent = 'Zur Vorratskammer hinzufügen';
+    document.getElementById('addPantryBtn').textContent = 'Hinzufügen';
+    document.getElementById('deletePantryBtn').style.display = 'none';
     document.getElementById('pantryAmountInput').value = '';
     document.getElementById('pantryNameInput').value = '';
     document.getElementById('pantryAddModal').style.display = 'flex';
   });
+  function openEditPantryModal(id){
+    var it = state.pantry.find(function(x){ return x.id===id; });
+    if(!it) return;
+    editingPantryId = id;
+    document.getElementById('pantryModalTitle').textContent = 'Artikel bearbeiten';
+    document.getElementById('addPantryBtn').textContent = 'Speichern';
+    document.getElementById('deletePantryBtn').style.display = 'block';
+    document.getElementById('pantryAmountInput').value = it.amount || '';
+    document.getElementById('pantryNameInput').value = it.name;
+    document.getElementById('pantryAddModal').style.display = 'flex';
+  }
+  document.getElementById('deletePantryBtn').addEventListener('click', function(){
+    if(!editingPantryId) return;
+    state.pantry = state.pantry.filter(function(x){ return x.id!==editingPantryId; });
+    saveState();
+    editingPantryId = null;
+    document.getElementById('pantryAddModal').style.display = 'none';
+    renderPantry();
+  });
   document.getElementById('cancelPantryAddBtn').addEventListener('click', function(){
     document.getElementById('pantryAddModal').style.display = 'none';
+    editingPantryId = null;
   });
   document.getElementById('addPantryBtn').addEventListener('click', function(){
     var amount = document.getElementById('pantryAmountInput').value;
     var name = document.getElementById('pantryNameInput').value.trim();
     if(!name) return;
+    if(editingPantryId){
+      var it = state.pantry.find(function(x){ return x.id===editingPantryId; });
+      if(it){
+        it.name = name;
+        it.amount = amount.trim() || null;
+        it.category = guessGroceryCategory(name);
+      }
+      saveState();
+      editingPantryId = null;
+      document.getElementById('pantryAddModal').style.display = 'none';
+      renderPantry();
+      return;
+    }
     addToPantry(name, amount);
     saveState();
     document.getElementById('pantryAddModal').style.display = 'none';
