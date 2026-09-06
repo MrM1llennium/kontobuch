@@ -1065,6 +1065,25 @@
     </div>
   </div>
 
+  <div id="cashTransferModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
+      <p class="section-title" style="padding:0 0 12px;">Zwischen Konto & Bargeld</p>
+      <p class="page-sub" style="padding:0 0 12px;">Reine Verschiebung — verändert euer Gesamtvermögen nicht, nur die Aufteilung zwischen Konto und Bargeld.</p>
+      <div class="type-switch" id="cashDirectionSwitch">
+        <button type="button" data-direction="toBar" class="active">Abheben (Konto → Bar)</button>
+        <button type="button" data-direction="toKonto">Einzahlen (Bar → Konto)</button>
+      </div>
+      <div class="field">
+        <label for="cashTransferAmount">Betrag</label>
+        <input type="number" inputmode="decimal" step="0.01" min="0" id="cashTransferAmount" class="num-input" placeholder="0,00">
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="cancelCashTransferBtn">Abbrechen</button>
+        <button class="btn" id="saveCashTransferBtn">Verschieben</button>
+      </div>
+    </div>
+  </div>
+
   <div id="editTxModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
       <p class="section-title" style="padding:0 0 12px;">Buchung bearbeiten</p>
@@ -1072,6 +1091,13 @@
       <div class="type-switch" id="editTxTypeSwitch">
         <button type="button" data-edit-type="income" class="income">Einnahme</button>
         <button type="button" data-edit-type="expense" class="expense">Ausgabe</button>
+      </div>
+      <div class="field">
+        <label>Konto</label>
+        <div class="mode-switch" id="editTxAccountSwitch" style="margin-bottom:0;">
+          <button type="button" data-account="konto" class="active">🏦 Konto</button>
+          <button type="button" data-account="bar">💵 Bargeld</button>
+        </div>
       </div>
       <div class="field">
         <label for="editTxAmount">Betrag</label>
@@ -1443,8 +1469,15 @@
 
     <main class="view active" id="view-overview">
       <div class="hero">
-        <p class="label">Aktuelles Guthaben</p>
+        <p class="label">Kontostand</p>
         <p class="balance num" id="heroCumulative">0,00 €</p>
+        <div style="margin-top:14px; padding-top:14px; border-top:1px dotted var(--line); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <p class="label" style="margin-bottom:2px;">Bargeld</p>
+            <p class="num" id="heroCash" style="font-size:20px; font-weight:600; margin:0;">0,00 €</p>
+          </div>
+          <button type="button" class="btn ghost" id="openCashTransferBtn" style="width:auto; padding:10px 16px;">Abheben/Einzahlen</button>
+        </div>
       </div>
 
       <p class="section-title">Fortlaufende Buchungen</p>
@@ -1470,6 +1503,13 @@
         <div class="type-switch">
           <button type="button" id="typeIncomeBtn" class="income">Einnahme</button>
           <button type="button" id="typeExpenseBtn" class="expense active">Ausgabe</button>
+        </div>
+        <div class="field">
+          <label>Konto</label>
+          <div class="mode-switch" id="accountSwitch" style="margin-bottom:0;">
+            <button type="button" data-account="konto" class="active">🏦 Konto</button>
+            <button type="button" data-account="bar">💵 Bargeld</button>
+          </div>
         </div>
         <div class="field">
           <label for="amountInput">Betrag</label>
@@ -2649,7 +2689,7 @@
       state.transactions.push({
         id: uid(), type: r.type, amount: r.amount, category: r.category,
         date: dateStr, note: r.name, recurringId: r.id, auto: true,
-        belongsNextMonth: !!r.belongsNextMonth
+        belongsNextMonth: !!r.belongsNextMonth, account: 'konto'
       });
       changed = true;
     });
@@ -2674,6 +2714,7 @@
   function sumsForMonth(key, capDateStr){
     var inc=0, exp=0;
     state.transactions.forEach(function(t){
+      if(t.type!=='income' && t.type!=='expense') return; // Transfers zählen nicht als Ein-/Ausgabe
       if(effectiveMonthKey(t)===key){
         if(capDateStr && t.date > capDateStr) return; // noch nicht fällig — nicht mitzählen
         if(t.type==='income') inc+=t.amount; else exp+=t.amount;
@@ -2682,26 +2723,90 @@
     return {inc:inc, exp:exp};
   }
 
-  // Aktuelles Guthaben: einfache, laufende Summe über ALLE Buchungen —
-  // bewusst ohne Monatszuordnung und ohne Datums-Deckelung. Läuft einfach
-  // weiter, wird geändert, sobald ihr eine Buchung einträgt.
-  function totalGuthaben(){
+  // Zwei getrennte, laufende Stände — Konto und Bargeld. Jede Buchung
+  // gehört zu genau einem der beiden (Feld "account", Standard "konto"
+  // bei altem Daten ohne dieses Feld). Verschiebungen (Abheben/Einzahlen)
+  // sind ein eigener Typ "transfer" und verändern beide Stände gegenläufig,
+  // ohne das Gesamtvermögen zu ändern.
+  function kontoGuthaben(){
     var total = 0;
     state.transactions.forEach(function(t){
+      if(t.type==='transfer'){
+        if(t.direction==='toBar') total -= t.amount;
+        else if(t.direction==='toKonto') total += t.amount;
+        return;
+      }
+      var acc = t.account || 'konto';
+      if(acc!=='konto') return;
+      total += (t.type==='income' ? t.amount : -t.amount);
+    });
+    return total;
+  }
+  function barGuthaben(){
+    var total = 0;
+    state.transactions.forEach(function(t){
+      if(t.type==='transfer'){
+        if(t.direction==='toBar') total += t.amount;
+        else if(t.direction==='toKonto') total -= t.amount;
+        return;
+      }
+      var acc = t.account || 'konto';
+      if(acc!=='bar') return;
       total += (t.type==='income' ? t.amount : -t.amount);
     });
     return total;
   }
 
   function renderOverview(){
-    var total = totalGuthaben();
+    var kontoTotal = kontoGuthaben();
     var cumEl = document.getElementById('heroCumulative');
-    cumEl.textContent = fmtEUR(total);
-    cumEl.className = 'balance num ' + (total<0 ? 'neg':'pos');
+    cumEl.textContent = fmtEUR(kontoTotal);
+    cumEl.className = 'balance num ' + (kontoTotal<0 ? 'neg':'pos');
+
+    var cashTotal = barGuthaben();
+    var cashEl = document.getElementById('heroCash');
+    cashEl.textContent = fmtEUR(cashTotal);
+    cashEl.style.color = cashTotal<0 ? 'var(--red)' : 'var(--ink)';
 
     populateTxCategoryFilter();
     renderLedgerList();
   }
+
+  /* ---- Konto ↔ Bargeld verschieben ---- */
+  var cashDirection = 'toBar';
+  document.getElementById('openCashTransferBtn').addEventListener('click', function(){
+    cashDirection = 'toBar';
+    document.querySelectorAll('#cashDirectionSwitch button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-direction')==='toBar');
+    });
+    document.getElementById('cashTransferAmount').value = '';
+    document.getElementById('cashTransferModal').style.display = 'flex';
+  });
+  document.querySelectorAll('#cashDirectionSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){
+      cashDirection = b.getAttribute('data-direction');
+      document.querySelectorAll('#cashDirectionSwitch button').forEach(function(x){
+        x.classList.toggle('active', x===b);
+      });
+    });
+  });
+  document.getElementById('cancelCashTransferBtn').addEventListener('click', function(){
+    document.getElementById('cashTransferModal').style.display = 'none';
+  });
+  document.getElementById('saveCashTransferBtn').addEventListener('click', function(){
+    var amount = parseFloat(document.getElementById('cashTransferAmount').value);
+    if(!amount || amount<=0){
+      document.getElementById('cashTransferAmount').focus();
+      return;
+    }
+    state.transactions.push({
+      id: uid(), type: 'transfer', direction: cashDirection,
+      amount: Math.round(amount*100)/100, date: todayISO(), createdBy: currentUserId
+    });
+    saveState();
+    document.getElementById('cashTransferModal').style.display = 'none';
+    renderOverview();
+  });
 
   function getAllCategoryNames(){
     var names = {};
@@ -2721,9 +2826,19 @@
   function ledgerRowHtml(t){
     var d = new Date(t.date);
     var dd = String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.';
+    if(t.type==='transfer'){
+      var label = t.direction==='toBar' ? '🏦→💵 Abheben' : '💵→🏦 Einzahlen';
+      return '<div class="row"'+personTintStyle(t.createdBy)+'>'+
+        '<div class="rdate num">'+dd+'</div>'+
+        '<div class="rmeta"><div class="rcat">'+label+'</div></div>'+
+        '<div class="ramt num" style="color:var(--ink-soft);">'+fmtEUR(t.amount)+'</div>'+
+        avatarHtml(t.createdBy) +
+        '<button class="redit" data-transferdel="'+t.id+'" aria-label="Löschen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13"/></svg></button>'+
+      '</div>';
+    }
     return '<div class="row"'+personTintStyle(t.createdBy)+'>'+
       '<div class="rdate num">'+dd+'</div>'+
-      '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+(t.belongsNextMonth?' <span style="font-size:10px;color:var(--brass-strong);">· nächster Monat</span>':'')+'</div>'+
+      '<div class="rmeta"><div class="rcat">'+escapeHtml(t.category)+(t.account==='bar'?' <span style="font-size:10px;color:var(--brass-strong);">· Bargeld</span>':'')+(t.auto?' <span style="font-size:10px;color:var(--brass-strong);">· automatisch</span>':'')+(t.belongsNextMonth?' <span style="font-size:10px;color:var(--brass-strong);">· nächster Monat</span>':'')+'</div>'+
       (t.note ? '<div class="rnote">'+escapeHtml(t.note)+'</div>' : '')+'</div>'+
       '<div class="ramt num '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</div>'+
       avatarHtml(t.createdBy) +
@@ -2806,6 +2921,14 @@
     });
     ledgerEl.querySelectorAll('.redit').forEach(function(btn){
       btn.addEventListener('click', function(){
+        var transferId = btn.getAttribute('data-transferdel');
+        if(transferId){
+          if(!confirm('Verschiebung wirklich löschen?')) return;
+          state.transactions = state.transactions.filter(function(x){ return x.id!==transferId; });
+          saveState();
+          renderOverview();
+          return;
+        }
         openEditTxModal(btn.getAttribute('data-id'));
       });
     });
@@ -2816,6 +2939,7 @@
   /* ---- Buchung bearbeiten ---- */
   var editingTxId = null;
   var editTxType = 'expense';
+  var editTxAccount = 'konto';
   function setEditTxType(t){
     editTxType = t;
     document.querySelectorAll('#editTxTypeSwitch button').forEach(function(b){
@@ -2829,6 +2953,14 @@
   document.querySelectorAll('#editTxTypeSwitch button').forEach(function(b){
     b.addEventListener('click', function(){ setEditTxType(b.getAttribute('data-edit-type')); });
   });
+  document.querySelectorAll('#editTxAccountSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){
+      editTxAccount = b.getAttribute('data-account');
+      document.querySelectorAll('#editTxAccountSwitch button').forEach(function(x){
+        x.classList.toggle('active', x===b);
+      });
+    });
+  });
   function openEditTxModal(id){
     var t = state.transactions.find(function(x){ return x.id===id; });
     if(!t) return;
@@ -2840,6 +2972,10 @@
     document.getElementById('editTxNote').value = t.note || '';
     document.getElementById('editTxBelongsNext').checked = !!t.belongsNextMonth;
     document.getElementById('editTxAutoNote').style.display = t.auto ? 'block' : 'none';
+    editTxAccount = t.account || 'konto';
+    document.querySelectorAll('#editTxAccountSwitch button').forEach(function(b){
+      b.classList.toggle('active', b.getAttribute('data-account')===editTxAccount);
+    });
     document.getElementById('editTxModal').style.display = 'flex';
   }
   document.getElementById('cancelEditTxBtn').addEventListener('click', function(){
@@ -2860,6 +2996,7 @@
     t.date = date;
     t.note = document.getElementById('editTxNote').value.trim();
     t.belongsNextMonth = document.getElementById('editTxBelongsNext').checked;
+    t.account = editTxAccount;
     saveState();
     document.getElementById('editTxModal').style.display = 'none';
     editingTxId = null;
@@ -2897,6 +3034,15 @@
     var list = state.categories[currentType];
     sel.innerHTML = list.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('');
   }
+  var currentAccount = 'konto';
+  document.querySelectorAll('#accountSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){
+      currentAccount = b.getAttribute('data-account');
+      document.querySelectorAll('#accountSwitch button').forEach(function(x){
+        x.classList.toggle('active', x===b);
+      });
+    });
+  });
 
   /* ================= Fixkosten / Einnahmen (fortlaufende Buchungen) ================= */
   function fixedRowHtml(r){
@@ -2963,7 +3109,7 @@
     if(already) return;
     state.transactions.push({
       id: uid(), type: r.type, amount: r.amount, category: r.category,
-      date: todayStr, note: r.name, recurringId: r.id, auto: true
+      date: todayStr, note: r.name, recurringId: r.id, auto: true, account: 'konto'
     });
     saveState();
     renderOverview();
@@ -3157,7 +3303,8 @@
     var note = document.getElementById('noteInput').value.trim();
     state.transactions.push({
       id: uid(), type: currentType, amount: Math.round(amount*100)/100,
-      category: category, date: todayISO(), note: note, createdBy: currentUserId
+      category: category, date: todayISO(), note: note, createdBy: currentUserId,
+      account: currentAccount
     });
     saveState();
     document.getElementById('amountInput').value = '';
