@@ -1314,10 +1314,11 @@
   <div id="projectItemModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
       <p class="section-title" id="projectItemModalTitle" style="padding:0 0 12px;">Hinzufügen</p>
-      <div class="type-switch" id="projectItemTypeSwitch" style="margin-bottom:18px; display:flex;">
+      <div class="type-switch" id="projectItemTypeSwitch" style="margin-bottom:18px; display:flex; flex-wrap:wrap;">
         <button type="button" data-ptype="link" class="active" style="flex:1;">Link</button>
         <button type="button" data-ptype="note" style="flex:1;">Notiz</button>
         <button type="button" data-ptype="cost" style="flex:1;">Kosten</button>
+        <button type="button" data-ptype="checklist" style="flex:1;">Checkliste</button>
       </div>
 
       <div id="ptypeFieldsLink">
@@ -1346,6 +1347,17 @@
         <div class="field">
           <label for="ptCostAmount">Geschätzter Betrag</label>
           <input type="number" inputmode="decimal" step="0.01" id="ptCostAmount" class="num-input" placeholder="0,00">
+        </div>
+      </div>
+
+      <div id="ptypeFieldsChecklist" style="display:none;">
+        <div class="field">
+          <label for="ptChecklistTitle">Titel</label>
+          <input type="text" id="ptChecklistTitle" placeholder="z. B. Packliste Seminar">
+        </div>
+        <div class="field">
+          <label for="ptChecklistItems">Punkte (einer pro Zeile)</label>
+          <textarea id="ptChecklistItems" placeholder="Zahnbürste&#10;Ladekabel&#10;Unterlagen" style="min-height:110px;"></textarea>
         </div>
       </div>
 
@@ -1388,6 +1400,23 @@
       <div class="settings-group">
         <button type="button" class="settings-row" id="changeNotesPinBtn">PIN ändern <span class="chev">›</span></button>
         <button type="button" class="settings-row" id="forgotNotesPinBtn">PIN vergessen? <span class="chev">›</span></button>
+      </div>
+
+      <p class="section-title">Benachrichtigungen</p>
+      <p class="page-sub" style="margin-top:-4px;">Gilt nur für dich — jede Person stellt ihre eigenen unabhängig davon ein.</p>
+      <div class="form-wrap" style="padding-top:10px;">
+        <label style="display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px dotted var(--line); cursor:pointer;">
+          <input type="checkbox" id="notifyAssignedEventInput" style="width:19px; height:19px; accent-color:var(--brass);">
+          <span style="font-size:14.5px;">Push, wenn mir ein Kalendertermin zugewiesen wird</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px dotted var(--line); cursor:pointer;">
+          <input type="checkbox" id="notifyAssignedTodoInput" style="width:19px; height:19px; accent-color:var(--brass);">
+          <span style="font-size:14.5px;">Push, wenn mir ein To-Do zugewiesen wird</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:10px; padding:12px 0; border-top:1px dotted var(--line); cursor:pointer;">
+          <input type="checkbox" id="notifyDailySummaryInput" style="width:19px; height:19px; accent-color:var(--brass);">
+          <span style="font-size:14.5px;">Tägliche Übersicht am Morgen (nur wenn etwas ansteht)</span>
+        </label>
       </div>
 
       <p class="section-title">Design</p>
@@ -1647,6 +1676,10 @@
         <label for="pantryNameInput">Artikel</label>
         <input type="text" id="pantryNameInput" placeholder="z. B. Mehl">
       </div>
+      <div class="field">
+        <label for="pantryExpiryInput">Haltbar bis (optional)</label>
+        <input type="date" id="pantryExpiryInput">
+      </div>
       <div class="btn-row">
         <button class="btn ghost" id="cancelPantryAddBtn">Abbrechen</button>
         <button class="btn" id="addPantryBtn">Hinzufügen</button>
@@ -1835,6 +1868,14 @@
       <div class="field">
         <label for="calDateInput">Datum</label>
         <input type="date" id="calDateInput">
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; margin:-6px 0 14px; font-size:14px; color:var(--ink); cursor:pointer;" id="calMultiDayWrap">
+        <input type="checkbox" id="calMultiDayInput" style="width:18px; height:18px; accent-color:var(--brass);">
+        Mehrtägiger Termin
+      </label>
+      <div class="field" id="calEndDateWrap" style="display:none;">
+        <label for="calEndDateInput">Bis (letzter Tag)</label>
+        <input type="date" id="calEndDateInput">
       </div>
       <div class="field">
         <label for="calTimeInput">Uhrzeit (optional)</label>
@@ -2120,6 +2161,35 @@
       sw.addEventListener('click', function(){ onPick(sw.getAttribute('data-color')); });
     });
   }
+
+  // Benachrichtigungs-Einstellungen: pro Nutzer eigene Präferenzen, im
+  // gemeinsamen state gespeichert (damit die Edge Function serverseitig
+  // beim Versenden nachschauen kann, wer was möchte).
+  function getNotificationPrefs(userId){
+    if(!state.notificationPrefs) state.notificationPrefs = {};
+    if(!state.notificationPrefs[userId]){
+      state.notificationPrefs[userId] = { assignedEvent:true, assignedTodo:true, dailySummary:true };
+    }
+    return state.notificationPrefs[userId];
+  }
+  function loadNotificationPrefsUI(){
+    var prefs = getNotificationPrefs(currentUserId);
+    document.getElementById('notifyAssignedEventInput').checked = prefs.assignedEvent!==false;
+    document.getElementById('notifyAssignedTodoInput').checked = prefs.assignedTodo!==false;
+    document.getElementById('notifyDailySummaryInput').checked = prefs.dailySummary!==false;
+  }
+  document.getElementById('notifyAssignedEventInput').addEventListener('change', function(){
+    getNotificationPrefs(currentUserId).assignedEvent = this.checked;
+    saveState();
+  });
+  document.getElementById('notifyAssignedTodoInput').addEventListener('change', function(){
+    getNotificationPrefs(currentUserId).assignedTodo = this.checked;
+    saveState();
+  });
+  document.getElementById('notifyDailySummaryInput').addEventListener('change', function(){
+    getNotificationPrefs(currentUserId).dailySummary = this.checked;
+    saveState();
+  });
 
   function renderUsers(){
     var el = document.getElementById('userList');
@@ -2549,6 +2619,7 @@
       var sbTx = state.transactions.find(function(t){ return t.isStartingBalance; });
       var sbVal = sbTx ? (sbTx.type==='expense' ? -sbTx.amount : sbTx.amount) : 0;
       document.getElementById('startingBalanceInput').value = sbVal || '';
+      loadNotificationPrefsUI();
     }
   }
   function renderCurrentScreen(){
@@ -3811,7 +3882,7 @@
 
   // Fügt einen Artikel zur Vorratskammer hinzu — gleiche Zusammenführungslogik
   // wie bei der Einkaufsliste (Mengen werden addiert, wenn möglich).
-  function addToPantry(name, amount, category){
+  function addToPantry(name, amount, category, expiry){
     name = (name||'').trim();
     if(!name) return;
     amount = (amount||'').trim() || null;
@@ -3819,15 +3890,16 @@
     if(existing){
       if(existing.amount && amount){
         var combined = combineAmounts(existing.amount, amount);
-        if(combined){ existing.amount = combined; return; }
+        if(combined){ existing.amount = combined; if(expiry) existing.expiry = expiry; return; }
         // inkompatible Einheiten -> als eigener Extra-Eintrag ergänzen
       } else if(!existing.amount && amount){
-        existing.amount = amount; return;
+        existing.amount = amount; if(expiry) existing.expiry = expiry; return;
       } else {
+        if(expiry) existing.expiry = expiry;
         return; // schon vorhanden, nichts Neues
       }
     }
-    state.pantry.push({ id: uid(), name: name, amount: amount, category: category || guessGroceryCategory(name), createdBy: currentUserId });
+    state.pantry.push({ id: uid(), name: name, amount: amount, category: category || guessGroceryCategory(name), expiry: expiry || null, createdBy: currentUserId });
   }
   // Lockere Übereinstimmung (Teilstring, ohne Groß-/Kleinschreibung) — findet
   // z. B. "Mehl" in der Vorratskammer auch, wenn die Zutat "Weizenmehl" heißt.
@@ -3842,8 +3914,15 @@
 
   function pantryRowHtml(it){
     var label = (it.amount ? escapeHtml(it.amount)+' ' : '') + escapeHtml(it.name);
+    var expiryTag = '';
+    if(it.expiry){
+      var daysLeft = Math.ceil((new Date(it.expiry+'T00:00:00') - new Date(todayISO()+'T00:00:00')) / 86400000);
+      var expColor = daysLeft < 0 ? 'var(--red)' : (daysLeft <= 3 ? 'var(--brass-strong)' : 'var(--ink-soft)');
+      var expText = daysLeft < 0 ? 'abgelaufen' : (daysLeft===0 ? 'läuft heute ab' : (daysLeft===1 ? 'läuft morgen ab' : 'noch '+daysLeft+' Tage'));
+      expiryTag = '<div class="ssub" style="color:'+expColor+';">Haltbar bis '+fmtDate(it.expiry)+' · '+expText+'</div>';
+    }
     return '<div class="simple-row"'+personTintStyle(it.createdBy)+'>'+
-      '<div class="stext"><div class="stitle">'+label+'</div></div>'+
+      '<div class="stext"><div class="stitle">'+label+'</div>'+expiryTag+'</div>'+
       '<button type="button" class="cat-badge" data-pantrycatedit="'+it.id+'">'+escapeHtml(it.category||'Sonstiges')+'</button>'+
       avatarHtml(it.createdBy) +
       '<button class="redit" data-pantryedit="'+it.id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
@@ -3865,6 +3944,14 @@
     Object.keys(groups).forEach(function(k){ groups[k].sort(function(a,b){ return a.name.localeCompare(b.name); }); });
     var catOrder = GROCERY_CATEGORIES.map(function(c){ return c.name; }).concat(['Sonstiges']);
     var html = '';
+    var todayStr = todayISO();
+    var soonExpiring = state.pantry.filter(function(it){ return it.expiry && it.expiry >= todayStr; })
+      .filter(function(it){ return Math.ceil((new Date(it.expiry+'T00:00:00') - new Date(todayStr+'T00:00:00'))/86400000) <= 3; });
+    var expired = state.pantry.filter(function(it){ return it.expiry && it.expiry < todayStr; });
+    if(expired.length || soonExpiring.length){
+      html += '<p class="section-title" style="padding:14px 20px 4px;">⏰ Bald ablaufend / abgelaufen</p>';
+      html += expired.concat(soonExpiring).map(pantryRowHtml).join('');
+    }
     catOrder.forEach(function(catName){
       if(!groups[catName] || groups[catName].length===0) return;
       html += '<p class="section-title" style="padding:14px 20px 4px;">'+catName+'</p>';
@@ -3886,6 +3973,7 @@
     document.getElementById('deletePantryBtn').style.display = 'none';
     document.getElementById('pantryAmountInput').value = '';
     document.getElementById('pantryNameInput').value = '';
+    document.getElementById('pantryExpiryInput').value = '';
     document.getElementById('pantryAddModal').style.display = 'flex';
   });
   function openEditPantryModal(id){
@@ -3897,6 +3985,7 @@
     document.getElementById('deletePantryBtn').style.display = 'block';
     document.getElementById('pantryAmountInput').value = it.amount || '';
     document.getElementById('pantryNameInput').value = it.name;
+    document.getElementById('pantryExpiryInput').value = it.expiry || '';
     document.getElementById('pantryAddModal').style.display = 'flex';
   }
   document.getElementById('deletePantryBtn').addEventListener('click', function(){
@@ -3914,6 +4003,7 @@
   document.getElementById('addPantryBtn').addEventListener('click', function(){
     var amount = document.getElementById('pantryAmountInput').value;
     var name = document.getElementById('pantryNameInput').value.trim();
+    var expiry = document.getElementById('pantryExpiryInput').value || null;
     if(!name) return;
     if(editingPantryId){
       var it = state.pantry.find(function(x){ return x.id===editingPantryId; });
@@ -3921,6 +4011,7 @@
         it.name = name;
         it.amount = amount.trim() || null;
         it.category = guessGroceryCategory(name);
+        it.expiry = expiry;
       }
       saveState();
       editingPantryId = null;
@@ -3928,7 +4019,7 @@
       renderPantry();
       return;
     }
-    addToPantry(name, amount);
+    addToPantry(name, amount, null, expiry);
     saveState();
     document.getElementById('pantryAddModal').style.display = 'none';
     renderPantry();
@@ -4254,6 +4345,8 @@
     if(editingTodoId){
       var t = state.todos.find(function(x){ return x.id===editingTodoId; });
       if(t){
+        var oldAssigned = (t.assignedTo||[]).slice().sort().join(',');
+        var newAssigned = assignedTo.slice().sort().join(',');
         t.text = val;
         t.dueDate = dueInput.value || null;
         t.dueTime = timeInput.value || null;
@@ -4262,6 +4355,7 @@
         t.repeatInterval = repeatOn ? Math.max(1, parseInt(repeatIntervalInput.value,10)||1) : null;
         t.repeatUnit = repeatOn ? repeatUnitInput.value : null;
         t.assignedTo = assignedTo;
+        if(newAssigned !== oldAssigned && assignedTo.length>0) t.assignedAt = new Date().toISOString();
       }
       saveState();
       editingTodoId = null;
@@ -4278,6 +4372,7 @@
       repeatInterval: repeatOn ? Math.max(1, parseInt(repeatIntervalInput.value,10)||1) : null,
       repeatUnit: repeatOn ? repeatUnitInput.value : null,
       assignedTo: assignedTo,
+      assignedAt: assignedTo.length>0 ? new Date().toISOString() : null,
       createdBy: currentUserId
     };
     if(pendingProjectIdForTodo){ newTodo.projectId = pendingProjectIdForTodo; }
@@ -4679,9 +4774,10 @@
     return '<button class="redit" data-pitemedit="'+id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>';
   }
   var PROJECT_FOLDER_META = {
-    link:  { label: 'Links',    emoji: '🔗' },
-    note:  { label: 'Notizen',  emoji: '📝' },
-    cost:  { label: 'Kosten',   emoji: '💰' }
+    link:      { label: 'Links',       emoji: '🔗' },
+    note:      { label: 'Notizen',     emoji: '📝' },
+    cost:      { label: 'Kosten',      emoji: '💰' },
+    checklist: { label: 'Checklisten', emoji: '📋' }
   };
   function projectItemRowHtml(it){
     var pin = it.pinned ? '📌 ' : '';
@@ -4716,6 +4812,25 @@
         (it.caption ? '<div class="stext" style="order:2;"><div class="stitle">'+escapeHtml(it.caption)+'</div></div>' : '<div style="order:2; flex:1;"></div>')+
         avatarHtml(it.createdBy)+
         '<span style="order:3;">'+editIconBtn(it.id)+'</span>'+
+      '</div>';
+    }
+    if(it.type==='checklist'){
+      var items = it.items || [];
+      var doneCount = items.filter(function(x){ return x.checked; }).length;
+      var subHtml = items.map(function(x, i){
+        return '<div class="checklist-subitem" data-checkidx="'+i+'" data-checkparent="'+it.id+'" style="display:flex; align-items:center; gap:10px; padding:6px 0 6px 6px; cursor:pointer;">'+
+          '<div class="check'+(x.checked?' done':'')+'" style="flex-shrink:0;">'+(x.checked?'✓':'')+'</div>'+
+          '<span style="font-size:13.5px;'+(x.checked?' text-decoration:line-through; color:var(--ink-soft);':'')+'">'+escapeHtml(x.text)+'</span>'+
+        '</div>';
+      }).join('');
+      return '<div class="simple-row" style="flex-direction:column; align-items:stretch;"'+personTintStyle(it.createdBy)+'>'+
+        '<div style="display:flex; align-items:center; gap:12px;">'+
+          '<div class="stext"><div class="stitle">'+pin+'📋 '+escapeHtml(it.title)+'</div>'+
+          '<div class="ssub">'+doneCount+'/'+items.length+' erledigt</div></div>'+
+          avatarHtml(it.createdBy)+
+          editIconBtn(it.id)+
+        '</div>'+
+        (subHtml ? '<div style="margin-top:4px; padding-left:2px;">'+subHtml+'</div>' : '')+
       '</div>';
     }
     return '';
@@ -4796,9 +4911,9 @@
     // Ordner nach Typ — Link / Notiz / Kosten, je aufklappbar, mit eigener Überschrift
     var foldersEl = document.getElementById('projectFoldersWrap');
     var foldersHtml = '';
-    var anyFolder = ['link','note','cost'].some(function(type){ return items.some(function(it){ return it.type===type; }); });
+    var anyFolder = ['link','note','cost','checklist'].some(function(type){ return items.some(function(it){ return it.type===type; }); });
     if(anyFolder) foldersHtml += '<p class="section-title" style="padding:14px 20px 4px;">Ordner</p>';
-    ['link','note','cost'].forEach(function(type){
+    ['link','note','cost','checklist'].forEach(function(type){
       var typeItems = items.filter(function(it){ return it.type===type; });
       if(typeItems.length===0) return;
       var meta = PROJECT_FOLDER_META[type];
@@ -4831,6 +4946,20 @@
         openEditProjectItemModal(b.getAttribute('data-pitemedit'));
       });
     });
+    document.querySelectorAll('#projectPinnedWrap [data-checkparent], #projectFoldersWrap [data-checkparent]').forEach(function(row){
+      row.addEventListener('click', function(e){
+        e.stopPropagation();
+        var pr = state.projects.find(function(x){ return x.id===currentProjectId; });
+        if(!pr) return;
+        var it = pr.items.find(function(x){ return x.id===row.getAttribute('data-checkparent'); });
+        if(!it || !it.items) return;
+        var idx = parseInt(row.getAttribute('data-checkidx'), 10);
+        if(!it.items[idx]) return;
+        it.items[idx].checked = !it.items[idx].checked;
+        saveState();
+        renderProjectBoard();
+      });
+    });
   }
 
   function setProjectItemType(t){
@@ -4841,6 +4970,7 @@
     document.getElementById('ptypeFieldsLink').style.display = t==='link' ? 'block' : 'none';
     document.getElementById('ptypeFieldsNote').style.display = t==='note' ? 'block' : 'none';
     document.getElementById('ptypeFieldsCost').style.display = t==='cost' ? 'block' : 'none';
+    document.getElementById('ptypeFieldsChecklist').style.display = t==='checklist' ? 'block' : 'none';
   }
   document.querySelectorAll('#projectItemTypeSwitch button').forEach(function(b){
     b.addEventListener('click', function(){ setProjectItemType(b.getAttribute('data-ptype')); });
@@ -4858,6 +4988,8 @@
     document.getElementById('ptNoteText').value = '';
     document.getElementById('ptCostTitle').value = '';
     document.getElementById('ptCostAmount').value = '';
+    document.getElementById('ptChecklistTitle').value = '';
+    document.getElementById('ptChecklistItems').value = '';
     document.getElementById('ptPinnedInput').checked = false;
     document.getElementById('projectItemModal').style.display = 'flex';
   });
@@ -4870,7 +5002,7 @@
     document.getElementById('projectItemModalTitle').textContent = 'Eintrag bearbeiten';
     document.getElementById('saveProjectItemBtn').textContent = 'Speichern';
     document.getElementById('deleteProjectItemBtn').style.display = 'block';
-    // Typ steht beim Bearbeiten fest (kein Wechsel zwischen Link/Notiz/Kosten)
+    // Typ steht beim Bearbeiten fest (kein Wechsel zwischen Link/Notiz/Kosten/Checkliste)
     document.querySelectorAll('#projectItemTypeSwitch button').forEach(function(b){ b.disabled = true; b.style.opacity = '.4'; });
     setProjectItemType(it.type);
     document.getElementById('ptLinkTitle').value = it.title || '';
@@ -4878,6 +5010,8 @@
     document.getElementById('ptNoteText').value = it.text || '';
     document.getElementById('ptCostTitle').value = it.title || '';
     document.getElementById('ptCostAmount').value = it.amount || '';
+    document.getElementById('ptChecklistTitle').value = it.title || '';
+    document.getElementById('ptChecklistItems').value = (it.items||[]).map(function(x){ return x.text; }).join('\n');
     document.getElementById('ptPinnedInput').checked = !!it.pinned;
     document.getElementById('projectItemModal').style.display = 'flex';
   }
@@ -4896,6 +5030,12 @@
     document.getElementById('projectItemModal').style.display = 'none';
     editingProjectItemId = null;
   });
+  function parseChecklistItems(rawText, previousItems){
+    var prevByText = {};
+    (previousItems||[]).forEach(function(x){ prevByText[x.text] = x.checked; });
+    return rawText.split('\n').map(function(line){ return line.trim(); }).filter(function(line){ return line.length>0; })
+      .map(function(line){ return { text: line, checked: !!prevByText[line] }; });
+  }
   document.getElementById('saveProjectItemBtn').addEventListener('click', function(){
     var p = state.projects.find(function(x){ return x.id===currentProjectId; });
     if(!p) return;
@@ -4919,6 +5059,11 @@
         var amount = parseFloat(document.getElementById('ptCostAmount').value);
         if(!ctitle || !amount || amount<=0) return;
         it.title = ctitle; it.amount = Math.round(amount*100)/100;
+      } else if(it.type==='checklist'){
+        var cltitle = document.getElementById('ptChecklistTitle').value.trim();
+        var clitems = parseChecklistItems(document.getElementById('ptChecklistItems').value, it.items);
+        if(!cltitle || clitems.length===0) return;
+        it.title = cltitle; it.items = clitems;
       }
       it.pinned = pinned;
       saveState();
@@ -4945,6 +5090,11 @@
       var amount2 = parseFloat(document.getElementById('ptCostAmount').value);
       if(!ctitle2 || !amount2 || amount2<=0) return;
       base.title = ctitle2; base.amount = Math.round(amount2*100)/100;
+    } else if(projectItemType==='checklist'){
+      var cltitle2 = document.getElementById('ptChecklistTitle').value.trim();
+      var clitems2 = parseChecklistItems(document.getElementById('ptChecklistItems').value, null);
+      if(!cltitle2 || clitems2.length===0) return;
+      base.title = cltitle2; base.items = clitems2;
     }
     p.items.push(base);
     saveState();
@@ -4968,7 +5118,10 @@
   function eventOccursOnDate(ev, dateObj, dateStr){
     var start = new Date(ev.date+'T00:00:00');
     if(dateObj < start) return false;
-    if(!ev.repeat || ev.repeat==='none') return ev.date === dateStr;
+    if(!ev.repeat || ev.repeat==='none'){
+      if(ev.endDate) return dateStr >= ev.date && dateStr <= ev.endDate;
+      return ev.date === dateStr;
+    }
     if(ev.repeat==='daily') return true;
     if(ev.repeat==='weekly') return dateObj.getDay()===start.getDay();
     if(ev.repeat==='monthly') return dateObj.getDate()===start.getDate();
@@ -5051,6 +5204,7 @@
           '<div class="cal-info">'+
           '<div class="ctitle">'+escapeHtml(ev.title)+'</div>'+
           (ev.time ? '<div class="ctime">'+ev.time+' Uhr</div>' : '')+
+          (ev.endDate ? '<div class="ctime">'+fmtDate(ev.date)+' – '+fmtDate(ev.endDate)+'</div>' : '')+
           (ev.repeat && ev.repeat!=='none' ? '<div class="ctime">'+repeatLabel(ev.repeat)+'</div>' : '')+
           (ev.note ? '<div class="cnote">'+escapeHtml(ev.note)+'</div>' : '')+
           (ev.remind ? '<div class="cal-bell">🔔 Erinnerung '+offsetLabel(ev.remindOffset)+'</div>' : '')+
@@ -5106,11 +5260,26 @@
     document.getElementById('calRemindOffsetWrap').style.display = 'none';
     document.getElementById('calRepeatInput').value = 'none';
     document.getElementById('calDateInput').value = selectedDayStr;
+    document.getElementById('calMultiDayInput').checked = false;
+    document.getElementById('calEndDateWrap').style.display = 'none';
+    document.getElementById('calEndDateInput').value = '';
+    document.getElementById('calMultiDayWrap').style.display = 'flex';
     renderCalAssignList();
     document.getElementById('calAddModal').style.display = 'flex';
   });
   document.getElementById('cancelCalAddBtn').addEventListener('click', function(){
     document.getElementById('calAddModal').style.display = 'none';
+  });
+  document.getElementById('calMultiDayInput').addEventListener('change', function(){
+    document.getElementById('calEndDateWrap').style.display = this.checked ? 'block' : 'none';
+  });
+  document.getElementById('calRepeatInput').addEventListener('change', function(){
+    var isNone = this.value==='none';
+    document.getElementById('calMultiDayWrap').style.display = isNone ? 'flex' : 'none';
+    if(!isNone){
+      document.getElementById('calMultiDayInput').checked = false;
+      document.getElementById('calEndDateWrap').style.display = 'none';
+    }
   });
 
   function renderCalendar(){
@@ -5134,6 +5303,10 @@
     document.getElementById('calRemindInput').checked = !!ev.remind;
     document.getElementById('calRemindOffsetWrap').style.display = ev.remind ? 'block' : 'none';
     document.getElementById('calRemindOffsetInput').value = ev.remindOffset || 1440;
+    document.getElementById('calMultiDayWrap').style.display = (ev.repeat && ev.repeat!=='none') ? 'none' : 'flex';
+    document.getElementById('calMultiDayInput').checked = !!ev.endDate;
+    document.getElementById('calEndDateWrap').style.display = ev.endDate ? 'block' : 'none';
+    document.getElementById('calEndDateInput').value = ev.endDate || '';
     renderCalAssignList(ev.assignedTo||[]);
     document.getElementById('calAddModal').style.display = 'flex';
   }
@@ -5157,18 +5330,29 @@
     var remind = document.getElementById('calRemindInput').checked;
     var remindOffset = remind ? parseInt(document.getElementById('calRemindOffsetInput').value, 10) : 0;
     var assignedTo = Array.prototype.slice.call(document.querySelectorAll('#calAssignList input:checked')).map(function(cb){ return cb.value; });
+    var isMultiDay = repeat==='none' && document.getElementById('calMultiDayInput').checked;
+    var endDate = isMultiDay ? document.getElementById('calEndDateInput').value : null;
     if(!title || !date) return;
+    if(isMultiDay && (!endDate || endDate < date)){
+      alert('Bitte ein gültiges Enddatum wählen, das nicht vor dem Startdatum liegt.');
+      return;
+    }
     if(editingEventId){
       var ev = state.calendar.find(function(x){ return x.id===editingEventId; });
       if(ev){
+        var oldAssignedEv = (ev.assignedTo||[]).slice().sort().join(',');
+        var newAssignedEv = assignedTo.slice().sort().join(',');
         ev.title = title; ev.date = date; ev.time = time||null; ev.note = note;
         ev.repeat = repeat; ev.remind = remind; ev.remindOffset = remindOffset;
-        ev.assignedTo = assignedTo;
+        ev.assignedTo = assignedTo; ev.endDate = endDate;
+        if(newAssignedEv !== oldAssignedEv && assignedTo.length>0) ev.assignedAt = new Date().toISOString();
       }
     } else {
       state.calendar.push({
         id: uid(), title: title, date: date, time: time||null, note: note,
-        repeat: repeat, remind: remind, remindOffset: remindOffset, assignedTo: assignedTo, createdBy: currentUserId
+        repeat: repeat, remind: remind, remindOffset: remindOffset, assignedTo: assignedTo,
+        assignedAt: assignedTo.length>0 ? new Date().toISOString() : null,
+        endDate: endDate, createdBy: currentUserId
       });
     }
     saveState();
@@ -5179,6 +5363,8 @@
     document.getElementById('calRemindInput').checked = false;
     document.getElementById('calRemindOffsetWrap').style.display = 'none';
     document.getElementById('calRepeatInput').value = 'none';
+    document.getElementById('calMultiDayInput').checked = false;
+    document.getElementById('calEndDateWrap').style.display = 'none';
     selectedDayStr = date;
     document.getElementById('calAddModal').style.display = 'none';
     renderCalendarMonth();
@@ -5510,7 +5696,8 @@
       await sb.from('push_subscriptions').upsert({
         code: householdCode,
         endpoint: sub.endpoint,
-        subscription: sub.toJSON()
+        subscription: sub.toJSON(),
+        user_id: currentUserId
       }, { onConflict: 'endpoint' });
       updatePushBanner();
     } catch(e){
