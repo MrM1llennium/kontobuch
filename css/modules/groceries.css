@@ -1,0 +1,32 @@
+/* ============================================================
+   CASALO — MODUL: LEBENSMITTEL
+   1:1 ausgelagert aus der ursprünglichen index.html (Phase 1).
+   Essensplan/Rezepte-Bausteine. (Einkaufsliste/Vorratskammer
+   nutzen ausschließlich .simple-row aus shared/components.css
+   und haben keine eigenen CSS-Regeln.)
+   ============================================================ */
+
+  /* ---------- Essensplan ---------- */
+  .meal-day{ margin:0 20px 14px; padding:14px 16px; background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; }
+  .meal-day-head{ font-size:13.5px; font-weight:600; margin-bottom:8px; }
+  .meal-entry{ display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px dotted var(--line); font-size:13.5px; }
+  .meal-entry:first-of-type{ border-top:none; }
+  .meal-entry span:first-child{ flex:1; min-width:0; }
+  .ingredient-chip{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 10px; background:var(--paper-raised); border:1px solid var(--line);
+    border-radius:6px; margin-bottom:6px; font-size:13.5px;
+  }
+  .ingredient-chip button{ border:none; background:none; color:var(--ink-soft); opacity:.5; font-size:16px; cursor:pointer; }
+  .ingredient-select-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 0; border-top:1px dotted var(--line);
+  }
+  .ingredient-select-row:first-child{ border-top:none; }
+  .ingredient-select-row label{ display:flex; align-items:center; gap:10px; flex:1; min-width:0; font-size:14.5px; }
+  .ingredient-select-row input[type="checkbox"]{ width:19px; height:19px; flex-shrink:0; }
+  .amount-toggle{
+    flex-shrink:0; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink-soft);
+    border-radius:20px; padding:5px 12px; font-size:12px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; cursor:pointer;
+  }
+  .amount-toggle.active{ background:var(--brass); color:var(--paper); border-color:var(--brass); }

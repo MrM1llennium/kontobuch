@@ -1,0 +1,253 @@
+/* ============================================================
+   CASALO — THEME-SYSTEM
+   1:1 ausgelagert aus der ursprünglichen index.html (Phase 1).
+   Enthält: Farbwelten (Signature/Forest/Lilac/Bubblegum), die
+   modulübergreifende Struktur-Basis (Radien/Schatten je Theme
+   gleich), Theme-Übergangsanimation, Kawaii-Style-Umschaltung
+   und die themenabhängige helle/dunkle Kopfzeilen-Schrift.
+   ============================================================ */
+
+  /* ==================================================================
+     HOME HUB — MULTI THEME TOKEN SYSTEM
+     Signature (Standard), Forest und Lilac sind Farbwelten desselben
+     Systems. Layout, Typografie, Abstände, Komponenten bleiben
+     identisch — nur die Werte dieser Variablen unterscheiden sich.
+     Legacy-Variablennamen (--paper, --ink, --brass ...) bleiben aus
+     Kompatibilitätsgründen die technische Grundlage; die semantischen
+     Namen darunter zeigen einfach auf dieselben Werte.
+     ================================================================== */
+  :root{
+    /* Signature ✨ — Standard-Theme, abgeleitet aus den Farben des
+       App-Icons (Creme-Kachel + dunkle Vorder-Welle). Header/Sidebar
+       tragen bewusst den dunklen Wellenton, der Rest bleibt hell/cremig. */
+    --paper:#FAF6F2;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#F0E7DE;
+    --ink:#2B2826;
+    --ink-soft:#8C8078;
+    --line:#E8DED2;
+    --red:#C1543F;
+    --red-soft:#F6E3DD;
+    --green:#4C8F6C;
+    --green-soft:#E3F0E7;
+    --brass:#3D3936;
+    --brass-soft:#E7E0D8;
+    --brass-strong:#211E1C;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+
+    /* Semantische Tokens (Design-Guide) — zeigen auf dieselbe Palette */
+    --color-background: var(--paper);
+    --color-surface: var(--paper-raised);
+    --color-surface-secondary: var(--paper-dark);
+    --color-surface-elevated: var(--paper-raised);
+    --color-text-primary: var(--ink);
+    --color-text-secondary: var(--ink-soft);
+    --color-text-tertiary: var(--ink-soft);
+    --color-primary: var(--brass);
+    --color-primary-contrast: var(--paper);
+    --color-primary-soft: var(--brass-soft);
+    --color-accent: var(--brass-strong);
+    --color-accent-soft: var(--brass-soft);
+    --color-border: var(--line);
+    --color-border-subtle: var(--line);
+    --color-success: var(--green);
+    --color-warning: #D9A02B;
+    --color-danger: var(--red);
+    --color-info: #3E7CB1;
+
+    /* Header/Sidebar tragen bei Signature den dunklen Wellenton direkt
+       als Vollton (kein zartes Wasch), nicht nur eine Tönung. */
+    --header-tint: #3A3633;
+    --header-tint-deep: #2E2B29;
+    --sidebar-tint: #46413D;
+  }
+  /* Forest 🌲 — jetzt Zweitfarbe im Modern-Style */
+  html[data-theme="forest"]{
+    --paper:#F7F8F6;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#EAEDE9;
+    --ink:#1C2621;
+    --ink-soft:#68756E;
+    --line:#DEE3DE;
+    --red:#D64545;
+    --red-soft:#FBE3E1;
+    --green:#2E8B67;
+    --green-soft:#DEF3E7;
+    --brass:#1E4D47;
+    --brass-soft:#DCE9E2;
+    --brass-strong:#163B36;
+    --header-tint: #1E4D47;
+    --sidebar-tint: #2A5F58;
+  }
+  /* Lilac 🪻 — alternatives Theme, gleiche Struktur, andere Farbwerte.
+     Rot/Grün für Einnahmen/Ausgaben passen sich leicht an die Palette an
+     (wie im Referenz-Guide vorgesehen) — die FUNKTION (Rot=Ausgabe,
+     Grün=Einnahme) bleibt in beiden Themes exakt gleich, nur der Farbton
+     harmoniert jeweils mit der Themefarbwelt. */
+  html[data-theme="lilac"]{
+    --paper:#F8F6FA;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#ECE7F2;
+    --ink:#241C2E;
+    --ink-soft:#7A7183;
+    --line:#E3DCEA;
+    --red:#C15C7A;
+    --red-soft:#FBE4EA;
+    --green:#4E9B7E;
+    --green-soft:#E1F3E9;
+    --brass:#6B5A9E;
+    --brass-soft:#EAE3F4;
+    --brass-strong:#52447C;
+    --header-tint: #6B5A9E;
+    --sidebar-tint: #7C6EAC;
+  }
+  /* Bubblegum 🩷 — erstes Farbschema für den Kawaii-Style. Sanfte Pastell-
+     Rosatöne als Grundfläche, ein kräftigeres Knallrosa als Akzent. */
+  html[data-theme="bubblegum"]{
+    --paper:#FFF4F8;
+    --paper-raised:#FFFFFF;
+    --paper-dark:#FCE3EE;
+    --ink:#4A2E3D;
+    --ink-soft:#9C7C8C;
+    --line:#F6D6E6;
+    --red:#FF6B88;
+    --red-soft:#FFE3E9;
+    --green:#4FBE8E;
+    --green-soft:#E1F7EC;
+    --brass:#FF5FA8;
+    --brass-soft:#FFDCEC;
+    --brass-strong:#E0388C;
+    --header-tint: #FDE9F2;
+    --sidebar-tint: #FFF1F7;
+  }
+
+  /* ============================================================
+     EINHEITLICHE STRUKTUR-BASIS (gilt für Forest & Lilac gleich)
+     Runde Ecken, weiche Schatten statt Doppellinien/gepunkteter
+     Trenner, durchgängige Systemschrift, ruhige Kartenoptik.
+     ============================================================ */
+  .tile-name, .screen-title, h1, .page-title, .brand{
+    font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  }
+  .tile, .today-card, .budget-card, .goal-card, .note-card,
+  .cal-card, .rec-card, .meal-day, .simple-row, .push-banner{
+    border:none;
+    border-radius:18px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04), 0 2px 10px rgba(0,0,0,.05);
+  }
+  .simple-row{ border-radius:0; box-shadow:none; }
+  .btn{ border-radius:14px; }
+  .type-switch, .mode-switch{ border-radius:14px; overflow:hidden; border-color:var(--line); }
+  .field input, .field select, .field textarea{ border-radius:12px; }
+  .row, .today-row, .meal-entry, .ingredient-select-row{
+    border-top-style:solid;
+  }
+  .rdate{ font-weight:400; }
+  .check{ border-radius:50%; }
+
+  /* Kurze, dezente Übergangsanimation beim Theme-Wechsel */
+  html, body, #app, .topbar, .tabbar, .tile, .btn,
+  .today-card, .budget-card, .goal-card, .note-card, .cal-card,
+  .rec-card, .meal-day, .simple-row, .field input, .field select{
+    transition: background-color .22s ease, color .22s ease, border-color .22s ease, box-shadow .22s ease;
+  }
+  /* Sidebar braucht zusätzlich zur Theme-Farbübergabe weiterhin ihre
+     eigene Slide-Animation — beides zusammen in einer Deklaration,
+     sonst überschreibt die spätere Regel die frühere komplett. */
+  #sidebar{
+    transition: transform .38s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color .22s ease, color .22s ease;
+  }
+
+  /* Subtiles Touch-Feedback (leichtes Eindrücken) für tappbare Elemente */
+  .btn, .tile, .sidebar-item, .tabbar button, .link-btn, .set-limit-btn,
+  .cat-badge, .exclude-cat-btn, .color-swatch, .note-card, .cal-card,
+  .rec-card, .simple-row .check{
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn:active, .tile:active, .note-card:active, .cal-card:active,
+  .rec-card:active, .color-swatch:active{
+    transform: scale(0.98);
+  }
+
+  /* Style-Umschaltung: Kawaii-Style zeigt die Sticker-Bilder statt der
+     Strich-SVGs — Farbe (Theme) und Style (Icon-Satz) sind unabhängig
+     voneinander wählbar. */
+  html[data-style="kawaii"] .tile svg,
+  html[data-style="kawaii"] .sidebar-item svg{ display:none; }
+  html[data-style="kawaii"] .tile img.kawaii-icon,
+  html[data-style="kawaii"] .sidebar-item img.kawaii-icon{ display:block; }
+
+  /* ============================================================
+     Header & Sidebar tragen bei Signature/Forest/Lilac den jeweiligen
+     kräftigen Vollton statt einer hellen Tönung, deshalb muss die
+     Schrift dort auf Hell umschalten. Bubblegum (Kawaii) bleibt bei
+     ihrer hellen Tönung und dunkler Schrift, daher hier ausgenommen.
+     ============================================================ */
+  html:not([data-theme]) .topbar,
+  html[data-theme="signature"] .topbar,
+  html[data-theme="forest"] .topbar,
+  html[data-theme="lilac"] .topbar{
+    color:#F5F1EC;
+  }
+  html:not([data-theme]) .topbar .brand,
+  html[data-theme="signature"] .topbar .brand,
+  html[data-theme="forest"] .topbar .brand,
+  html[data-theme="lilac"] .topbar .brand,
+  html:not([data-theme]) .topbar .back-btn,
+  html[data-theme="signature"] .topbar .back-btn,
+  html[data-theme="forest"] .topbar .back-btn,
+  html[data-theme="lilac"] .topbar .back-btn{
+    color:rgba(255,255,255,.72);
+  }
+  html:not([data-theme]) .hamburger-btn,
+  html[data-theme="signature"] .hamburger-btn,
+  html[data-theme="forest"] .hamburger-btn,
+  html[data-theme="lilac"] .hamburger-btn{
+    color:#F5F1EC;
+  }
+  html:not([data-theme]) #sidebar,
+  html[data-theme="signature"] #sidebar,
+  html[data-theme="forest"] #sidebar,
+  html[data-theme="lilac"] #sidebar,
+  html:not([data-theme]) .sidebar-item,
+  html[data-theme="signature"] .sidebar-item,
+  html[data-theme="forest"] .sidebar-item,
+  html[data-theme="lilac"] .sidebar-item{
+    color:#F2ECE4;
+  }
+  html:not([data-theme]) #sidebar .brand,
+  html[data-theme="signature"] #sidebar .brand,
+  html[data-theme="forest"] #sidebar .brand,
+  html[data-theme="lilac"] #sidebar .brand{
+    color:rgba(255,255,255,.6);
+  }
+  html:not([data-theme]) .sidebar-item.active,
+  html[data-theme="signature"] .sidebar-item.active,
+  html[data-theme="forest"] .sidebar-item.active,
+  html[data-theme="lilac"] .sidebar-item.active{
+    background:rgba(255,255,255,.14); color:#FFFFFF;
+  }
+  html:not([data-theme]) #sidebarBackdrop,
+  html[data-theme="signature"] #sidebarBackdrop,
+  html[data-theme="forest"] #sidebarBackdrop,
+  html[data-theme="lilac"] #sidebarBackdrop{
+    background:rgba(0,0,0,.5);
+  }
+
+  /* Abmelden-Button: fest off-white mit rotem Text/Icon, unabhängig von
+     Style oder Farbe — bleibt in JEDER Kombination gleich. */
+  #sidebarLogoutBtn{
+    background:#F7F3EE !important;
+    color:#B33B34 !important;
+    border-top:1px solid rgba(0,0,0,.08) !important;
+    justify-content:flex-end !important;
+    padding-right:24px !important;
+  }
+  html[data-style="kawaii"] #sidebarLogoutBtn svg{ display:block !important; }
+
+  /* "Heute"-Sonne: Strich-Icon bei Modern, Kawaii-Sticker bei Kawaii */
+  .today-sun-kawaii{ display:none; }
+  html[data-style="kawaii"] .today-sun-kawaii{ display:block; }
+  html[data-style="kawaii"] .today-sun-icon{ display:none; }

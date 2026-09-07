@@ -1,0 +1,11 @@
+/* ============================================================
+   CASALO — MODUL: NOTES
+   1:1 ausgelagert aus der ursprünglichen index.html (Phase 1).
+
+   Dieses Modul hat aktuell KEINE eigenen CSS-Regeln — es nutzt
+   ausschließlich gemeinsame Klassen aus shared/components.css
+   (u.a. .simple-row, .note-card, .field, .btn). Das wurde per
+   grep in der Original-Datei verifiziert (keine .notes-* Klassen
+   gefunden). Diese Datei ist ein bewusst leerer Platzhalter für
+   künftige, wirklich modul-eigene Styles.
+   ============================================================ */

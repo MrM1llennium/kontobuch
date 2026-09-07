@@ -1,0 +1,38 @@
+/* ============================================================
+   CASALO — MODUL: KALENDER
+   1:1 ausgelagert aus der ursprünglichen index.html (Phase 1).
+   (.push-banner liegt in shared/components.css, da auch von
+   To-Dos genutzt.)
+   ============================================================ */
+
+  .cal-card{
+    margin:0 20px 12px; padding:14px 16px; background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:8px; display:flex; gap:14px; align-items:center;
+  }
+  .cal-date{ text-align:center; flex-shrink:0; width:44px; }
+  .cal-date .cd-day{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:19px; font-weight:600; }
+  .cal-date .cd-mon{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
+  .cal-info{ flex:1; min-width:0; }
+  .cal-info .ctitle{ font-size:15px; }
+  .cal-info .ctime{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .cal-info .cnote{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .cal-bell{ font-size:11px; color:var(--brass-strong); margin-top:4px; }
+  .cal-del{ border:none; background:none; color:var(--ink-soft); opacity:.45; font-size:17px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
+
+  .cal-weekdays{
+    display:grid; grid-template-columns:repeat(7,1fr); padding:0 20px;
+    font-size:10.5px; color:var(--ink-soft); text-align:center; margin-bottom:6px;
+  }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; padding:0 20px 6px; }
+  .cal-cell{
+    aspect-ratio:1; border-radius:8px; border:1.5px solid transparent; background:var(--paper-raised);
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:6px;
+    font-size:12.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; cursor:pointer; position:relative;
+  }
+  .cal-cell.outside{ opacity:.32; }
+  .cal-cell.today{ border-color:var(--brass); }
+  .cal-cell.selected{ background:var(--brass); color:var(--paper); }
+  .cal-cell .dots{ display:flex; gap:2px; margin-top:3px; }
+  .cal-cell .dot{ width:4px; height:4px; border-radius:50%; background:var(--brass-strong); }
+  .cal-cell.selected .dot{ background:var(--paper); }
+  .cal-day-heading{ font-size:13px; color:var(--ink-soft); padding:14px 20px 4px; }
