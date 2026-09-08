@@ -93,15 +93,34 @@
     if(typeof state.budgetManualTotal === 'undefined') state.budgetManualTotal = null;
   }
 
-  async function saveState(){
+  // Speichern wird jetzt in eine Warteschlange gepackt statt parallel
+  // loszuschicken: Bei 69 Aufrufstellen im Projekt (jede für sich "feuert
+  // und vergisst") konnten bei schnell aufeinanderfolgenden Aktionen zwei
+  // Speichervorgänge gleichzeitig unterwegs sein — kam der ÄLTERE (mit
+  // veraltetem Datenstand) zufällig SPÄTER beim Server an als der neuere,
+  // hat er den frisch gespeicherten Stand wieder überschrieben und damit
+  // unbemerkt Änderungen gelöscht. Das war die eigentliche Ursache für die
+  // verschwundenen Häkchen/das verschwundene To-Do. Jetzt läuft immer nur
+  // ein Speichervorgang gleichzeitig, jeder mit dem zu diesem Zeitpunkt
+  // aktuellsten Datenstand — Reihenfolge kann sich dadurch nicht mehr
+  // vertauschen.
+  var saveChain = Promise.resolve();
+  var pendingSaveCount = 0;
+  function saveState(){
+    pendingSaveCount++;
     savePending = true;
+    saveChain = saveChain.then(performSave, performSave);
+    return saveChain;
+  }
+  async function performSave(){
     try{
       var res = await sb.from('households').upsert(
         { code: householdCode, data: state, updated_at: new Date().toISOString() },
         { onConflict: 'code' }
       );
       if(res.error) throw res.error;
-      savePending = false;
+      pendingSaveCount = Math.max(0, pendingSaveCount-1);
+      if(pendingSaveCount===0) savePending = false;
       lastOwnSaveAt = Date.now();
       lastFailureWasLoad = false;
       hideSaveBanner();
@@ -109,7 +128,8 @@
       showSaveToast();
       return true;
     } catch(e){
-      savePending = false;
+      pendingSaveCount = Math.max(0, pendingSaveCount-1);
+      if(pendingSaveCount===0) savePending = false;
       console.error("Speichern fehlgeschlagen", e);
       lastFailureWasLoad = false;
       showSaveBanner("Nicht in der Cloud gespeichert (evtl. keine Verbindung). Änderung bleibt vorerst nur auf diesem Gerät sichtbar.");

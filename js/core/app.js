@@ -13,6 +13,25 @@
 
   var CURRENT_USER_KEY = 'kontobuch-current-user-id';
 
+  // Zentraler Fix für ALLE Pop-ups (Buchung, Termin, To-Do, Notiz, ...):
+  // Öffnet sich eins mit einem Texteingabefeld, schiebt die mobile
+  // Tastatur die Ansicht nach oben — beim Schließen des Pop-ups springt
+  // die Seite bisher nicht zuverlässig zurück nach oben, die Ansicht
+  // bleibt "eingefroren" mittig hängen. Statt das in jedem der ~20
+  // Pop-ups einzeln nachzurüsten, beobachtet dieser eine Mechanismus
+  // alle Pop-ups auf einmal: Sobald eins auf unsichtbar wechselt
+  // (style.display wird auf "none" gesetzt), wird automatisch nach
+  // oben gescrollt.
+  document.querySelectorAll('.sheet-modal, .center-modal').forEach(function(modal){
+    var wasVisible = modal.style.display !== 'none';
+    new MutationObserver(function(){
+      var isVisible = modal.style.display !== 'none';
+      if(wasVisible && !isVisible){ window.scrollTo(0, 0); }
+      wasVisible = isVisible;
+    }).observe(modal, { attributes: true, attributeFilter: ['style'] });
+  });
+
+
   /* ---- Theme/Style-Umschaltung ---- */
   /* ================= Design/Style/Theme ================= */
   var THEME_KEY = 'kontobuch-theme';
