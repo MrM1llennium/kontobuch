@@ -38,11 +38,11 @@
   }
   .month-nav.light button{ color:var(--ink); }
   .month-label{ font-size:19px; font-weight:600; letter-spacing:.01em; }
-  .screen-title{ font-size:21px; font-weight:600; margin:0; }
+  .screen-title{ font:var(--text-page-title); margin:0; }
 
   /* ---------- Home ---------- */
   #screen-home .topbar{ padding-bottom:20px; }
-  #screen-home h1{ font-size:24px; margin:0; font-weight:600; }
+  #screen-home h1{ font:var(--text-page-title); margin:0; }
   .tile-grid{
     display:grid; grid-template-columns:1fr 1fr; gap:12px 14px;
     padding:20px; flex:1; align-content:start;
@@ -78,7 +78,7 @@
   .today-card .empty{ padding:6px 16px 16px; text-align:left; }
   .tile.tile-hero{ grid-column:1 / span 2; flex-direction:row; align-items:center; padding:18px 18px; }
   .tile.tile-hero svg{ width:32px; height:32px; }
-  .tile.tile-hero .tile-name{ font-size:15.5px; font-weight:400; }
+  .tile.tile-hero .tile-name{ font-size:var(--text-primary-size); font-weight:400; }
   .tile{
     background:var(--surface-2); border:none; border-radius:var(--radius-md);
     box-shadow:var(--shadow-card);
@@ -88,8 +88,8 @@
   .tile:active{ background:var(--paper-dark); }
   .tile svg{ width:23px; height:23px; color:var(--brass-strong); }
   .tile img.kawaii-icon{ display:none; width:34px; height:34px; object-fit:contain; }
-  .tile-name{ font-size:15.5px; color:var(--ink); }
-  .tile-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:6px; }
+  .tile-name{ font-size:var(--text-primary-size); color:var(--ink); }
+  .tile-sub{ font-size:var(--text-meta-size); color:var(--ink-soft); margin-top:6px; }
 
   /* ==================================================================
      REDESIGN PHASE C — Dashboard: zwei horizontale Ansichten
@@ -111,7 +111,7 @@
     padding-bottom:calc(76px + var(--safe-bottom));
   }
   .dash-subline{
-    font-size:13px; color:var(--ink-soft); margin:2px 0 0;
+    font:var(--text-context); color:var(--ink-soft); margin:2px 0 0;
   }
   html:not([data-theme]) .dash-subline,
   html[data-theme="signature"] .dash-subline,

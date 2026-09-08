@@ -110,6 +110,16 @@
     --surface-2: var(--paper-raised);   /* Standard-Card */
     --surface-3: var(--paper-raised);   /* Interaktive Card */
     --surface-4: var(--paper-raised);   /* Fokus-/Hero-Surface */
+
+    /* ---- Typografie-Hierarchie (Abschnitt 9 der Spezifikation) ----
+       Die 5 Ebenen. Bewusst theme-unabhängig — Typografie ist reine
+       Struktur, keine Farbe. Aktuelle Werte lagen bereits nah beiein-
+       ander (14.5–15.5px bzw. 11.5–12.5px je nach Stelle); hier auf
+       jeweils einen gemeinsamen Wert vereinheitlicht statt neu erfunden. */
+    --text-page-title: 600 22px/1.25 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    --text-context: 400 13.5px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+    --text-primary-size: 15px;
+    --text-meta-size: 12px;
   }
 
   /* Forest 🌲 — jetzt Zweitfarbe im Modern-Style */
