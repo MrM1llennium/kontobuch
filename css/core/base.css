@@ -6,7 +6,19 @@
    ============================================================ */
 
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;min-height:100%;background:var(--ink);}
+  html,body{margin:0;padding:0;min-height:100%;background:var(--ink);
+    overflow-x:hidden; max-width:100%;
+    /* Ohne diese Sperre erlaubt der Browser natives, freies horizon-
+       tales Wegziehen der GESAMTEN Seite (elastisches Overscrollen,
+       v.a. iOS Safari) — inklusive sticky-positionierter Elemente wie
+       Header/Tabbar, die NUR gegen vertikales Scrollen fixiert sind,
+       nicht gegen horizontales. Das lief komplett an der eigenen
+       Swipe-/Tab-Logik vorbei und ließ Header + Inhalt sichtbar
+       auseinanderlaufen (Fund per Bildschirmaufnahme). Ab jetzt kann
+       horizontale Bewegung ausschließlich noch über die eigene,
+       kontrollierte JS-Logik (Dashboard-Swipe, Tab-Swipe) erfolgen.
+  */
+  }
   @media (max-width: 480px){
     html, body{ background:var(--paper); }
   }
@@ -28,6 +40,7 @@
     background:var(--paper);
     display:flex;
     flex-direction:column;
+    overflow-x:hidden;
     position:relative;
   }
   .num{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; }
