@@ -266,7 +266,10 @@
       if(!isHorizontal){ return; }
       var endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
       var dx = endX - startX;
-      var threshold = pager.offsetWidth * 0.18;
+      // Schwelle bezieht sich auf die Breite EINER Ansicht (Pager ist
+      // insgesamt 200% breit, also zwei Seiten) — konsistent zur
+      // gleichen Korrektur bei den Tab-Leisten.
+      var threshold = (pager.offsetWidth / 2) * 0.12;
       if(dx < -threshold && dashCurrentPage==='today'){
         setDashboardPage('modules');
       } else if(dx > threshold && dashCurrentPage==='modules'){
