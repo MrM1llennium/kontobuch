@@ -28,15 +28,6 @@
   .screen-header{
     position:sticky; top:0; z-index:80;
     background:var(--paper);
-    /* Bekanntes Safari-Verhalten: ein neu eingeblendetes sticky-
-       Element (display:none -> flex) braucht beim allerersten Frame
-       manchmal einen Moment, um seine horizontale Position korrekt
-       zu berechnen — sichtbar als kurzes "Versetzt-dann-Schnappen"
-       beim Öffnen eines Moduls. transform:translateZ(0) zwingt den
-       Browser, dafür sofort eine eigene Ebene anzulegen, statt das
-       nachträglich zu korrigieren. */
-    transform:translateZ(0);
-    -webkit-transform:translateZ(0);
   }
   .screen-header .topbar{ position:static; }
   .brand{
