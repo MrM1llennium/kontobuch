@@ -131,7 +131,7 @@
   });
 
   /* ================= Finance: Navigation ================= */
-  document.querySelectorAll('.tabbar button').forEach(function(btn){
+  document.querySelectorAll('#screen-finance .tabbar button').forEach(function(btn){
     btn.addEventListener('click', function(){
       switchView(btn.getAttribute('data-view'));
     });
@@ -140,7 +140,7 @@
     document.querySelectorAll('#screen-finance .view').forEach(function(v){ v.classList.remove('active'); });
     document.getElementById('view-'+name).classList.add('active');
     window.scrollTo(0, 0);
-    document.querySelectorAll('.tabbar button').forEach(function(b){
+    document.querySelectorAll('#screen-finance .tabbar button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-view')===name);
     });
     if(name==='overview') renderOverview();
