@@ -62,6 +62,56 @@
     --header-tint-deep: #2E2B29;
     --sidebar-tint: #46413D;
   }
+
+  /* ==================================================================
+     CASALO REDESIGN — PHASE A: FUNDAMENT-TOKENS
+     Neue, THEME-UNABHÄNGIGE Design-Tokens (Radius-/Schatten-/Abstands-
+     Skala + die vier Surface-Ebenen aus der Design-Spezifikation).
+     Bewusst hier im :root definiert, NICHT in den einzelnen Theme-
+     Blöcken — dadurch gelten sie automatisch für Signature, Forest,
+     Lilac UND Bubblegum gleichermaßen (reine Struktur, keine Farbe).
+     Die Surface-Tokens verweisen auf die bestehenden Legacy-Variablen
+     (--paper, --paper-raised) und lösen sich dadurch pro Theme korrekt
+     zur jeweils aktiven Palette auf — genau wie die --color-*-Tokens
+     oben, die exakt nach diesem Prinzip funktionieren.
+     In Phase A werden diese Tokens bewusst noch NICHT von Komponenten
+     verwendet (das folgt in Phase B/C) — hier wird nur die Grundlage
+     gelegt.
+     ================================================================== */
+  :root{
+    /* ---- Radius-Familie (Abschnitt 5 der Spezifikation) ---- */
+    --radius-sm: 10px;   /* Inputs, kleine Chips, Controls */
+    --radius-md: 16px;   /* normale Cards, Modulkacheln, größere Bereiche */
+    --radius-lg: 999px;  /* Floating Pills, runde Floating Buttons */
+
+    /* ---- Schatten-Stufen für die vier Surface-Ebenen (Abschnitt 4) ----
+       Bewusst neutral in Schwarz gehalten (rgba), nicht themefarbig —
+       funktioniert dadurch unverändert auf hellen wie dunkleren
+       Oberflächen alle vier Varianten hinweg. */
+    --shadow-card: 0 1px 2px rgba(0,0,0,.04), 0 2px 10px rgba(0,0,0,.05);
+    --shadow-hero: 0 2px 6px rgba(0,0,0,.06), 0 10px 28px rgba(0,0,0,.09);
+
+    /* ---- Abstands-Skala (Abschnitt 6) ----
+       An die im Projekt bereits am häufigsten verwendeten Werte
+       angelehnt (20px Standard-Padding kommt im bestehenden Code schon
+       durchgängig vor), damit die Skala beim späteren Einsatz möglichst
+       wenig verschiebt. */
+    --space-xs: 6px;
+    --space-sm: 12px;
+    --space-md: 20px;
+    --space-lg: 32px;
+
+    /* ---- Die vier Surface-/Card-Ebenen (Abschnitt 4) ----
+       Ebene 1–3 nutzen bewusst dieselbe Oberflächenfarbe wie bisher —
+       die Hierarchie entsteht laut Spezifikation über Tiefe/Schatten,
+       nicht über unterschiedliche Flächenfarben. Ebene 4 (Hero/Heute-
+       Card) bekommt zusätzlich mehr Schatten-Gewicht. */
+    --surface-1: var(--paper);          /* Hintergrund */
+    --surface-2: var(--paper-raised);   /* Standard-Card */
+    --surface-3: var(--paper-raised);   /* Interaktive Card */
+    --surface-4: var(--paper-raised);   /* Fokus-/Hero-Surface */
+  }
+
   /* Forest 🌲 — jetzt Zweitfarbe im Modern-Style */
   html[data-theme="forest"]{
     --paper:#F7F8F6;
