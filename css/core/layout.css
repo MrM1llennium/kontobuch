@@ -215,14 +215,17 @@
     height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
   }
   /* Breite MUSS zur jeweiligen Tab-Anzahl passen (Pager insgesamt
-     Tab-Anzahl × 100%, jede einzelne Seite 100% / Tab-Anzahl) — das
-     war der eigentliche Bug: vorher hatte jede Seite pauschal 100%
-     statt eines Bruchteils bekommen, wodurch sich alle Tabs sichtbar
-     nebeneinander gequetscht haben. */
+     Tab-Anzahl × 100%, jede einzelne Seite 100% / Tab-Anzahl).
+     WICHTIG: Die allgemeine .view-Regel setzt "flex:1" (= flex-basis:
+     0%) — in einem Flex-Container hat flex-basis Vorrang vor width,
+     ein reines width:X% hätte hier also nichts bewirkt (das war der
+     eigentliche Grund, warum der erste Versuch nicht griff). Deshalb
+     hier zusätzlich explizit flex mit fester Basis setzen, das
+     überschreibt flex-basis eindeutig statt mit width zu konkurrieren. */
   #financeTabPager{ width:500%; }
-  #financeTabPager > .view{ width:20%; }
+  #financeTabPager > .view{ width:20%; flex:0 0 20%; }
   #mealTabPager{ width:400%; }
-  #mealTabPager > .view{ width:25%; }
+  #mealTabPager > .view{ width:25%; flex:0 0 25%; }
   /* Aktiver Unterstrich der Tabbar als echtes, animierbares Element
      statt eines statischen ::after — kann so während des Swipes live
      mitgleiten statt nur beim Tap hart umzuspringen. */
