@@ -257,6 +257,7 @@
     window.scrollTo(0, 0);
     updateSidebarActive();
     renderTodayOverview();
+    if(typeof setDashboardPage === 'function') setDashboardPage('today', { animate: false });
   }
   function openModule(name){
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
@@ -288,53 +289,6 @@
     renderUsers();
     renderCategoryManage();
     renderTodayOverview();
-  }
-
-  function todayIconSvg(type){
-    if(type==='cal') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>';
-    if(type==='todo') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>';
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>';
-  }
-
-  function renderTodayOverview(){
-    var el = document.getElementById('todayOverview');
-    if(!el) return;
-    if(!state){ el.innerHTML = '<p class="empty">Lädt…</p>'; return; }
-    var todayStr = todayISO();
-    var rows = [];
-
-    if(typeof eventsForDate === 'function'){
-      eventsForDate(todayStr).forEach(function(ev){
-        var avatars = (ev.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
-        var cat = (typeof calCategoryOf === 'function') ? calCategoryOf(ev) : null;
-        var emojiPrefix = (ev.priority==='high'?'❗':'') + ((cat && cat.emoji) ? cat.emoji+' ' : '');
-        rows.push(
-          todayIconSvg('cal') + '<span>'+emojiPrefix+escapeHtml(ev.title)+(ev.time?' · '+ev.time+' Uhr':'')+'</span>' +
-          (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '')
-        );
-      });
-    }
-
-    state.todos.filter(function(t){ return t.dueDate===todayStr && !t.done; }).forEach(function(t){
-      var avatars = (t.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
-      rows.push(
-        todayIconSvg('todo') + '<span>'+escapeHtml(t.text)+(t.dueTime?' · '+t.dueTime+' Uhr':'')+'</span>' +
-        (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '')
-      );
-    });
-
-    state.transactions.filter(function(t){ return t.auto && t.date===todayStr; }).forEach(function(t){
-      rows.push(
-        todayIconSvg(t.type) + '<span>'+escapeHtml(t.category)+'</span>'+
-        '<span class="tamt '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</span>'
-      );
-    });
-
-    if(rows.length===0){
-      el.innerHTML = '<p class="empty">Heute steht nichts an.</p>';
-      return;
-    }
-    el.innerHTML = rows.map(function(r){ return '<div class="today-row">'+r+'</div>'; }).join('');
   }
 
   /* ================= Push-Benachrichtigungen ================= */
@@ -499,6 +453,7 @@
     document.getElementById('budgetMonthNavLabel').textContent = startMonthText;
     subscribeRealtime();
     startPolling();
+    if(typeof initDashboard === 'function') initDashboard();
   }
 
 
