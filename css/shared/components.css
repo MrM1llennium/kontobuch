@@ -93,17 +93,17 @@
      Containern mehr nötig (siehe layout.css).
      ================================================================== */
   .tabbar{
-    display:flex; gap:22px;
-    padding:2px 20px 0; margin-bottom:2px;
+    display:flex; gap:2px;
+    padding:2px 10px 0; margin-bottom:2px;
     border-bottom:1px solid var(--line);
-    overflow-x:auto; -webkit-overflow-scrolling:touch;
   }
   .tabbar button{
-    flex:none; background:none; border:none; cursor:pointer;
-    padding:12px 0 11px; position:relative; white-space:nowrap;
-    display:flex; align-items:center; gap:0;
+    flex:1; min-width:0; background:none; border:none; cursor:pointer;
+    padding:12px 2px 11px; position:relative; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis;
+    display:flex; align-items:center; justify-content:center; gap:0;
     color:var(--ink-soft); font-weight:500;
-    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:14px;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:12.5px;
   }
   .tabbar button svg{ display:none; }
   .tabbar button.active{ color:var(--ink); font-weight:600; }
