@@ -132,6 +132,15 @@
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'households', filter: 'code=eq.'+householdCode },
         function(payload){
+          // Läuft gerade ein eigener Speichervorgang, NICHT mit fremden/
+          // veralteten Daten überschreiben — sonst können frische lokale
+          // Änderungen (z. B. ein gerade gesetzter Haken) in dem kurzen
+          // Zeitfenster wieder verloren gehen. saveState() ruft nach dem
+          // erfolgreichen Speichern selbst renderCurrentScreen() nicht neu
+          // auf, das ist hier nicht nötig — der nächste reguläre Realtime-
+          // oder Polling-Abgleich holt den dann längst aktuellen Stand ganz
+          // normal nach.
+          if(savePending) return;
           if(payload.new && payload.new.data){ applyRemoteState(payload.new.data); }
         }
       )
