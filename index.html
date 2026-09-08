@@ -653,6 +653,11 @@
         </label>
       </div>
 
+      <p class="section-title">Kalender</p>
+      <div class="settings-group">
+        <button type="button" class="settings-row" id="openCalCategoriesBtn">Kategorien <span class="chev">›</span></button>
+      </div>
+
       <p class="section-title">Design</p>
       <p class="page-sub" style="margin-top:-4px;">Stil und Farbe wählen — gilt pro Gerät.</p>
       <div class="form-wrap" style="padding-top:10px;">
@@ -1092,6 +1097,39 @@
     </div>
   </div>
 
+  <div id="calCategoriesModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:80vh; overflow-y:auto;">
+      <p class="section-title" style="padding:0 0 6px;">Kalender-Kategorien</p>
+      <p class="page-sub" style="padding:0 0 12px;">z. B. Geburtstage, Arzttermine, Urlaub — mit eigener Farbe und optionalem Symbol.</p>
+      <div id="calCategoriesList"></div>
+      <button type="button" class="btn" id="addCalCategoryBtn" style="margin-top:14px;">+ Neue Kategorie</button>
+      <button type="button" class="btn ghost" id="closeCalCategoriesBtn" style="margin-top:10px;">Schließen</button>
+    </div>
+  </div>
+
+  <div id="calCategoryEditModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:96; align-items:flex-end; justify-content:center;">
+    <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom));">
+      <p class="section-title" id="calCategoryEditTitle" style="padding:0 0 12px;">Neue Kategorie</p>
+      <div class="field">
+        <label for="calCategoryNameInput">Name</label>
+        <input type="text" id="calCategoryNameInput" placeholder="z. B. Geburtstage">
+      </div>
+      <div class="field">
+        <label for="calCategoryEmojiInput">Symbol (optional)</label>
+        <input type="text" id="calCategoryEmojiInput" placeholder="z. B. 🎂" maxlength="4">
+      </div>
+      <div class="field">
+        <label>Farbe</label>
+        <div id="calCategoryColorPalette"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost" id="cancelCalCategoryBtn">Abbrechen</button>
+        <button class="btn" id="saveCalCategoryBtn">Speichern</button>
+      </div>
+      <button type="button" class="link-btn" id="deleteCalCategoryBtn" style="margin-top:16px; color:var(--red); display:none;">Kategorie löschen</button>
+    </div>
+  </div>
+
   <div id="calAddModal" class="sheet-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:95; align-items:flex-end; justify-content:center;">
     <div style="background:var(--paper); width:100%; max-width:480px; border-radius:16px 16px 0 0; padding:20px; padding-bottom:calc(20px + var(--safe-bottom)); max-height:85vh; overflow-y:auto;">
       <p class="section-title" id="calModalTitle" style="padding:0 0 12px;">Neuer Termin</p>
@@ -1123,6 +1161,12 @@
           <option value="weekly">Wöchentlich</option>
           <option value="monthly">Monatlich</option>
           <option value="yearly">Jährlich</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="calCategoryInput">Kategorie (optional)</label>
+        <select id="calCategoryInput">
+          <option value="">— Keine —</option>
         </select>
       </div>
       <div class="field">
