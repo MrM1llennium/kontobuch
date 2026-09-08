@@ -66,7 +66,8 @@ Geplant, aber noch nicht implementiert: eine zentrale Verbindungs-Schicht zwisch
 2. **Shared bleibt dumm** – Code in `shared/` darf nichts über ein konkretes Modul wissen (keine `if(module==='finance')`-Verzweigungen in Shared-Code).
 3. **Jede Phase einzeln testbar** – Kein Umbauschritt, nach dem die App nicht mehr normal benutzbar wäre.
 4. **Kein Overengineering auf Vorrat** – Neue Architektur-Schichten (z. B. Connections) erst bauen, wenn ein konkretes Feature sie braucht, nicht spekulativ vorab.
+5. **Farbtrennung Signature vs. Forest/Lilac/Bubblegum (seit Redesign-Phase A)** – Neue *strukturelle* Design-Tokens (Radius/Schatten/Abstände, `--radius-*`/`--shadow-*`/`--space-*`/`--surface-*`) gehören theme-unabhängig in den `:root`-Block und gelten automatisch für alle vier Varianten. Neue oder geänderte *Farb*-Werte für die Casalo-Redesign-Optik gehören ausschließlich in den bestehenden `:root`-Block (= Signature). Die Blöcke `html[data-theme="forest"]`, `="lilac"`, `="bubblegum"` bleiben von Farb-Änderungen unberührt — das gilt dauerhaft für jede künftige Styling-Änderung, nicht nur für das aktuelle Redesign.
 
 ---
 
-*Stand: nach Phase 0 & Phase 1 (CSS-Auslagerung). JavaScript liegt weiterhin vollständig in `index.html`.*
+*Stand: Redesign Phase A abgeschlossen (neue Fundament-Tokens: Radius-/Schatten-/Abstands-Skala + Surface-Ebenen, theme-unabhängig; Signature-Basisfarben unverändert, da bereits vor dem Redesign mit der Spezifikation vereinbar). JavaScript liegt weiterhin modularisiert unter `js/`.*
