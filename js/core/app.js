@@ -295,17 +295,19 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
-    // Tabbar (falls vorhanden) kurz unsichtbar starten und dann
-    // einblenden — kaschiert ein Timing-Problem, bei dem sie beim
-    // allerersten Sichtbarwerden kurz falsch positioniert berechnet
-    // wird und sichtbar "nachspringt".
+    // Tabbar (falls vorhanden) sichtbar von oben "reinfahren" lassen.
+    // Klasse einfach setzen reicht bei einer echten @keyframes-
+    // Animation (siehe components.css) — kein Reflow-Timing-Trick
+    // nötig. Nach Ende wieder entfernen, damit die Animation beim
+    // nächsten Öffnen erneut sauber von vorne startet.
     var tabbarEl = document.querySelector('#screen-'+name+' .tabbar');
     if(tabbarEl){
+      tabbarEl.classList.remove('tabbar-entering');
+      void tabbarEl.offsetWidth; // Reflow erzwingen, falls Klasse gerade erst entfernt wurde
       tabbarEl.classList.add('tabbar-entering');
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){
-          tabbarEl.classList.remove('tabbar-entering');
-        });
+      tabbarEl.addEventListener('animationend', function handler(){
+        tabbarEl.classList.remove('tabbar-entering');
+        tabbarEl.removeEventListener('animationend', handler);
       });
     }
     if(name==='finance') switchView('overview', true);
