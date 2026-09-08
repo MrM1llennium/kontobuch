@@ -173,28 +173,29 @@
   }
 
   /* ============================================================
-     EINHEITLICHE STRUKTUR-BASIS (gilt für Forest & Lilac gleich)
-     Runde Ecken, weiche Schatten statt Doppellinien/gepunkteter
-     Trenner, durchgängige Systemschrift, ruhige Kartenoptik.
-     ============================================================ */
+     REDESIGN PHASE B — Bereinigung der alten "Struktur-Basis"
+     Der ursprüngliche Block hier versuchte, Radien/Schatten/Rahmen
+     für Tile/Card-Klassen zentral zu vereinheitlichen (aus einer
+     früheren Session, vor der CSS-Modularisierung in Phase 1).
+     Fund bei der Phase-B-Analyse: Seit der Datei-Aufteilung lädt
+     theme.css VOR den Modul-/Shared-Dateien — jede der dort erneut
+     deklarierten Regeln (z. B. `.tile{border:1px solid ...}` in
+     layout.css) gewinnt bei gleicher Spezifität automatisch durch
+     die spätere Ladereihenfolge. Der Block war dadurch für Tile/
+     Card/Button/Input-Radien faktisch wirkungslos (geprüft: `.btn`,
+     `.field input`, `.type-switch`, `.tile`, `.today-card`,
+     `.note-card`, `.cal-card`, `.rec-card`, `.budget-card`,
+     `.goal-card`, `.meal-day` — alle mit eigener, später ladender
+     Radius-/Rahmen-Deklaration in ihrer jeweiligen Datei).
+     Redesign-Phase B ersetzt das jetzt korrekt: jede Karte bekommt
+     die neuen Tokens aus Phase A direkt in ihrer eigenen Datei.
+     Nur zwei Regeln waren nicht betroffen (höhere Spezifität an
+     anderer Stelle bzw. keine widersprechende Regel) und bleiben
+     hier bestehen: */
   .tile-name, .screen-title, h1, .page-title, .brand{
     font-family:-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
   }
-  .tile, .today-card, .budget-card, .goal-card, .note-card,
-  .cal-card, .rec-card, .meal-day, .simple-row, .push-banner{
-    border:none;
-    border-radius:18px;
-    box-shadow:0 1px 2px rgba(0,0,0,.04), 0 2px 10px rgba(0,0,0,.05);
-  }
-  .simple-row{ border-radius:0; box-shadow:none; }
-  .btn{ border-radius:14px; }
-  .type-switch, .mode-switch{ border-radius:14px; overflow:hidden; border-color:var(--line); }
-  .field input, .field select, .field textarea{ border-radius:12px; }
-  .row, .today-row, .meal-entry, .ingredient-select-row{
-    border-top-style:solid;
-  }
   .rdate{ font-weight:400; }
-  .check{ border-radius:50%; }
 
   /* Kurze, dezente Übergangsanimation beim Theme-Wechsel */
   html, body, #app, .topbar, .tabbar, .tile, .btn,
