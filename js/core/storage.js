@@ -105,6 +105,7 @@
       lastFailureWasLoad = false;
       hideSaveBanner();
       cacheStateLocally();
+      showSaveToast();
       return true;
     } catch(e){
       savePending = false;
@@ -113,6 +114,14 @@
       showSaveBanner("Nicht in der Cloud gespeichert (evtl. keine Verbindung). Änderung bleibt vorerst nur auf diesem Gerät sichtbar.");
       return false;
     }
+  }
+  var saveToastTimer = null;
+  function showSaveToast(){
+    var t = document.getElementById('saveToast');
+    if(!t) return;
+    t.style.display = 'flex';
+    if(saveToastTimer) clearTimeout(saveToastTimer);
+    saveToastTimer = setTimeout(function(){ t.style.display = 'none'; }, 1600);
   }
 
   function applyRemoteState(newData){
