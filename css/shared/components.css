@@ -92,10 +92,24 @@
      am unteren Rand — dadurch auch kein Bottom-Padding an den .view-
      Containern mehr nötig (siehe layout.css).
      ================================================================== */
+  .tabbar-clip{
+    overflow:hidden;
+  }
   .tabbar{
     display:flex; gap:2px;
     padding:2px 10px 0; margin-bottom:2px;
     border-bottom:1px solid var(--line);
+    transition: transform .32s cubic-bezier(0.16,1,0.3,1);
+  }
+  /* Beim Öffnen eines Moduls fährt die Tab-Leiste sichtbar von oben
+     rein (Ausgangsposition: eine eigene Höhe nach oben verschoben,
+     vom umgebenden .tabbar-clip sauber abgeschnitten), statt einfach
+     einzublenden. Kaschiert nebenbei ein Timing-Problem, bei dem sie
+     beim allerersten Sichtbarwerden kurz falsch positioniert berechnet
+     wird und sichtbar "nachspringt" — passiert jetzt während sie
+     ohnehin verdeckt ist. */
+  .tabbar.tabbar-entering{
+    transform: translateY(-100%);
   }
   .tabbar button{
     flex:1; min-width:0; background:none; border:none; cursor:pointer;
