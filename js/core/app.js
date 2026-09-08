@@ -250,6 +250,7 @@
   document.querySelectorAll('[data-back]').forEach(function(b){
     b.addEventListener('click', goHome);
   });
+
   function goHome(){
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('screen-home').classList.add('active');
