@@ -83,19 +83,34 @@
   .link-btn:active{ background:var(--brass-soft); }
 
   /* ---------- Tabbar ---------- */
+  /* ==================================================================
+     REDESIGN PHASE F — Modulnavigation: ruhige Textnavigation statt
+     fixer Bottom-Icon-Leiste (Spezifikation Abschnitt 31: "Tabs sind
+     Navigation, keine Buttons"). Betrifft Finanzen UND Essensplan
+     gemeinsam, da beide dieselbe .tabbar-Klasse nutzen. Sitzt jetzt
+     im normalen Fluss direkt unter dem Screen-Header, nicht mehr fest
+     am unteren Rand — dadurch auch kein Bottom-Padding an den .view-
+     Containern mehr nötig (siehe layout.css).
+     ================================================================== */
   .tabbar{
-    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-    width:100%; max-width:480px;
-    display:flex; background:var(--paper-raised); border-top:1px solid var(--line);
-    padding-bottom:var(--safe-bottom);
-    box-shadow:0 -2px 12px rgba(0,0,0,.04);
+    display:flex; gap:22px;
+    padding:2px 20px 0; margin-bottom:2px;
+    border-bottom:1px solid var(--line);
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
   }
   .tabbar button{
-    flex:1; background:none; border:none; padding:10px 4px 8px; cursor:pointer;
-    display:flex; flex-direction:column; align-items:center; gap:4px;
-    color:var(--ink-soft); font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:10.5px;
+    flex:none; background:none; border:none; cursor:pointer;
+    padding:12px 0 11px; position:relative; white-space:nowrap;
+    display:flex; align-items:center; gap:0;
+    color:var(--ink-soft); font-weight:500;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:14px;
   }
-  .tabbar button.active{ color:var(--brass); }
+  .tabbar button svg{ display:none; }
+  .tabbar button.active{ color:var(--ink); font-weight:600; }
+  .tabbar button.active::after{
+    content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px;
+    background:var(--brass); border-radius:2px;
+  }
   .tabbar svg{ width:21px; height:21px; }
 
   h2.page-title{ font-size:16px; padding:18px 20px 4px; margin:0; color:var(--ink); }
