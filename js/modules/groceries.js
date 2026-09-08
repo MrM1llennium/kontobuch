@@ -604,14 +604,54 @@
       '</div>';
     }).join('');
     el.querySelectorAll('[data-recipe]').forEach(function(c){
-      c.addEventListener('click', function(){ openRecipeEdit(c.getAttribute('data-recipe')); });
+      c.addEventListener('click', function(){ openRecipeView(c.getAttribute('data-recipe')); });
     });
   }
   document.getElementById('recipeSearchInput').addEventListener('input', renderRecipeList);
   document.getElementById('newRecipeBtn').addEventListener('click', function(){ openRecipeEdit(null); });
 
+  /* ---- Rezept-Ansicht (nur lesen) ---- */
+  var viewingRecipeId = null;
+  function openRecipeView(id){
+    var r = state.recipes.find(function(x){ return x.id===id; });
+    if(!r) return;
+    viewingRecipeId = id;
+    document.getElementById('recipeViewName').textContent = r.name || '';
+    var ingredients = r.ingredients || [];
+    var ingredientsEl = document.getElementById('recipeViewIngredients');
+    if(ingredients.length===0){
+      ingredientsEl.innerHTML = '<p class="empty">Keine Zutaten hinterlegt.</p>';
+    } else {
+      ingredientsEl.innerHTML = ingredients.map(function(ing){
+        return '<div class="simple-row"><div class="stext"><div class="stitle">'+
+          (ing.amount ? '<span class="num" style="color:var(--ink-soft); margin-right:8px;">'+escapeHtml(ing.amount)+'</span>' : '')+
+          escapeHtml(ing.name)+'</div></div></div>';
+      }).join('');
+    }
+    document.getElementById('recipeViewInstructions').textContent = r.instructions || 'Keine Zubereitungsschritte hinterlegt.';
+    document.getElementById('view-mealweek').classList.remove('active');
+    document.getElementById('view-mealrecipes').classList.remove('active');
+    document.getElementById('mealTabbar').style.display = 'none';
+    document.getElementById('recipeViewView').style.display = 'flex';
+    document.getElementById('recipeViewView').style.flexDirection = 'column';
+    document.getElementById('recipeViewView').style.minHeight = '100vh';
+    window.scrollTo(0, 0);
+  }
+  function closeRecipeView(){
+    viewingRecipeId = null;
+    document.getElementById('recipeViewView').style.display = 'none';
+    document.getElementById('mealTabbar').style.display = 'flex';
+    switchMealView('recipes');
+  }
+  document.getElementById('backFromRecipeViewBtn').addEventListener('click', closeRecipeView);
+  document.getElementById('editRecipeFromViewBtn').addEventListener('click', function(){
+    openRecipeEdit(viewingRecipeId);
+  });
+
+  var recipeEditReturnTo = 'list';
   function openRecipeEdit(id){
     editingRecipeId = id;
+    recipeEditReturnTo = id ? 'view' : 'list';
     var r = id ? state.recipes.find(function(x){ return x.id===id; }) : { name:'', ingredients:[], instructions:'' };
     currentRecipeIngredients = (r.ingredients || []).slice();
     document.getElementById('recipeNameInput').value = r.name || '';
@@ -621,15 +661,24 @@
     renderIngredientEditList();
     document.getElementById('view-mealweek').classList.remove('active');
     document.getElementById('view-mealrecipes').classList.remove('active');
+    document.getElementById('recipeViewView').style.display = 'none';
     document.getElementById('mealTabbar').style.display = 'none';
     document.getElementById('recipeEditView').style.display = 'block';
     document.getElementById('deleteRecipeBtn').style.display = id ? 'block' : 'none';
+    window.scrollTo(0, 0);
   }
   function closeRecipeEdit(){
+    var wasEditingId = editingRecipeId;
+    var returnTo = recipeEditReturnTo;
     editingRecipeId = null;
     document.getElementById('recipeEditView').style.display = 'none';
-    document.getElementById('mealTabbar').style.display = 'flex';
-    switchMealView('recipes');
+    var stillExists = wasEditingId && state.recipes.some(function(x){ return x.id===wasEditingId; });
+    if(returnTo==='view' && stillExists){
+      openRecipeView(wasEditingId);
+    } else {
+      document.getElementById('mealTabbar').style.display = 'flex';
+      switchMealView('recipes');
+    }
   }
   function renderIngredientEditList(){
     var el = document.getElementById('recipeIngredientsList');
