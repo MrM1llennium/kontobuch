@@ -13,6 +13,26 @@
 
   var CURRENT_USER_KEY = 'kontobuch-current-user-id';
 
+  /* ==================================================================
+     FINETUNING RUNDE 1, Punkt 8 — Tippen außerhalb schließt Pop-ups.
+     Generisch für alle .sheet-modal-Elemente: Klick auf den Hinter-
+     grund (nicht auf den Inhalt selbst) schließt das Sheet. Sheets
+     mit echten Formularen, bei denen versehentliches Schließen Ein-
+     gaben verlieren könnte, oder mit kritischen Aktionen, tragen das
+     Attribut data-protect-close und sind davon ausgenommen — dort
+     bleibt der bisherige, bewusste Weg über die eigenen Buttons
+     (Abbrechen/Speichern) die einzige Schließen-Möglichkeit.
+     .center-modal (kritische Bestätigungen) ist grundsätzlich nicht
+     betroffen.
+     ================================================================== */
+  document.querySelectorAll('.sheet-modal').forEach(function(modal){
+    if(modal.hasAttribute('data-protect-close')) return;
+    modal.addEventListener('click', function(e){
+      if(e.target === modal){ modal.style.display = 'none'; }
+    });
+  });
+
+
   // Zentraler Fix für ALLE Pop-ups (Buchung, Termin, To-Do, Notiz, ...):
   // Öffnet sich eins mit einem Texteingabefeld, schiebt die mobile
   // Tastatur die Ansicht nach oben — beim Schließen des Pop-ups springt
@@ -244,8 +264,17 @@
 
   /* ================= Navigation: Home <-> Module ================= */
   var currentScreen = 'home';
+  /* Merkt sich, von welcher Dashboard-Ansicht (Heute/Mein Casalo) aus
+     ein Modul geöffnet wurde, damit "Zurück" gezielt zu genau dieser
+     Ansicht zurückkehrt statt pauschal immer zu Heute (Finetuning
+     Punkt 5). Nutzt bewusst dashCurrentPage aus dashboard.js weiter,
+     statt eine eigene parallele Zustandsverwaltung aufzubauen. */
+  var moduleReturnDashPage = 'today';
   document.querySelectorAll('.tile').forEach(function(t){
-    t.addEventListener('click', function(){ openModule(t.getAttribute('data-module')); });
+    t.addEventListener('click', function(){
+      moduleReturnDashPage = (typeof dashCurrentPage!=='undefined' && dashCurrentPage) ? dashCurrentPage : 'today';
+      openModule(t.getAttribute('data-module'));
+    });
   });
   document.querySelectorAll('[data-back]').forEach(function(b){
     b.addEventListener('click', goHome);
@@ -258,7 +287,7 @@
     window.scrollTo(0, 0);
     updateSidebarActive();
     renderTodayOverview();
-    if(typeof setDashboardPage === 'function') setDashboardPage('today', { animate: false });
+    if(typeof setDashboardPage === 'function') setDashboardPage(moduleReturnDashPage || 'today', { animate: false });
   }
   function openModule(name){
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });

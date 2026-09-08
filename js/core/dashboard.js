@@ -177,6 +177,12 @@
         pager.style.transition = '';
       }
     }
+    var headerToday = document.getElementById('dashHeaderToday');
+    var headerModules = document.getElementById('dashHeaderModules');
+    if(headerToday && headerModules){
+      headerToday.classList.toggle('active', page==='today');
+      headerModules.classList.toggle('active', page==='modules');
+    }
     updateFloatingSwitchLabel();
     // Beim Wechsel zeigt der Floating Switch wieder seine volle Pillen-
     // Form (neuer Kontext, neue Scrollposition oben).
@@ -185,8 +191,30 @@
 
   function updateFloatingSwitchLabel(){
     var label = document.querySelector('#dashFloatingSwitch .dfs-label');
+    var iconModules = document.querySelector('#dashFloatingSwitch .dfs-icon-modules');
+    var iconToday = document.querySelector('#dashFloatingSwitch .dfs-icon-today');
     if(!label) return;
-    label.textContent = dashCurrentPage==='today' ? 'Mein Casalo' : 'Heute';
+    var newText = dashCurrentPage==='today' ? 'Mein Casalo' : 'Heute';
+    if(label.textContent === newText) return; // nichts zu tun, kein unnötiges Überblenden
+    // Zeigt bewusst das ZIEL, nicht die aktuelle Ansicht (Spezifikation
+    // Finetuning Punkt 10): auf "Heute" -> Ziel ist "Mein Casalo"
+    // (Raster-Symbol), auf "Mein Casalo" -> Ziel ist "Heute" (Sonne).
+    // Text und Icon wechseln als weiches Überblenden statt eines
+    // harten Sprungs (Finetuning Punkt 9): kurz ausblenden, Inhalt
+    // austauschen, wieder einblenden.
+    label.classList.add('dfs-label-fading');
+    if(iconModules && iconToday){
+      iconModules.classList.remove('active');
+      iconToday.classList.remove('active');
+    }
+    setTimeout(function(){
+      label.textContent = newText;
+      label.classList.remove('dfs-label-fading');
+      if(iconModules && iconToday){
+        iconModules.classList.toggle('active', dashCurrentPage==='today');
+        iconToday.classList.toggle('active', dashCurrentPage!=='today');
+      }
+    }, 160);
   }
 
   function setFloatingSwitchCompact(compact){
