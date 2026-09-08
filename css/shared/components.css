@@ -113,7 +113,7 @@
   }
   .simple-row .check.done{ background:var(--brass); }
   .simple-row .stext{ flex:1; min-width:0; }
-  .simple-row .stitle{ font-size:15px; color:var(--ink); }
+  .simple-row .stitle{ font-size:var(--text-primary-size); color:var(--ink); }
   .cat-badge{
     font-size:10.5px; padding:3px 9px; border-radius:10px; flex-shrink:0;
     background:var(--paper-dark); color:var(--ink-soft); border:none; cursor:pointer;
@@ -121,7 +121,7 @@
   .cat-pick-row{ cursor:pointer; }
   .cat-pick-row.selected{ background:var(--brass-soft); }
   .simple-row .stitle.done{ text-decoration:line-through; color:var(--ink-soft); }
-  .simple-row .ssub{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .simple-row .ssub{ font-size:var(--text-meta-size); color:var(--ink-soft); margin-top:2px; }
   .simple-row .sdel{ border:none; background:none; color:var(--ink-soft); opacity:.45; font-size:17px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
 
   /* ---------- Karten-Grundmuster (Notizen/Projekte/Rezepte) ---------- */
@@ -129,8 +129,8 @@
     margin:0 20px 12px; padding:14px 16px; background:var(--surface-2);
     border:none; border-radius:var(--radius-md); box-shadow:var(--shadow-card); cursor:pointer;
   }
-  .note-card .ntitle{ font-size:15px; margin-bottom:4px; }
-  .note-card .nsnippet{ font-size:12.5px; color:var(--ink-soft); line-height:1.4;
+  .note-card .ntitle{ font-size:var(--text-primary-size); margin-bottom:4px; }
+  .note-card .nsnippet{ font-size:var(--text-meta-size); color:var(--ink-soft); line-height:1.4;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 
   .push-banner{
