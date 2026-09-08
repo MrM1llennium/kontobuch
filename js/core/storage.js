@@ -82,6 +82,7 @@
     if(!state.todos) state.todos = [];
     if(!state.notes) state.notes = [];
     if(!state.calendar) state.calendar = [];
+    if(!state.calendarCategories) state.calendarCategories = [];
     if(!state.users) state.users = [];
     if(!state.recipes) state.recipes = [];
     if(!state.mealPlan) state.mealPlan = [];
