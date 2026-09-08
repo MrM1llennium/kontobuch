@@ -149,7 +149,7 @@
 
 
   /* ---------- Views ---------- */
-  .view{ display:none; flex:1; overflow-y:auto; padding-bottom:96px; }
+  .view{ display:none; flex:1; overflow-y:auto; padding-bottom:30px; }
   .view.active{ display:block; }
   .module-body{ flex:1; overflow-y:auto; padding-bottom:30px; }
 
