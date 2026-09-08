@@ -12,16 +12,16 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <title>Home Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/core/theme.css?v=20260908d">
-<link rel="stylesheet" href="css/core/base.css?v=20260908d">
-<link rel="stylesheet" href="css/core/layout.css?v=20260908d">
-<link rel="stylesheet" href="css/shared/components.css?v=20260908d">
-<link rel="stylesheet" href="css/modules/finance.css?v=20260908d">
-<link rel="stylesheet" href="css/modules/calendar.css?v=20260908d">
-<link rel="stylesheet" href="css/modules/todos.css?v=20260908d">
-<link rel="stylesheet" href="css/modules/groceries.css?v=20260908d">
-<link rel="stylesheet" href="css/modules/projects.css?v=20260908d">
-<link rel="stylesheet" href="css/modules/notes.css?v=20260908d">
+<link rel="stylesheet" href="css/core/theme.css?v=20260908e">
+<link rel="stylesheet" href="css/core/base.css?v=20260908e">
+<link rel="stylesheet" href="css/core/layout.css?v=20260908e">
+<link rel="stylesheet" href="css/shared/components.css?v=20260908e">
+<link rel="stylesheet" href="css/modules/finance.css?v=20260908e">
+<link rel="stylesheet" href="css/modules/calendar.css?v=20260908e">
+<link rel="stylesheet" href="css/modules/todos.css?v=20260908e">
+<link rel="stylesheet" href="css/modules/groceries.css?v=20260908e">
+<link rel="stylesheet" href="css/modules/projects.css?v=20260908e">
+<link rel="stylesheet" href="css/modules/notes.css?v=20260908e">
 </head>
 <body>
 
@@ -107,60 +107,80 @@
 
   <!-- ============ HOME ============ -->
   <div class="screen active" id="screen-home">
-    <div class="topbar">
-      <div class="top-controls">
-        <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-        </button>
+    <div class="dash-pager" id="dashPager">
+
+      <div class="dash-page" id="dashPageToday">
+        <div class="topbar">
+          <div class="top-controls">
+            <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+          </div>
+          <p class="brand">HOME HUB</p>
+          <h1>Dashboard</h1>
+          <p class="dash-subline" id="dashTodayDate"></p>
+        </div>
+        <div class="today-card">
+          <p class="section-title" style="padding:16px 20px 8px; display:flex; align-items:center; gap:7px;">
+            <svg class="today-sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:23px; height:23px; flex-shrink:0;"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+            <img class="kawaii-icon today-sun-kawaii" src="kawaii-sun.png" alt="" style="width:34px; height:34px; object-fit:contain; flex-shrink:0;">
+            Heute
+          </p>
+          <div id="todayOverview"></div>
+        </div>
       </div>
-      <p class="brand">HOME HUB</p>
-      <h1>Dashboard</h1>
+
+      <div class="dash-page" id="dashPageModules">
+        <div class="topbar">
+          <div class="top-controls">
+            <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            </button>
+          </div>
+          <p class="brand">HOME HUB</p>
+          <h1>Mein Casalo</h1>
+          <p class="dash-subline">Deine Bereiche</p>
+        </div>
+        <div class="tile-grid">
+          <button class="tile tile-hero" data-module="finance">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
+            <img class="kawaii-icon" src="kawaii-finance.png" alt="">
+            <div><div class="tile-name">Finanzen</div><div class="tile-sub">Budget & Sparen</div></div>
+          </button>
+          <button class="tile" data-module="calendar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
+            <img class="kawaii-icon" src="kawaii-calendar.png" alt="">
+            <div><div class="tile-name">Kalender</div><div class="tile-sub">Termine</div></div>
+          </button>
+          <button class="tile" data-module="todos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>
+            <img class="kawaii-icon" src="kawaii-todos.png" alt="">
+            <div><div class="tile-name">To-Dos</div><div class="tile-sub">Aufgaben</div></div>
+          </button>
+          <button class="tile" data-module="mealplan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v7M4 3v4a3 3 0 0 0 6 0V3M7 10v11M15 13c0-4 2-8 4-9v17M15 13a4 2 0 0 0 4 2"/></svg>
+            <img class="kawaii-icon" src="kawaii-mealplan.png" alt="">
+            <div><div class="tile-name">Lebensmittel</div><div class="tile-sub">Einkauf, Vorrat & Rezepte</div></div>
+          </button>
+          <button class="tile" data-module="projects">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c4 4 5 9 5 14v2H7v-2c0-5 1-10 5-14Z"/><path d="M7 15l-4 4 4 1 1 4 4-4"/><path d="M17 15l4 4-4 1-1 4-4-4"/><circle cx="12" cy="10" r="2"/></svg>
+            <img class="kawaii-icon" src="kawaii-projects.png" alt="">
+            <div><div class="tile-name">Projekte</div><div class="tile-sub">Urlaube & Anschaffungen</div></div>
+          </button>
+          <button class="tile" data-module="notes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M15 3v5h5"/></svg>
+            <img class="kawaii-icon" src="kawaii-notes.png" alt="">
+            <div><div class="tile-name">Notizen</div><div class="tile-sub">Festhalten</div></div>
+          </button>
+        </div>
+      </div>
+
     </div>
-    <div class="today-card">
-      <p class="section-title" style="padding:16px 20px 8px; display:flex; align-items:center; gap:7px;">
-        <svg class="today-sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:23px; height:23px; flex-shrink:0;"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
-        <img class="kawaii-icon today-sun-kawaii" src="kawaii-sun.png" alt="" style="width:34px; height:34px; object-fit:contain; flex-shrink:0;">
-        Heute
-      </p>
-      <div id="todayOverview"></div>
-    </div>
-    <div class="tile-grid">
-      <button class="tile tile-hero" data-module="finance">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>
-        <img class="kawaii-icon" src="kawaii-finance.png" alt="">
-        <div><div class="tile-name">Finanzen</div><div class="tile-sub">Budget & Sparen</div></div>
-      </button>
-      <button class="tile" data-module="calendar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>
-        <img class="kawaii-icon" src="kawaii-calendar.png" alt="">
-        <div><div class="tile-name">Kalender</div><div class="tile-sub">Termine</div></div>
-      </button>
-      <button class="tile" data-module="todos">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>
-        <img class="kawaii-icon" src="kawaii-todos.png" alt="">
-        <div><div class="tile-name">To-Dos</div><div class="tile-sub">Aufgaben</div></div>
-      </button>
-      <button class="tile" data-module="mealplan">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v7M4 3v4a3 3 0 0 0 6 0V3M7 10v11M15 13c0-4 2-8 4-9v17M15 13a4 2 0 0 0 4 2"/></svg>
-        <img class="kawaii-icon" src="kawaii-mealplan.png" alt="">
-        <div><div class="tile-name">Lebensmittel</div><div class="tile-sub">Einkauf, Vorrat & Rezepte</div></div>
-      </button>
-      <button class="tile" data-module="projects">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c4 4 5 9 5 14v2H7v-2c0-5 1-10 5-14Z"/><path d="M7 15l-4 4 4 1 1 4 4-4"/><path d="M17 15l4 4-4 1-1 4-4-4"/><circle cx="12" cy="10" r="2"/></svg>
-        <img class="kawaii-icon" src="kawaii-projects.png" alt="">
-        <div><div class="tile-name">Projekte</div><div class="tile-sub">Urlaube & Anschaffungen</div></div>
-      </button>
-      <button class="tile" data-module="notes">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M15 3v5h5"/></svg>
-        <img class="kawaii-icon" src="kawaii-notes.png" alt="">
-        <div><div class="tile-name">Notizen</div><div class="tile-sub">Festhalten</div></div>
-      </button>
-      <button class="tile" data-module="settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg>
-        <img class="kawaii-icon" src="kawaii-settings.png" alt="">
-        <div><div class="tile-name">Einstellungen</div><div class="tile-sub">Nutzer & Daten</div></div>
-      </button>
-    </div>
+
+    <button type="button" class="dash-floating-switch" id="dashFloatingSwitch" aria-label="Zu Mein Casalo wechseln">
+      <svg class="dfs-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span class="dfs-label">Mein Casalo</span>
+    </button>
   </div>
 
   <!-- ============ MEAL PLAN MODULE ============ -->
@@ -1215,16 +1235,17 @@
 
 </div>
 
-<script src="js/core/state.js?v=20260908d"></script>
-<script src="js/shared/utils.js?v=20260908d"></script>
-<script src="js/shared/ui.js?v=20260908d"></script>
-<script src="js/core/storage.js?v=20260908d"></script>
-<script src="js/core/app.js?v=20260908d"></script>
-<script src="js/modules/finance.js?v=20260908d"></script>
-<script src="js/modules/calendar.js?v=20260908d"></script>
-<script src="js/modules/todos.js?v=20260908d"></script>
-<script src="js/modules/groceries.js?v=20260908d"></script>
-<script src="js/modules/projects.js?v=20260908d"></script>
-<script src="js/modules/notes.js?v=20260908d"></script>
+<script src="js/core/state.js?v=20260908e"></script>
+<script src="js/shared/utils.js?v=20260908e"></script>
+<script src="js/shared/ui.js?v=20260908e"></script>
+<script src="js/core/storage.js?v=20260908e"></script>
+<script src="js/core/app.js?v=20260908e"></script>
+<script src="js/core/dashboard.js?v=20260908e"></script>
+<script src="js/modules/finance.js?v=20260908e"></script>
+<script src="js/modules/calendar.js?v=20260908e"></script>
+<script src="js/modules/todos.js?v=20260908e"></script>
+<script src="js/modules/groceries.js?v=20260908e"></script>
+<script src="js/modules/projects.js?v=20260908e"></script>
+<script src="js/modules/notes.js?v=20260908e"></script>
 </body>
 </html>
