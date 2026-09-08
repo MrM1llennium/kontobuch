@@ -15,6 +15,21 @@
     top:0;
     z-index:80;
   }
+  /* ==================================================================
+     REDESIGN FINETUNING — Header + Tabbar gemeinsam fixiert.
+     Für Screens mit Tab-Navigation (Finanzen, Lebensmittel) werden
+     Topbar und Tabbar in .screen-header gebündelt, damit sie beim
+     vertikalen Scrollen des Contents zusammen fixiert bleiben, statt
+     dass nur die Topbar sticky ist und die Tabbar mit wegscrollt.
+     Die Topbar wird innerhalb des Wrappers auf static gesetzt — das
+     Sticky-Verhalten übernimmt der Wrapper als Ganzes (verhindert
+     verschachteltes Sticky-Verhalten zweier Ebenen übereinander).
+     ================================================================== */
+  .screen-header{
+    position:sticky; top:0; z-index:80;
+    background:var(--paper);
+  }
+  .screen-header .topbar{ position:static; }
   .brand{
     font-size:13px;
     letter-spacing:.04em;
@@ -76,9 +91,8 @@
   .today-row .tamt.income{ color:var(--green); }
   .today-row .tamt.expense{ color:var(--red); }
   .today-card .empty{ padding:6px 16px 16px; text-align:left; }
-  .tile.tile-hero{ grid-column:1 / span 2; flex-direction:row; align-items:center; padding:18px 18px; }
-  .tile.tile-hero svg{ width:32px; height:32px; }
-  .tile.tile-hero .tile-name{ font-size:var(--text-primary-size); font-weight:400; }
+  /* .tile-hero entfernt (Finetuning Runde 1, Punkt 6) — alle sechs
+     Module sind jetzt gleich groß, 2×3-Raster ohne Hervorhebung. */
   .tile{
     background:var(--surface-2); border:none; border-radius:var(--radius-md);
     box-shadow:var(--shadow-card);
@@ -92,15 +106,31 @@
   .tile-sub{ font-size:var(--text-meta-size); color:var(--ink-soft); margin-top:6px; }
 
   /* ==================================================================
-     REDESIGN PHASE C — Dashboard: zwei horizontale Ansichten
-     (Heute <-> Mein Casalo), Swipe + Floating Switch.
-     Siehe Spezifikation Abschnitt 14–17.
+     REDESIGN PHASE C / FINETUNING RUNDE 1 — Dashboard: zwei
+     horizontale Ansichten (Heute <-> Mein Casalo), Swipe + Floating
+     Switch. Header liegt jetzt AUSSERHALB des Pagers (eigenes,
+     stabiles Element) und swipt dadurch nicht mehr optisch mit —
+     nur sein Textinhalt blendet weich zwischen den beiden Zuständen
+     über (siehe .dash-header-crossfade).
      ================================================================== */
   #screen-home.active{
     height:100vh; min-height:100vh; overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .dash-fixed-header{ flex-shrink:0; position:relative; z-index:80; }
+  .dash-header-crossfade{ position:relative; min-height:52px; }
+  .dash-header-text{
+    position:absolute; top:0; left:0; right:0;
+    opacity:0; transform:translateY(4px);
+    transition: opacity .28s ease, transform .28s ease;
+    pointer-events:none;
+  }
+  .dash-header-text.active{
+    position:relative; opacity:1; transform:translateY(0);
+    pointer-events:auto;
   }
   .dash-pager{
-    display:flex; width:200%; height:100%;
+    display:flex; width:200%; flex:1; min-height:0;
     transition: transform .38s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform;
   }
@@ -131,14 +161,28 @@
     font-size:13.5px; font-weight:600; letter-spacing:.01em;
     font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
     cursor:pointer; z-index:60;
-    transition: padding .32s cubic-bezier(0.16,1,0.3,1);
+    transition: padding .36s cubic-bezier(0.16,1,0.3,1), background-color .3s ease;
   }
   .dash-floating-switch:active{ transform:translateX(-50%) scale(0.97); }
-  .dash-floating-switch .dfs-icon{ width:19px; height:19px; flex-shrink:0; }
+  .dash-floating-switch .dfs-icon-wrap{ position:relative; width:19px; height:19px; flex-shrink:0; }
+  .dash-floating-switch .dfs-icon{
+    position:absolute; top:0; left:0; width:19px; height:19px;
+    opacity:0; transform:scale(.82) rotate(-8deg);
+    transition: opacity .26s ease, transform .32s cubic-bezier(0.16,1,0.3,1);
+  }
+  .dash-floating-switch .dfs-icon.active{ opacity:1; transform:scale(1) rotate(0); }
   .dash-floating-switch .dfs-label{
     white-space:nowrap; overflow:hidden; max-width:160px;
-    transition: max-width .32s cubic-bezier(0.16,1,0.3,1), opacity .2s ease, margin-left .32s ease;
+    transition: max-width .36s cubic-bezier(0.16,1,0.3,1), opacity .22s ease, margin-left .36s ease;
     opacity:1; margin-left:0;
+  }
+  /* Textwechsel selbst (nicht die Kompakt-Transformation) läuft über
+     diese Klasse kurz auf 0 und wieder auf 1 — das JS tauscht den
+     Text genau in dem Moment aus, in dem die Deckkraft bei 0 steht,
+     dadurch wirkt der Wechsel wie ein weiches Überblenden statt eines
+     harten Sprungs (Finetuning Punkt 9). */
+  .dash-floating-switch .dfs-label.dfs-label-fading{
+    opacity:0; transition: opacity .16s ease;
   }
   .dash-floating-switch.compact{
     padding:13px;
@@ -150,6 +194,35 @@
 
   /* ---------- Views ---------- */
   .view{ display:none; flex:1; overflow-y:auto; padding-bottom:30px; }
+
+  /* ==================================================================
+     FINETUNING RUNDE 1, Punkt 7 — Tabs zusätzlich per Swipe wechselbar.
+     Gleiches Grundprinzip wie beim Dashboard-Pager (Phase C): ein
+     breiterer Flex-Container mit allen Tab-Inhalten nebeneinander,
+     .active bestimmt weiterhin den Stand für die JS-Logik, die
+     tatsächliche Sichtbarkeit läuft aber über die Transform-Position
+     des Pagers. Innerhalb des Pagers werden alle .view-Kinder immer
+     dargestellt (nicht mehr über display:none gesteuert), jede Seite
+     scrollt für sich selbst.
+     ================================================================== */
+  .tab-pager{
+    display:flex; flex:1; min-height:0;
+    transition: transform .34s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+  .tab-pager > .view{
+    display:flex !important; flex-direction:column; flex-shrink:0;
+    width:100%; height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  }
+  /* Aktiver Unterstrich der Tabbar als echtes, animierbares Element
+     statt eines statischen ::after — kann so während des Swipes live
+     mitgleiten statt nur beim Tap hart umzuspringen. */
+  .tabbar{ position:relative; }
+  .tab-indicator{
+    position:absolute; bottom:-1px; height:2px; background:var(--brass);
+    border-radius:2px; transition: left .3s cubic-bezier(0.16,1,0.3,1), width .3s cubic-bezier(0.16,1,0.3,1);
+  }
+  .tab-indicator.dragging{ transition:none; }
   .view.active{ display:block; }
   .module-body{ flex:1; overflow-y:auto; padding-bottom:30px; }
 

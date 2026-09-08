@@ -17,21 +17,25 @@
      Namen darunter zeigen einfach auf dieselben Werte.
      ================================================================== */
   :root{
-    /* Signature ✨ — Standard-Theme, abgeleitet aus den Farben des
-       App-Icons (Creme-Kachel + dunkle Vorder-Welle). Header/Sidebar
-       tragen bewusst den dunklen Wellenton, der Rest bleibt hell/cremig. */
-    --paper:#FAF6F2;
+    /* Signature ✨ — Redesign-Farbwelt (Finetuning Runde 1): deutlich
+       heller und weißbasierter als die ursprüngliche Version. Header/
+       Sidebar tragen jetzt KEINEN dunklen Vollton mehr, sondern fügen
+       sich in dieselbe helle, ruhige Oberfläche ein wie der Rest der
+       App — nur noch über feine Tonwert-Unterschiede voneinander
+       abgesetzt (Ebene 1–4 bleiben unterscheidbar, nur eben alle im
+       hellen Bereich statt einem harten Hell/Dunkel-Kontrast). */
+    --paper:#FAFAF8;
     --paper-raised:#FFFFFF;
-    --paper-dark:#F0E7DE;
+    --paper-dark:#F2F0EB;
     --ink:#2B2826;
     --ink-soft:#8C8078;
-    --line:#E8DED2;
+    --line:#EDE8E1;
     --red:#C1543F;
     --red-soft:#F6E3DD;
     --green:#4C8F6C;
     --green-soft:#E3F0E7;
     --brass:#3D3936;
-    --brass-soft:#E7E0D8;
+    --brass-soft:#EDEAE4;
     --brass-strong:#211E1C;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-top: env(safe-area-inset-top, 0px);
@@ -56,11 +60,11 @@
     --color-danger: var(--red);
     --color-info: #3E7CB1;
 
-    /* Header/Sidebar tragen bei Signature den dunklen Wellenton direkt
-       als Vollton (kein zartes Wasch), nicht nur eine Tönung. */
-    --header-tint: #3A3633;
-    --header-tint-deep: #2E2B29;
-    --sidebar-tint: #46413D;
+    /* Header/Sidebar bei Signature jetzt hell statt als dunkler
+       Vollton — fast weiß, minimal von der Hauptfläche abgesetzt. */
+    --header-tint: #FFFFFF;
+    --header-tint-deep: #F5F3EF;
+    --sidebar-tint: #FCFBF9;
   }
 
   /* ==================================================================
@@ -221,14 +225,23 @@
                 background-color .22s ease, color .22s ease;
   }
 
-  /* Subtiles Touch-Feedback (leichtes Eindrücken) für tappbare Elemente */
+  /* Subtiles Touch-Feedback (leichtes Eindrücken) für tappbare Elemente.
+     Finetuning Runde 1, Punkt 11: kurze, spürbare aber unaufdringliche
+     Transition ergänzt (vorher sprang der Zustand ohne Übergang um),
+     zusätzlich auf Listenzeilen ausgeweitet, die bisher ganz ohne
+     Rückmeldung beim Antippen waren. */
   .btn, .tile, .sidebar-item, .tabbar button, .link-btn, .set-limit-btn,
   .cat-badge, .exclude-cat-btn, .color-swatch, .note-card, .cal-card,
-  .rec-card, .simple-row .check{
+  .rec-card, .simple-row, .today-row, .simple-row .check{
     -webkit-tap-highlight-color: transparent;
   }
+  .btn, .tile, .note-card, .cal-card, .rec-card, .color-swatch,
+  .simple-row, .today-row{
+    transition: transform .16s ease, background-color .16s ease;
+  }
   .btn:active, .tile:active, .note-card:active, .cal-card:active,
-  .rec-card:active, .color-swatch:active{
+  .rec-card:active, .color-swatch:active, .simple-row:active,
+  .today-row:active{
     transform: scale(0.98);
   }
 
@@ -241,57 +254,41 @@
   html[data-style="kawaii"] .sidebar-item img.kawaii-icon{ display:block; }
 
   /* ============================================================
-     Header & Sidebar tragen bei Signature/Forest/Lilac den jeweiligen
-     kräftigen Vollton statt einer hellen Tönung, deshalb muss die
-     Schrift dort auf Hell umschalten. Bubblegum (Kawaii) bleibt bei
-     ihrer hellen Tönung und dunkler Schrift, daher hier ausgenommen.
+     Header & Sidebar tragen bei Forest/Lilac weiterhin den jeweiligen
+     kräftigen Vollton, deshalb bleibt dort helle Schrift nötig.
+     Signature ist hier bewusst NICHT mehr dabei (Finetuning Runde 1):
+     Header/Sidebar sind dort jetzt hell, die normale dunkle
+     Schriftfarbe (var(--ink)) gilt automatisch, ohne Override nötig.
+     Bubblegum (Kawaii) war schon vorher ausgenommen.
      ============================================================ */
-  html:not([data-theme]) .topbar,
-  html[data-theme="signature"] .topbar,
   html[data-theme="forest"] .topbar,
   html[data-theme="lilac"] .topbar{
     color:#F5F1EC;
   }
-  html:not([data-theme]) .topbar .brand,
-  html[data-theme="signature"] .topbar .brand,
   html[data-theme="forest"] .topbar .brand,
   html[data-theme="lilac"] .topbar .brand,
-  html:not([data-theme]) .topbar .back-btn,
-  html[data-theme="signature"] .topbar .back-btn,
   html[data-theme="forest"] .topbar .back-btn,
   html[data-theme="lilac"] .topbar .back-btn{
     color:rgba(255,255,255,.72);
   }
-  html:not([data-theme]) .hamburger-btn,
-  html[data-theme="signature"] .hamburger-btn,
   html[data-theme="forest"] .hamburger-btn,
   html[data-theme="lilac"] .hamburger-btn{
     color:#F5F1EC;
   }
-  html:not([data-theme]) #sidebar,
-  html[data-theme="signature"] #sidebar,
   html[data-theme="forest"] #sidebar,
   html[data-theme="lilac"] #sidebar,
-  html:not([data-theme]) .sidebar-item,
-  html[data-theme="signature"] .sidebar-item,
   html[data-theme="forest"] .sidebar-item,
   html[data-theme="lilac"] .sidebar-item{
     color:#F2ECE4;
   }
-  html:not([data-theme]) #sidebar .brand,
-  html[data-theme="signature"] #sidebar .brand,
   html[data-theme="forest"] #sidebar .brand,
   html[data-theme="lilac"] #sidebar .brand{
     color:rgba(255,255,255,.6);
   }
-  html:not([data-theme]) .sidebar-item.active,
-  html[data-theme="signature"] .sidebar-item.active,
   html[data-theme="forest"] .sidebar-item.active,
   html[data-theme="lilac"] .sidebar-item.active{
     background:rgba(255,255,255,.14); color:#FFFFFF;
   }
-  html:not([data-theme]) #sidebarBackdrop,
-  html[data-theme="signature"] #sidebarBackdrop,
   html[data-theme="forest"] #sidebarBackdrop,
   html[data-theme="lilac"] #sidebarBackdrop{
     background:rgba(0,0,0,.5);
@@ -312,3 +309,19 @@
   .today-sun-kawaii{ display:none; }
   html[data-style="kawaii"] .today-sun-kawaii{ display:block; }
   html[data-style="kawaii"] .today-sun-icon{ display:none; }
+
+  /* ============================================================
+     FINETUNING RUNDE 1, Punkt 15 — Floating Button dezent transluzent,
+     AUSSCHLIESSLICH im Signature-Style. Leichte Material-/Glass-
+     Anmutung: Hintergrund scheint subtil durch (backdrop-filter),
+     kein starker Glanz, kein übertriebener Glassmorphism-Effekt.
+     Forest/Lilac/Bubblegum bleiben bei ihrer bisherigen, deckenden
+     Variante unverändert.
+     ============================================================ */
+  html:not([data-theme]) .dash-floating-switch,
+  html[data-theme="signature"] .dash-floating-switch{
+    background:rgba(61,57,54,.82);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+  }
+
