@@ -136,18 +136,32 @@
       switchView(btn.getAttribute('data-view'));
     });
   });
+  var financeTabSwipe = null;
   function switchView(name){
     document.querySelectorAll('#screen-finance .view').forEach(function(v){ v.classList.remove('active'); });
-    document.getElementById('view-'+name).classList.add('active');
-    window.scrollTo(0, 0);
+    var targetView = document.getElementById('view-'+name);
+    targetView.classList.add('active');
+    targetView.scrollTop = 0;
     document.querySelectorAll('#screen-finance .tabbar button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-view')===name);
     });
+    if(financeTabSwipe) financeTabSwipe.goTo(name);
     if(name==='overview') renderOverview();
     if(name==='budget') renderBudget();
     if(name==='savings') renderSavings();
     if(name==='stats') renderStats();
   }
+  financeTabSwipe = (typeof setupSwipeTabs==='function') ? setupSwipeTabs({
+    pagerId: 'financeTabPager',
+    tabbarId: 'financeTabbar',
+    indicatorId: 'financeTabIndicator',
+    tabOrder: ['overview','add','stats','budget','savings'],
+    getActiveName: function(){
+      var active = document.querySelector('#screen-finance .tabbar button.active');
+      return active ? active.getAttribute('data-view') : 'overview';
+    },
+    onSwipeComplete: function(name){ switchView(name); }
+  }) : null;
 
   document.getElementById('statsPrevMonth').addEventListener('click', function(){
     viewingDate.setMonth(viewingDate.getMonth()-1);

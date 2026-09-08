@@ -478,6 +478,7 @@
   document.querySelectorAll('#mealTabbar button').forEach(function(btn){
     btn.addEventListener('click', function(){ switchMealView(btn.getAttribute('data-mealview')); });
   });
+  var mealTabSwipe = null;
   function switchMealView(name){
     // Sicherheitsnetz: egal wie man ins Modul kommt (Tab-Wechsel, oder
     // "Umweg" über Dashboard/Sidebar zurück), Ansichts-/Bearbeiten-Ebene
@@ -490,15 +491,28 @@
     document.getElementById('view-pantry').classList.toggle('active', name==='pantry');
     document.getElementById('view-mealweek').classList.toggle('active', name==='week');
     document.getElementById('view-mealrecipes').classList.toggle('active', name==='recipes');
-    window.scrollTo(0, 0);
+    var targetView = document.getElementById(name==='week' ? 'view-mealweek' : name==='recipes' ? 'view-mealrecipes' : 'view-'+name);
+    if(targetView) targetView.scrollTop = 0;
     document.querySelectorAll('#mealTabbar button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-mealview')===name);
     });
+    if(mealTabSwipe) mealTabSwipe.goTo(name);
     if(name==='shopping') renderShopping();
     if(name==='pantry') renderPantry();
     if(name==='week') renderMealWeek();
     if(name==='recipes') renderRecipeList();
   }
+  mealTabSwipe = (typeof setupSwipeTabs==='function') ? setupSwipeTabs({
+    pagerId: 'mealTabPager',
+    tabbarId: 'mealTabbar',
+    indicatorId: 'mealTabIndicator',
+    tabOrder: ['shopping','pantry','week','recipes'],
+    getActiveName: function(){
+      var active = document.querySelector('#mealTabbar button.active');
+      return active ? active.getAttribute('data-mealview') : 'shopping';
+    },
+    onSwipeComplete: function(name){ switchMealView(name); }
+  }) : null;
   function renderMealPlan(){
     var activeBtn = document.querySelector('#mealTabbar button.active');
     switchMealView(activeBtn ? activeBtn.getAttribute('data-mealview') : 'shopping');
