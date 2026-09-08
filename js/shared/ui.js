@@ -85,3 +85,117 @@
       sw.addEventListener('click', function(){ onPick(sw.getAttribute('data-color')); });
     });
   }
+
+  /* ==================================================================
+     FINETUNING RUNDE 1, Punkt 7 — Wiederverwendbare Swipe-Tab-Logik.
+     Von Finanzen UND Essensplan gemeinsam genutzt (beide haben eine
+     .tabbar + mehrere .view-Inhalte). Kapselt:
+       - Positionierung des Unterstrichs unter dem aktiven Tab
+       - Bewegung des Pagers (Inhalt) zur aktiven Tab-Position
+       - Live-Drag-Verhalten: Inhalt UND Unterstrich folgen während
+         des Swipes kontinuierlich dem Finger, kein harter Sprung erst
+         nach Abschluss der Geste
+     Gibt ein Objekt mit goTo(name, animate) zurück, das sowohl vom
+     Tab-Klick als auch vom Swipe-Ende genutzt werden kann — die
+     eigentliche fachliche Umschaltung (Re-Render etc.) bleibt weiter
+     Aufgabe der aufrufenden switchView()/switchMealView()-Funktionen.
+     ================================================================== */
+  function setupSwipeTabs(opts){
+    // opts: { pagerId, tabbarId, indicatorId, tabOrder (Array von
+    // Namen in Reihenfolge), getActiveName (fn), onSwipeComplete (fn) }
+    var pager = document.getElementById(opts.pagerId);
+    var tabbar = document.getElementById(opts.tabbarId);
+    var indicator = document.getElementById(opts.indicatorId);
+    if(!pager || !tabbar || !indicator) return null;
+    var tabOrder = opts.tabOrder;
+
+    function indexOf(name){ var i = tabOrder.indexOf(name); return i===-1 ? 0 : i; }
+
+    function positionIndicator(name, dragging){
+      var btn = tabbar.querySelector('button[data-view="'+name+'"], button[data-mealview="'+name+'"]');
+      if(!btn) return;
+      indicator.classList.toggle('dragging', !!dragging);
+      indicator.style.left = btn.offsetLeft+'px';
+      indicator.style.width = btn.offsetWidth+'px';
+    }
+    function positionIndicatorBetween(nameA, nameB, t){
+      var btnA = tabbar.querySelector('button[data-view="'+nameA+'"], button[data-mealview="'+nameA+'"]');
+      var btnB = tabbar.querySelector('button[data-view="'+nameB+'"], button[data-mealview="'+nameB+'"]');
+      if(!btnA || !btnB) return;
+      indicator.classList.add('dragging');
+      indicator.style.left = (btnA.offsetLeft + (btnB.offsetLeft-btnA.offsetLeft)*t)+'px';
+      indicator.style.width = (btnA.offsetWidth + (btnB.offsetWidth-btnA.offsetWidth)*t)+'px';
+    }
+    function movePager(name, animate){
+      var i = indexOf(name);
+      pager.style.transition = animate===false ? 'none' : '';
+      pager.style.transform = 'translateX(-'+(i*100/tabOrder.length)+'%)';
+      if(animate===false){ void pager.offsetHeight; pager.style.transition = ''; }
+    }
+    function goTo(name, animate){
+      movePager(name, animate);
+      positionIndicator(name, false);
+    }
+
+    // Erst-Positionierung nach dem ersten Layout-Durchlauf.
+    setTimeout(function(){ positionIndicator(opts.getActiveName(), false); }, 0);
+
+    var startX=0, startY=0, tracking=false, decided=false, isHorizontal=false, fromName='';
+    pager.addEventListener('touchstart', function(e){
+      if(e.touches.length!==1) return;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      tracking = true; decided = false; isHorizontal = false;
+      fromName = opts.getActiveName();
+    }, { passive:true });
+    pager.addEventListener('touchmove', function(e){
+      if(!tracking || e.touches.length!==1) return;
+      var dx = e.touches[0].clientX - startX;
+      var dy = e.touches[0].clientY - startY;
+      if(!decided){
+        if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
+        isHorizontal = Math.abs(dx) > Math.abs(dy);
+        decided = true;
+      }
+      if(!isHorizontal) return;
+      e.preventDefault();
+      var i = indexOf(fromName);
+      var count = tabOrder.length;
+      var dxPercent = (dx / pager.offsetWidth) * 100;
+      var basePercent = -(i*100/count);
+      var minPercent = -((count-1)*100/count);
+      var next = Math.max(minPercent, Math.min(0, basePercent + dxPercent/1));
+      pager.style.transition = 'none';
+      pager.style.transform = 'translateX('+next+'%)';
+      // Unterstrich zwischen aktuellem und Nachbar-Tab live mitgleiten
+      // lassen, proportional zum Fortschritt der Geste.
+      var progress = Math.max(-1, Math.min(1, dxPercent / (100/count)));
+      if(progress<0 && i<count-1){
+        positionIndicatorBetween(fromName, tabOrder[i+1], -progress);
+      } else if(progress>0 && i>0){
+        positionIndicatorBetween(fromName, tabOrder[i-1], progress);
+      } else {
+        positionIndicator(fromName, true);
+      }
+    }, { passive:false });
+    pager.addEventListener('touchend', function(e){
+      if(!tracking) return;
+      tracking = false;
+      pager.style.transition = '';
+      if(!isHorizontal){ return; }
+      var endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
+      var dx = endX - startX;
+      var i = indexOf(fromName);
+      var threshold = pager.offsetWidth * 0.16;
+      var targetName = fromName;
+      if(dx < -threshold && i < tabOrder.length-1) targetName = tabOrder[i+1];
+      else if(dx > threshold && i > 0) targetName = tabOrder[i-1];
+      if(targetName !== fromName){
+        opts.onSwipeComplete(targetName);
+      } else {
+        goTo(fromName);
+      }
+    });
+
+    return { goTo: goTo, positionIndicator: positionIndicator };
+  }
+
