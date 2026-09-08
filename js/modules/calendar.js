@@ -187,7 +187,7 @@
         var cat = calCategoryOf(ev);
         return '<div class="cal-card"'+personTintStyle(ev.createdBy)+'>'+
           '<div class="cal-info">'+
-          '<div class="ctitle">'+(cat && cat.emoji ? cat.emoji+' ' : '')+escapeHtml(ev.title)+'</div>'+
+          '<div class="ctitle">'+(ev.priority==='high'?'❗':'')+(cat && cat.emoji ? cat.emoji+' ' : '')+escapeHtml(ev.title)+'</div>'+
           (ev.time ? '<div class="ctime">'+ev.time+' Uhr</div>' : '')+
           (ev.endDate ? '<div class="ctime">'+fmtDate(ev.date)+' – '+fmtDate(ev.endDate)+'</div>' : '')+
           (ev.repeat && ev.repeat!=='none' ? '<div class="ctime">'+repeatLabel(ev.repeat)+'</div>' : '')+
@@ -252,6 +252,7 @@
     document.getElementById('calMultiDayWrap').style.display = 'flex';
     populateCalCategorySelect();
     document.getElementById('calCategoryInput').value = '';
+    document.getElementById('calPriorityInput').value = 'normal';
     renderCalAssignList();
     document.getElementById('calAddModal').style.display = 'flex';
   });
@@ -297,6 +298,7 @@
     document.getElementById('calEndDateInput').value = ev.endDate || '';
     populateCalCategorySelect();
     document.getElementById('calCategoryInput').value = ev.categoryId || '';
+    document.getElementById('calPriorityInput').value = ev.priority || 'normal';
     renderCalAssignList(ev.assignedTo||[]);
     document.getElementById('calAddModal').style.display = 'flex';
   }
@@ -321,6 +323,7 @@
     var remindOffset = remind ? parseInt(document.getElementById('calRemindOffsetInput').value, 10) : 0;
     var assignedTo = Array.prototype.slice.call(document.querySelectorAll('#calAssignList input:checked')).map(function(cb){ return cb.value; });
     var categoryId = document.getElementById('calCategoryInput').value || null;
+    var priority = document.getElementById('calPriorityInput').value || 'normal';
     var isMultiDay = repeat==='none' && document.getElementById('calMultiDayInput').checked;
     var endDate = isMultiDay ? document.getElementById('calEndDateInput').value : null;
     if(!title || !date) return;
@@ -335,7 +338,7 @@
         var newAssignedEv = assignedTo.slice().sort().join(',');
         ev.title = title; ev.date = date; ev.time = time||null; ev.note = note;
         ev.repeat = repeat; ev.remind = remind; ev.remindOffset = remindOffset;
-        ev.assignedTo = assignedTo; ev.endDate = endDate; ev.categoryId = categoryId;
+        ev.assignedTo = assignedTo; ev.endDate = endDate; ev.categoryId = categoryId; ev.priority = priority;
         if(newAssignedEv !== oldAssignedEv && assignedTo.length>0) ev.assignedAt = new Date().toISOString();
       }
     } else {
@@ -343,7 +346,7 @@
         id: uid(), title: title, date: date, time: time||null, note: note,
         repeat: repeat, remind: remind, remindOffset: remindOffset, assignedTo: assignedTo,
         assignedAt: assignedTo.length>0 ? new Date().toISOString() : null,
-        endDate: endDate, categoryId: categoryId, createdBy: currentUserId
+        endDate: endDate, categoryId: categoryId, priority: priority, createdBy: currentUserId
       });
     }
     saveState();
@@ -357,6 +360,7 @@
     document.getElementById('calMultiDayInput').checked = false;
     document.getElementById('calEndDateWrap').style.display = 'none';
     document.getElementById('calCategoryInput').value = '';
+    document.getElementById('calPriorityInput').value = 'normal';
     selectedDayStr = date;
     document.getElementById('calAddModal').style.display = 'none';
     renderCalendarMonth();
