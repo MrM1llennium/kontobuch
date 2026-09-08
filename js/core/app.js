@@ -295,7 +295,7 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
-    if(name==='finance') switchView('overview');
+    if(name==='finance') switchView('overview', true);
     if(name==='todos') renderTodos();
     if(name==='notes') renderNotesList();
     if(name==='calendar'){ document.getElementById('calDateInput').value = selectedDayStr; renderCalendar(); }
