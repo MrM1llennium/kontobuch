@@ -8,6 +8,96 @@
   var calViewDate = new Date(); calViewDate.setDate(1);
   var selectedDayStr = todayISO();
 
+  /* ---- Kalender-Kategorien (frei anlegbar, mit Farbe + optionalem Symbol) ---- */
+  function calCategoryOf(ev){
+    if(!ev.categoryId) return null;
+    return (state.calendarCategories||[]).find(function(c){ return c.id===ev.categoryId; }) || null;
+  }
+  function populateCalCategorySelect(){
+    var sel = document.getElementById('calCategoryInput');
+    var current = sel.value;
+    sel.innerHTML = '<option value="">— Keine —</option>' +
+      (state.calendarCategories||[]).map(function(c){
+        return '<option value="'+c.id+'">'+(c.emoji?c.emoji+' ':'')+escapeHtml(c.name)+'</option>';
+      }).join('');
+    if((state.calendarCategories||[]).some(function(c){ return c.id===current; })) sel.value = current;
+  }
+  function renderCalCategoriesList(){
+    var el = document.getElementById('calCategoriesList');
+    var list = state.calendarCategories || [];
+    if(list.length===0){
+      el.innerHTML = '<p class="empty">Noch keine Kategorien angelegt.</p>';
+      return;
+    }
+    el.innerHTML = list.map(function(c){
+      return '<div class="simple-row">'+
+        '<div style="width:14px; height:14px; border-radius:50%; background:'+c.color+'; flex-shrink:0;"></div>'+
+        '<div class="stext"><div class="stitle">'+(c.emoji?c.emoji+' ':'')+escapeHtml(c.name)+'</div></div>'+
+        '<button class="redit" data-editcalcat="'+c.id+'" aria-label="Bearbeiten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1Z"/></svg></button>'+
+      '</div>';
+    }).join('');
+    el.querySelectorAll('[data-editcalcat]').forEach(function(b){
+      b.addEventListener('click', function(){ openCalCategoryEditModal(b.getAttribute('data-editcalcat')); });
+    });
+  }
+  document.getElementById('openCalCategoriesBtn').addEventListener('click', function(){
+    renderCalCategoriesList();
+    document.getElementById('calCategoriesModal').style.display = 'flex';
+  });
+  document.getElementById('closeCalCategoriesBtn').addEventListener('click', function(){
+    document.getElementById('calCategoriesModal').style.display = 'none';
+    populateCalCategorySelect();
+  });
+
+  var editingCalCategoryId = null;
+  var calCategoryPickedColor = '';
+  function pickCalCategoryColor(color){
+    calCategoryPickedColor = color;
+    renderColorPalette(document.getElementById('calCategoryColorPalette'), calCategoryPickedColor, pickCalCategoryColor);
+  }
+  document.getElementById('addCalCategoryBtn').addEventListener('click', function(){ openCalCategoryEditModal(null); });
+  function openCalCategoryEditModal(id){
+    var c = id ? (state.calendarCategories||[]).find(function(x){ return x.id===id; }) : null;
+    editingCalCategoryId = id;
+    document.getElementById('calCategoryEditTitle').textContent = id ? 'Kategorie bearbeiten' : 'Neue Kategorie';
+    document.getElementById('calCategoryNameInput').value = c ? c.name : '';
+    document.getElementById('calCategoryEmojiInput').value = c ? (c.emoji||'') : '';
+    calCategoryPickedColor = c ? c.color : USER_COLORS[(state.calendarCategories||[]).length % USER_COLORS.length];
+    renderColorPalette(document.getElementById('calCategoryColorPalette'), calCategoryPickedColor, pickCalCategoryColor);
+    document.getElementById('deleteCalCategoryBtn').style.display = id ? 'block' : 'none';
+    document.getElementById('calCategoryEditModal').style.display = 'flex';
+  }
+  document.getElementById('cancelCalCategoryBtn').addEventListener('click', function(){
+    document.getElementById('calCategoryEditModal').style.display = 'none';
+  });
+  document.getElementById('saveCalCategoryBtn').addEventListener('click', function(){
+    var name = document.getElementById('calCategoryNameInput').value.trim();
+    if(!name) return;
+    var emoji = document.getElementById('calCategoryEmojiInput').value.trim();
+    if(editingCalCategoryId){
+      var c = state.calendarCategories.find(function(x){ return x.id===editingCalCategoryId; });
+      if(c){ c.name = name; c.emoji = emoji; c.color = calCategoryPickedColor; }
+    } else {
+      state.calendarCategories.push({ id: uid(), name: name, emoji: emoji, color: calCategoryPickedColor });
+    }
+    saveState();
+    document.getElementById('calCategoryEditModal').style.display = 'none';
+    renderCalCategoriesList();
+    populateCalCategorySelect();
+    renderCalendarMonth();
+  });
+  document.getElementById('deleteCalCategoryBtn').addEventListener('click', function(){
+    if(!editingCalCategoryId) return;
+    if(!confirm('Kategorie wirklich löschen? Termine mit dieser Kategorie bleiben erhalten, verlieren aber Farbe/Symbol.')) return;
+    state.calendarCategories = state.calendarCategories.filter(function(x){ return x.id!==editingCalCategoryId; });
+    state.calendar.forEach(function(ev){ if(ev.categoryId===editingCalCategoryId) ev.categoryId = null; });
+    saveState();
+    document.getElementById('calCategoryEditModal').style.display = 'none';
+    renderCalCategoriesList();
+    populateCalCategorySelect();
+    renderCalendarMonth();
+  });
+
   function eventOccursOnDate(ev, dateObj, dateStr){
     var start = new Date(ev.date+'T00:00:00');
     if(dateObj < start) return false;
@@ -64,7 +154,8 @@
       if(c.dateStr===selectedDayStr) cls += ' selected';
       var evs = c.dateStr ? eventsForDate(c.dateStr) : [];
       var dots = evs.slice(0,3).map(function(ev){
-        var color = userColorOf(ev.createdBy);
+        var cat = calCategoryOf(ev);
+        var color = cat ? cat.color : userColorOf(ev.createdBy);
         return '<span class="dot" style="'+(color?'background:'+color+';':'')+'"></span>';
       }).join('');
       return '<div class="'+cls+'" data-date="'+(c.dateStr||'')+'">'+c.dayNum+(dots?'<div class="dots">'+dots+'</div>':'')+'</div>';
@@ -93,12 +184,14 @@
       html += '<p class="empty">Keine Termine an diesem Tag.</p>';
     } else {
       html += evs.map(function(ev){
+        var cat = calCategoryOf(ev);
         return '<div class="cal-card"'+personTintStyle(ev.createdBy)+'>'+
           '<div class="cal-info">'+
-          '<div class="ctitle">'+escapeHtml(ev.title)+'</div>'+
+          '<div class="ctitle">'+(cat && cat.emoji ? cat.emoji+' ' : '')+escapeHtml(ev.title)+'</div>'+
           (ev.time ? '<div class="ctime">'+ev.time+' Uhr</div>' : '')+
           (ev.endDate ? '<div class="ctime">'+fmtDate(ev.date)+' – '+fmtDate(ev.endDate)+'</div>' : '')+
           (ev.repeat && ev.repeat!=='none' ? '<div class="ctime">'+repeatLabel(ev.repeat)+'</div>' : '')+
+          (cat ? '<div class="ctime" style="color:'+cat.color+';">'+escapeHtml(cat.name)+'</div>' : '')+
           (ev.note ? '<div class="cnote">'+escapeHtml(ev.note)+'</div>' : '')+
           (ev.remind ? '<div class="cal-bell">🔔 Erinnerung '+offsetLabel(ev.remindOffset)+'</div>' : '')+
           '</div>'+
@@ -157,6 +250,8 @@
     document.getElementById('calEndDateWrap').style.display = 'none';
     document.getElementById('calEndDateInput').value = '';
     document.getElementById('calMultiDayWrap').style.display = 'flex';
+    populateCalCategorySelect();
+    document.getElementById('calCategoryInput').value = '';
     renderCalAssignList();
     document.getElementById('calAddModal').style.display = 'flex';
   });
@@ -200,6 +295,8 @@
     document.getElementById('calMultiDayInput').checked = !!ev.endDate;
     document.getElementById('calEndDateWrap').style.display = ev.endDate ? 'block' : 'none';
     document.getElementById('calEndDateInput').value = ev.endDate || '';
+    populateCalCategorySelect();
+    document.getElementById('calCategoryInput').value = ev.categoryId || '';
     renderCalAssignList(ev.assignedTo||[]);
     document.getElementById('calAddModal').style.display = 'flex';
   }
@@ -223,6 +320,7 @@
     var remind = document.getElementById('calRemindInput').checked;
     var remindOffset = remind ? parseInt(document.getElementById('calRemindOffsetInput').value, 10) : 0;
     var assignedTo = Array.prototype.slice.call(document.querySelectorAll('#calAssignList input:checked')).map(function(cb){ return cb.value; });
+    var categoryId = document.getElementById('calCategoryInput').value || null;
     var isMultiDay = repeat==='none' && document.getElementById('calMultiDayInput').checked;
     var endDate = isMultiDay ? document.getElementById('calEndDateInput').value : null;
     if(!title || !date) return;
@@ -237,7 +335,7 @@
         var newAssignedEv = assignedTo.slice().sort().join(',');
         ev.title = title; ev.date = date; ev.time = time||null; ev.note = note;
         ev.repeat = repeat; ev.remind = remind; ev.remindOffset = remindOffset;
-        ev.assignedTo = assignedTo; ev.endDate = endDate;
+        ev.assignedTo = assignedTo; ev.endDate = endDate; ev.categoryId = categoryId;
         if(newAssignedEv !== oldAssignedEv && assignedTo.length>0) ev.assignedAt = new Date().toISOString();
       }
     } else {
@@ -245,7 +343,7 @@
         id: uid(), title: title, date: date, time: time||null, note: note,
         repeat: repeat, remind: remind, remindOffset: remindOffset, assignedTo: assignedTo,
         assignedAt: assignedTo.length>0 ? new Date().toISOString() : null,
-        endDate: endDate, createdBy: currentUserId
+        endDate: endDate, categoryId: categoryId, createdBy: currentUserId
       });
     }
     saveState();
@@ -258,6 +356,7 @@
     document.getElementById('calRepeatInput').value = 'none';
     document.getElementById('calMultiDayInput').checked = false;
     document.getElementById('calEndDateWrap').style.display = 'none';
+    document.getElementById('calCategoryInput').value = '';
     selectedDayStr = date;
     document.getElementById('calAddModal').style.display = 'none';
     renderCalendarMonth();
