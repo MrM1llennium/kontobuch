@@ -288,7 +288,7 @@
       eventsForDate(todayStr).forEach(function(ev){
         var avatars = (ev.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
         var cat = (typeof calCategoryOf === 'function') ? calCategoryOf(ev) : null;
-        var emojiPrefix = (cat && cat.emoji) ? cat.emoji+' ' : '';
+        var emojiPrefix = (ev.priority==='high'?'❗':'') + ((cat && cat.emoji) ? cat.emoji+' ' : '');
         rows.push(
           todayIconSvg('cal') + '<span>'+emojiPrefix+escapeHtml(ev.title)+(ev.time?' · '+ev.time+' Uhr':'')+'</span>' +
           (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '')
