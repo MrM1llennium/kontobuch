@@ -46,3 +46,8 @@
     var d = new Date(dateStr+'T00:00:00');
     return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+d.getFullYear();
   }
+  var WEEKDAY_NAMES = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+  function fmtDateLong(dateStr){
+    var d = new Date(dateStr+'T00:00:00');
+    return WEEKDAY_NAMES[d.getDay()]+', '+d.getDate()+'. '+MONTH_NAMES[d.getMonth()];
+  }
