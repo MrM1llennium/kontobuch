@@ -479,6 +479,13 @@
     btn.addEventListener('click', function(){ switchMealView(btn.getAttribute('data-mealview')); });
   });
   function switchMealView(name){
+    // Sicherheitsnetz: egal wie man ins Modul kommt (Tab-Wechsel, oder
+    // "Umweg" über Dashboard/Sidebar zurück), Ansichts-/Bearbeiten-Ebene
+    // der Rezepte müssen dabei immer sauber zurückgesetzt werden — sonst
+    // bleibt eine davon im Hintergrund sichtbar stehen.
+    document.getElementById('recipeViewView').style.display = 'none';
+    document.getElementById('recipeEditView').style.display = 'none';
+    document.getElementById('mealTabbar').style.display = 'flex';
     document.getElementById('view-shopping').classList.toggle('active', name==='shopping');
     document.getElementById('view-pantry').classList.toggle('active', name==='pantry');
     document.getElementById('view-mealweek').classList.toggle('active', name==='week');
@@ -594,7 +601,8 @@
       el.innerHTML = '<p class="empty">'+(query ? 'Keine Rezepte gefunden.' : 'Noch keine Rezepte angelegt.')+'</p>';
       return;
     }
-    el.innerHTML = list.slice().sort(function(a,b){ return a.name.localeCompare(b.name); }).map(function(r){
+    var sorted = list.slice().sort(function(a,b){ return a.name.localeCompare(b.name, 'de'); });
+    function cardHtml(r){
       var snippet = (r.ingredients||[]).slice(0,4).map(function(ing){
         return (ing.amount ? ing.amount+' ' : '') + ing.name;
       }).join(', ');
@@ -602,7 +610,26 @@
         '<div class="ntitle">'+escapeHtml(r.name)+'</div>'+
         '<div class="nsnippet">'+escapeHtml(snippet)+(r.ingredients && r.ingredients.length>4 ? ' …' : '')+'</div>'+
       '</div>';
-    }).join('');
+    }
+    if(query){
+      // Bei aktiver Suche: einfache flache Liste, Buchstaben-Überschriften
+      // bringen bei wenigen Treffern keinen Mehrwert.
+      el.innerHTML = sorted.map(cardHtml).join('');
+    } else {
+      // Ohne Suche: alphabetisch mit Buchstaben-Überschriften gruppiert,
+      // damit man bei vielen Rezepten schnell springen kann.
+      var html = '';
+      var lastLetter = null;
+      sorted.forEach(function(r){
+        var letter = (r.name.charAt(0) || '#').toUpperCase();
+        if(letter !== lastLetter){
+          html += '<p class="section-title" style="padding:16px 20px 6px;">'+escapeHtml(letter)+'</p>';
+          lastLetter = letter;
+        }
+        html += cardHtml(r);
+      });
+      el.innerHTML = html;
+    }
     el.querySelectorAll('[data-recipe]').forEach(function(c){
       c.addEventListener('click', function(){ openRecipeView(c.getAttribute('data-recipe')); });
     });
