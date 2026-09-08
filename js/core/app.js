@@ -295,6 +295,19 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
+    // Tabbar (falls vorhanden) kurz unsichtbar starten und dann
+    // einblenden — kaschiert ein Timing-Problem, bei dem sie beim
+    // allerersten Sichtbarwerden kurz falsch positioniert berechnet
+    // wird und sichtbar "nachspringt".
+    var tabbarEl = document.querySelector('#screen-'+name+' .tabbar');
+    if(tabbarEl){
+      tabbarEl.classList.add('tabbar-entering');
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          tabbarEl.classList.remove('tabbar-entering');
+        });
+      });
+    }
     if(name==='finance') switchView('overview', true);
     if(name==='todos') renderTodos();
     if(name==='notes') renderNotesList();
