@@ -206,14 +206,23 @@
      scrollt für sich selbst.
      ================================================================== */
   .tab-pager{
-    display:flex; flex:1; min-height:0;
+    display:flex; flex:1; min-height:0; overflow:hidden;
     transition: transform .34s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform;
   }
   .tab-pager > .view{
     display:flex !important; flex-direction:column; flex-shrink:0;
-    width:100%; height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
   }
+  /* Breite MUSS zur jeweiligen Tab-Anzahl passen (Pager insgesamt
+     Tab-Anzahl × 100%, jede einzelne Seite 100% / Tab-Anzahl) — das
+     war der eigentliche Bug: vorher hatte jede Seite pauschal 100%
+     statt eines Bruchteils bekommen, wodurch sich alle Tabs sichtbar
+     nebeneinander gequetscht haben. */
+  #financeTabPager{ width:500%; }
+  #financeTabPager > .view{ width:20%; }
+  #mealTabPager{ width:400%; }
+  #mealTabPager > .view{ width:25%; }
   /* Aktiver Unterstrich der Tabbar als echtes, animierbares Element
      statt eines statischen ::after — kann so während des Swipes live
      mitgleiten statt nur beim Tap hart umzuspringen. */
