@@ -185,7 +185,13 @@
       var endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
       var dx = endX - startX;
       var i = indexOf(fromName);
-      var threshold = pager.offsetWidth * 0.16;
+      // Schwelle bezieht sich bewusst auf die Breite EINER einzelnen
+      // Tab-Seite (pager.offsetWidth ist die volle, mehrfache Breite
+      // aller Tabs zusammen — das war der Grund, warum bisher eine
+      // riesige, unrealistische Wischstrecke nötig war). Niedriger
+      // Prozentsatz, damit ein normaler, kurzer Wisch reicht.
+      var pageWidth = pager.offsetWidth / tabOrder.length;
+      var threshold = pageWidth * 0.10;
       var targetName = fromName;
       if(dx < -threshold && i < tabOrder.length-1) targetName = tabOrder[i+1];
       else if(dx > threshold && i > 0) targetName = tabOrder[i-1];
