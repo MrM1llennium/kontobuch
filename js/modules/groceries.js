@@ -479,7 +479,7 @@
     btn.addEventListener('click', function(){ switchMealView(btn.getAttribute('data-mealview')); });
   });
   var mealTabSwipe = null;
-  function switchMealView(name){
+  function switchMealView(name, instant){
     // Sicherheitsnetz: egal wie man ins Modul kommt (Tab-Wechsel, oder
     // "Umweg" über Dashboard/Sidebar zurück), Ansichts-/Bearbeiten-Ebene
     // der Rezepte müssen dabei immer sauber zurückgesetzt werden — sonst
@@ -496,7 +496,7 @@
     document.querySelectorAll('#mealTabbar button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-mealview')===name);
     });
-    if(mealTabSwipe) mealTabSwipe.goTo(name);
+    if(mealTabSwipe) mealTabSwipe.goTo(name, instant ? false : true);
     if(name==='shopping') renderShopping();
     if(name==='pantry') renderPantry();
     if(name==='week') renderMealWeek();
@@ -515,7 +515,7 @@
   }) : null;
   function renderMealPlan(){
     var activeBtn = document.querySelector('#mealTabbar button.active');
-    switchMealView(activeBtn ? activeBtn.getAttribute('data-mealview') : 'shopping');
+    switchMealView(activeBtn ? activeBtn.getAttribute('data-mealview') : 'shopping', true);
   }
 
   function openMealAddForm(dateStr){

@@ -137,7 +137,7 @@
     });
   });
   var financeTabSwipe = null;
-  function switchView(name){
+  function switchView(name, instant){
     document.querySelectorAll('#screen-finance .view').forEach(function(v){ v.classList.remove('active'); });
     var targetView = document.getElementById('view-'+name);
     targetView.classList.add('active');
@@ -145,7 +145,7 @@
     document.querySelectorAll('#screen-finance .tabbar button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-view')===name);
     });
-    if(financeTabSwipe) financeTabSwipe.goTo(name);
+    if(financeTabSwipe) financeTabSwipe.goTo(name, instant ? false : true);
     if(name==='overview') renderOverview();
     if(name==='budget') renderBudget();
     if(name==='savings') renderSavings();
