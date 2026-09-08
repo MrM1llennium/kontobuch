@@ -663,6 +663,20 @@
   });
 
   var editingRecurringId = null;
+  var editRecReturnModal = null;
+  function closeEditRecurringAndReturn(){
+    document.getElementById('editRecurringModal').style.display = 'none';
+    if(editRecReturnModal){
+      var type = editRecReturnModal==='fixedExpensesModal' ? 'expense' : 'income';
+      var listId = editRecReturnModal==='fixedExpensesModal' ? 'fixedExpensesList' : 'fixedIncomeList';
+      renderFixedList(type, listId);
+      document.getElementById(editRecReturnModal).style.display = 'flex';
+      editRecReturnModal = null;
+    } else {
+      renderOverview();
+      renderBudget();
+    }
+  }
   var editRecCurrentType = 'expense';
   function populateEditRecCategorySelect(){
     var sel = document.getElementById('editRecCategory');
@@ -682,6 +696,7 @@
     b.addEventListener('click', function(){ setEditRecMode(b.getAttribute('data-recmode')); });
   });
   function openNewRecurring(type){
+    editRecReturnModal = null;
     editingRecurringId = null;
     editRecCurrentType = type;
     document.getElementById('editRecModalTitle').textContent = type==='income' ? 'Neue Einnahme' : 'Neue Fixkosten';
@@ -705,6 +720,12 @@
   function openEditRecurring(id){
     var r = state.recurring.find(function(x){ return x.id===id; });
     if(!r) return;
+    // Statt sich über die noch offene Fixkosten-/Einnahmen-Liste zu
+    // stapeln (unerwünschte Verschachtelung, Spezifikation Abschnitt
+    // 33), wird die Liste geschlossen und beim Verlassen des Bearbeiten-
+    // Formulars gezielt wieder geöffnet — klarer Weg hin und zurück.
+    editRecReturnModal = r.type==='expense' ? 'fixedExpensesModal' : 'fixedIncomeModal';
+    document.getElementById(editRecReturnModal).style.display = 'none';
     editingRecurringId = id;
     editRecCurrentType = r.type;
     document.getElementById('editRecModalTitle').textContent = 'Bearbeiten';
@@ -735,8 +756,8 @@
     el.style.display = el.style.display==='block' ? 'none' : 'block';
   });
   document.getElementById('cancelEditRecurringBtn').addEventListener('click', function(){
-    document.getElementById('editRecurringModal').style.display = 'none';
     editingRecurringId = null;
+    closeEditRecurringAndReturn();
   });
   document.getElementById('saveEditRecurringBtn').addEventListener('click', async function(){
     var name = document.getElementById('editRecName').value.trim();
@@ -782,20 +803,16 @@
     if(editingRecurringId) r.active = document.getElementById('editRecActiveInput').checked;
     await generateDueRecurring();
     await saveState();
-    document.getElementById('editRecurringModal').style.display = 'none';
     editingRecurringId = null;
-    renderOverview();
-    renderBudget();
+    closeEditRecurringAndReturn();
   });
   document.getElementById('deleteEditRecurringBtn').addEventListener('click', function(){
     if(!editingRecurringId) return;
     if(!confirm('Wiederkehrende Buchung wirklich endgültig löschen?')) return;
     state.recurring = state.recurring.filter(function(r){ return r.id!==editingRecurringId; });
     saveState();
-    document.getElementById('editRecurringModal').style.display = 'none';
     editingRecurringId = null;
-    renderOverview();
-    renderBudget();
+    closeEditRecurringAndReturn();
   });
 
   document.getElementById('showNewCat').addEventListener('click', function(){

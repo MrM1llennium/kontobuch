@@ -57,6 +57,11 @@
   }
   document.getElementById('addCalCategoryBtn').addEventListener('click', function(){ openCalCategoryEditModal(null); });
   function openCalCategoryEditModal(id){
+    // Verschachtelung vermeiden (Spezifikation Abschnitt 33): die
+    // Kategorien-Liste dahinter schließen, statt das Bearbeiten-Sheet
+    // einfach obendrauf zu stapeln — wird beim Verlassen gezielt wieder
+    // geöffnet.
+    document.getElementById('calCategoriesModal').style.display = 'none';
     var c = id ? (state.calendarCategories||[]).find(function(x){ return x.id===id; }) : null;
     editingCalCategoryId = id;
     document.getElementById('calCategoryEditTitle').textContent = id ? 'Kategorie bearbeiten' : 'Neue Kategorie';
@@ -67,8 +72,14 @@
     document.getElementById('deleteCalCategoryBtn').style.display = id ? 'block' : 'none';
     document.getElementById('calCategoryEditModal').style.display = 'flex';
   }
+  function reopenCalCategoriesList(){
+    renderCalCategoriesList();
+    populateCalCategorySelect();
+    document.getElementById('calCategoriesModal').style.display = 'flex';
+  }
   document.getElementById('cancelCalCategoryBtn').addEventListener('click', function(){
     document.getElementById('calCategoryEditModal').style.display = 'none';
+    reopenCalCategoriesList();
   });
   document.getElementById('saveCalCategoryBtn').addEventListener('click', function(){
     var name = document.getElementById('calCategoryNameInput').value.trim();
@@ -82,9 +93,8 @@
     }
     saveState();
     document.getElementById('calCategoryEditModal').style.display = 'none';
-    renderCalCategoriesList();
-    populateCalCategorySelect();
     renderCalendarMonth();
+    reopenCalCategoriesList();
   });
   document.getElementById('deleteCalCategoryBtn').addEventListener('click', function(){
     if(!editingCalCategoryId) return;
@@ -93,9 +103,8 @@
     state.calendar.forEach(function(ev){ if(ev.categoryId===editingCalCategoryId) ev.categoryId = null; });
     saveState();
     document.getElementById('calCategoryEditModal').style.display = 'none';
-    renderCalCategoriesList();
-    populateCalCategorySelect();
     renderCalendarMonth();
+    reopenCalCategoriesList();
   });
 
   function eventOccursOnDate(ev, dateObj, dateStr){
