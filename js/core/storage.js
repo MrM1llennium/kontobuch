@@ -163,7 +163,8 @@
     mealWeekStart = mondayOf(new Date());
     renderAll();
     renderCalendar();
-    if(document.getElementById('recipeEditView') && document.getElementById('recipeEditView').style.display==='none'){
+    if(document.getElementById('recipeEditView') && document.getElementById('recipeEditView').style.display==='none' &&
+       document.getElementById('recipeViewView') && document.getElementById('recipeViewView').style.display==='none'){
       renderMealPlan();
     }
   }

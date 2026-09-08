@@ -265,7 +265,7 @@
     renderTodos();
     if(document.getElementById('noteEditView').style.display==='none') renderNotesList();
     renderCalendar();
-    if(document.getElementById('recipeEditView').style.display==='none') renderMealPlan();
+    if(document.getElementById('recipeEditView').style.display==='none' && document.getElementById('recipeViewView').style.display==='none') renderMealPlan();
     renderUsers();
     renderCategoryManage();
     renderTodayOverview();
