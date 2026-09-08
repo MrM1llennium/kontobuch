@@ -13,10 +13,28 @@
        in Phase D)
    ============================================================ */
 
-  /* ---- Heute-Widget (unverändert aus app.js hierher verschoben) ---- */
+  /* ---- Heute-Widget ----
+     Ab Redesign-Phase D: 4-stufige Prioritätslogik statt einer
+     flachen Liste (Spezifikation Abschnitt 18–25). Reihenfolge trägt
+     die Bedeutung, keine sichtbaren Abschnitts-Labels.
+
+     Stufe 1 — zeitkritisch / hoch priorisiert:
+       Kalendertermine mit ev.priority==='high', wichtige Finanz-
+       ereignisse (heute automatisch gebuchte wiederkehrende Buchungen)
+     Stufe 2 — braucht Aufmerksamkeit:
+       überfällige To-Dos, heute fällige To-Dos, normale Kalendertermine
+     Stufe 3 — Tageskontext:
+       heutiger Essensplan, reduziert dargestellt
+     Stufe 4 — Zusammenfassung untergeordneter Dinge:
+       aktuell: offene Einkaufslisten-Artikel als eine Zeile.
+       Bewusst KEINE feste Maximalanzahl, die Wichtiges verstecken
+       könnte — Stufe 1–3 zeigen immer alles Relevante einzeln,
+       Stufe 4 fasst nur zusammen, was ohnehin nicht zeitgebunden ist. */
   function todayIconSvg(type){
     if(type==='cal') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>';
     if(type==='todo') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l2 2 4-4"/><rect x="3.5" y="3.5" width="17" height="17" rx="3"/></svg>';
+    if(type==='meal') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v7M4 3v4a3 3 0 0 0 6 0V3M7 10v11M15 13c0-4 2-8 4-9v17M15 13a4 2 0 0 0 4 2"/></svg>';
+    if(type==='shopping') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6h15l-2 9H8L6 6Zm0 0-1-3H2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>';
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg>';
   }
 
@@ -25,40 +43,105 @@
     if(!el) return;
     if(!state){ el.innerHTML = '<p class="empty">Lädt…</p>'; return; }
     var todayStr = todayISO();
-    var rows = [];
 
-    if(typeof eventsForDate === 'function'){
-      eventsForDate(todayStr).forEach(function(ev){
-        var avatars = (ev.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
-        var cat = (typeof calCategoryOf === 'function') ? calCategoryOf(ev) : null;
-        var emojiPrefix = (ev.priority==='high'?'❗':'') + ((cat && cat.emoji) ? cat.emoji+' ' : '');
-        rows.push(
-          todayIconSvg('cal') + '<span>'+emojiPrefix+escapeHtml(ev.title)+(ev.time?' · '+ev.time+' Uhr':'')+'</span>' +
-          (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '')
-        );
-      });
+    var tier1 = [], tier2 = [], tier3 = [];
+
+    /* ---- Kalendertermine heute: hoch priorisiert -> Stufe 1, sonst Stufe 2 ---- */
+    var todaysEvents = (typeof eventsForDate === 'function') ? eventsForDate(todayStr) : [];
+    todaysEvents = todaysEvents.slice().sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+    todaysEvents.forEach(function(ev){
+      var avatars = (ev.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
+      var cat = (typeof calCategoryOf === 'function') ? calCategoryOf(ev) : null;
+      var emojiPrefix = (ev.priority==='high'?'❗':'') + ((cat && cat.emoji) ? cat.emoji+' ' : '');
+      var rowHtml = '<div class="today-row" data-todaycal="'+ev.id+'">' +
+        todayIconSvg('cal') + '<span>'+emojiPrefix+escapeHtml(ev.title)+(ev.time?' · '+ev.time+' Uhr':'')+'</span>' +
+        (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '') +
+      '</div>';
+      (ev.priority==='high' ? tier1 : tier2).push(rowHtml);
+    });
+
+    /* ---- Heute automatisch gebuchte wiederkehrende Buchungen -> Stufe 1 ---- */
+    state.transactions.filter(function(t){ return t.auto && t.date===todayStr; }).forEach(function(t){
+      tier1.push(
+        '<div class="today-row">' +
+        todayIconSvg(t.type) + '<span>'+escapeHtml(t.category)+'</span>'+
+        '<span class="tamt '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</span>' +
+        '</div>'
+      );
+    });
+
+    /* ---- To-Dos: überfällig zuerst, dann heute fällig -> Stufe 2 ---- */
+    var overdueTodos = state.todos.filter(function(t){ return !t.done && t.dueDate && t.dueDate < todayStr; })
+      .sort(function(a,b){ return a.dueDate.localeCompare(b.dueDate); });
+    var dueTodayTodos = state.todos.filter(function(t){ return !t.done && t.dueDate === todayStr; })
+      .sort(function(a,b){ return (a.dueTime||'').localeCompare(b.dueTime||''); });
+    overdueTodos.forEach(function(t){
+      var avatars = (t.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
+      tier2.push(
+        '<div class="today-row" data-todaytodo="'+t.id+'">' +
+        todayIconSvg('todo') + '<span>'+escapeHtml(t.text)+' · überfällig</span>' +
+        (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '') +
+        '</div>'
+      );
+    });
+    dueTodayTodos.forEach(function(t){
+      var avatars = (t.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
+      tier2.push(
+        '<div class="today-row" data-todaytodo="'+t.id+'">' +
+        todayIconSvg('todo') + '<span>'+escapeHtml(t.text)+(t.dueTime?' · '+t.dueTime+' Uhr':'')+'</span>' +
+        (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '') +
+        '</div>'
+      );
+    });
+
+    /* ---- Essensplan heute, reduziert -> Stufe 3 ----
+       Hinweis: Die App unterscheidet aktuell nicht zwischen "Mittag"/
+       "Abend" (kein Zeitslot-Feld im Essensplan-Datenmodell) — deshalb
+       hier bewusst ohne erfundenes Label, nur der/die Namen. */
+    var todaysMeals = (state.mealPlan||[]).filter(function(m){ return m.date===todayStr; });
+    if(todaysMeals.length>0){
+      tier3.push(
+        '<div class="today-row">' +
+        todayIconSvg('meal') + '<span>'+escapeHtml(todaysMeals.map(function(m){ return m.name; }).join(' · '))+'</span>' +
+        '</div>'
+      );
     }
 
-    state.todos.filter(function(t){ return t.dueDate===todayStr && !t.done; }).forEach(function(t){
-      var avatars = (t.assignedTo||[]).map(function(uid_){ return avatarHtml(uid_); }).join('');
-      rows.push(
-        todayIconSvg('todo') + '<span>'+escapeHtml(t.text)+(t.dueTime?' · '+t.dueTime+' Uhr':'')+'</span>' +
-        (avatars ? '<div class="today-avatars">'+avatars+'</div>' : '')
-      );
-    });
+    /* ---- Stufe 4: untergeordnete Zusammenfassung (aktuell: Einkaufsliste) ---- */
+    var openShopping = (state.shopping||[]).filter(function(s){ return !s.checked; });
+    var tier4Html = '';
+    if(openShopping.length>0){
+      tier4Html = '<div class="today-row today-row-summary" data-todayshopping="1">' +
+        todayIconSvg('shopping') + '<span>'+openShopping.length+' Artikel auf der Einkaufsliste</span>' +
+        '</div>';
+    }
 
-    state.transactions.filter(function(t){ return t.auto && t.date===todayStr; }).forEach(function(t){
-      rows.push(
-        todayIconSvg(t.type) + '<span>'+escapeHtml(t.category)+'</span>'+
-        '<span class="tamt '+t.type+'">'+(t.type==='income'?'+':'−')+fmtEUR(t.amount)+'</span>'
-      );
-    });
-
-    if(rows.length===0){
+    var html = tier1.join('') + tier2.join('') + tier3.join('') + tier4Html;
+    if(!html){
       el.innerHTML = '<p class="empty">Heute steht nichts an.</p>';
       return;
     }
-    el.innerHTML = rows.map(function(r){ return '<div class="today-row">'+r+'</div>'; }).join('');
+    el.innerHTML = html;
+
+    /* ---- Tap-Interaktion (Spezifikation Abschnitt 25) ---- */
+    el.querySelectorAll('[data-todaycal]').forEach(function(row){
+      row.addEventListener('click', function(){
+        if(typeof openModule==='function') openModule('calendar');
+        if(typeof selectedDayStr!=='undefined'){ selectedDayStr = todayISO(); }
+        if(typeof renderCalendarMonth==='function') renderCalendarMonth();
+      });
+    });
+    el.querySelectorAll('[data-todaytodo]').forEach(function(row){
+      row.addEventListener('click', function(){
+        if(typeof openModule==='function') openModule('todos');
+        if(typeof openEditTodoModal==='function') openEditTodoModal(row.getAttribute('data-todaytodo'));
+      });
+    });
+    el.querySelectorAll('[data-todayshopping]').forEach(function(row){
+      row.addEventListener('click', function(){
+        if(typeof openModule==='function') openModule('mealplan');
+      });
+    });
   }
 
   /* ---- Datum in der Heute-Kopfzeile ---- */
