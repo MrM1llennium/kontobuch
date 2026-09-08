@@ -13,8 +13,8 @@
   .cal-date .cd-day{ font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; font-size:19px; font-weight:600; }
   .cal-date .cd-mon{ font-size:10px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em; }
   .cal-info{ flex:1; min-width:0; }
-  .cal-info .ctitle{ font-size:15px; }
-  .cal-info .ctime{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
+  .cal-info .ctitle{ font-size:var(--text-primary-size); }
+  .cal-info .ctime{ font-size:var(--text-meta-size); color:var(--ink-soft); margin-top:2px; }
   .cal-info .cnote{ font-size:12px; color:var(--ink-soft); margin-top:2px; }
   .cal-bell{ font-size:11px; color:var(--brass-strong); margin-top:4px; }
   .cal-del{ border:none; background:none; color:var(--ink-soft); opacity:.45; font-size:17px; padding:2px 4px; cursor:pointer; flex-shrink:0; }
