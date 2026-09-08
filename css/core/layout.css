@@ -131,7 +131,7 @@
   }
   .dash-pager{
     display:flex; width:200%; flex:1; min-height:0;
-    transition: transform .38s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform .48s cubic-bezier(0.22, 0.61, 0.36, 1);
     will-change: transform;
   }
   .dash-page{
@@ -207,7 +207,7 @@
      ================================================================== */
   .tab-pager{
     display:flex; flex:1; min-height:0; overflow:hidden;
-    transition: transform .34s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform .44s cubic-bezier(0.22, 0.61, 0.36, 1);
     will-change: transform;
   }
   .tab-pager > .view{
@@ -232,7 +232,7 @@
   .tabbar{ position:relative; }
   .tab-indicator{
     position:absolute; bottom:-1px; height:2px; background:var(--brass);
-    border-radius:2px; transition: left .3s cubic-bezier(0.16,1,0.3,1), width .3s cubic-bezier(0.16,1,0.3,1);
+    border-radius:2px; transition: left .44s cubic-bezier(0.22,0.61,0.36,1), width .44s cubic-bezier(0.22,0.61,0.36,1);
   }
   .tab-indicator.dragging{ transition:none; }
   .view.active{ display:block; }
