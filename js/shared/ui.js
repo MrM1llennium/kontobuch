@@ -133,12 +133,20 @@
       if(animate===false){ void pager.offsetHeight; pager.style.transition = ''; }
     }
     function goTo(name, animate){
+      // "dragging"-Flag von positionIndicator hier zweckentfremdet, um
+      // dessen CSS-Transition zu unterdrücken — animate===false soll
+      // den Unterstrich GENAUSO sofort/ohne Animation setzen wie den
+      // Pager selbst (vorher liefen beide auseinander: der Pager
+      // sprang sofort, der Unterstrich glitt weiterhin animiert
+      // hinterher — das war das "kurz versetzt"-Problem beim Öffnen
+      // eines Moduls).
       movePager(name, animate);
-      positionIndicator(name, false);
+      positionIndicator(name, animate===false);
     }
 
-    // Erst-Positionierung nach dem ersten Layout-Durchlauf.
-    setTimeout(function(){ positionIndicator(opts.getActiveName(), false); }, 0);
+    // Erst-Positionierung sofort und synchron (kein setTimeout mehr) —
+    // verhindert ein sichtbares Nachspringen beim allerersten Layout.
+    positionIndicator(opts.getActiveName(), true);
 
     var startX=0, startY=0, tracking=false, decided=false, isHorizontal=false, fromName='';
     pager.addEventListener('touchstart', function(e){
