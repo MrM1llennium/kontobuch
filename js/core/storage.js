@@ -102,6 +102,7 @@
       );
       if(res.error) throw res.error;
       savePending = false;
+      lastOwnSaveAt = Date.now();
       lastFailureWasLoad = false;
       hideSaveBanner();
       cacheStateLocally();
@@ -134,6 +135,19 @@
     renderCurrentScreen();
   }
 
+  // Kurze Schonfrist nach dem eigenen Speichern: Das "Echo" der eigenen
+  // Änderung kommt kurz danach übers Realtime-Abo zurück. Datenbanken
+  // garantieren aber keine gleichbleibende Feld-Reihenfolge in JSON-Daten
+  // — dadurch kann derselbe Inhalt beim reinen Text-Vergleich fälschlich
+  // als "anders" erkannt werden, was einen unnötigen kompletten Neu-
+  // Aufbau der ganzen App auslöst (spürbares Ruckeln/kurzes Verschwinden
+  // von Einträgen). In diesem kurzen Fenster gehen wir davon aus, dass
+  // ein eintreffendes Update höchstwahrscheinlich das eigene Echo ist,
+  // und überspringen den Neu-Aufbau — eine echte fremde Änderung holt
+  // sich die App spätestens über den nächsten 15-Sekunden-Abgleich.
+  var lastOwnSaveAt = 0;
+  var OWN_SAVE_GRACE_MS = 4000;
+
   function subscribeRealtime(){
     if(!sb || !householdCode) return;
     if(realtimeChannel){ sb.removeChannel(realtimeChannel); }
@@ -141,15 +155,8 @@
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'households', filter: 'code=eq.'+householdCode },
         function(payload){
-          // Läuft gerade ein eigener Speichervorgang, NICHT mit fremden/
-          // veralteten Daten überschreiben — sonst können frische lokale
-          // Änderungen (z. B. ein gerade gesetzter Haken) in dem kurzen
-          // Zeitfenster wieder verloren gehen. saveState() ruft nach dem
-          // erfolgreichen Speichern selbst renderCurrentScreen() nicht neu
-          // auf, das ist hier nicht nötig — der nächste reguläre Realtime-
-          // oder Polling-Abgleich holt den dann längst aktuellen Stand ganz
-          // normal nach.
           if(savePending) return;
+          if(Date.now() - lastOwnSaveAt < OWN_SAVE_GRACE_MS) return;
           if(payload.new && payload.new.data){ applyRemoteState(payload.new.data); }
         }
       )
@@ -159,6 +166,7 @@
   function startPolling(){
     setInterval(async function(){
       if(!householdCode || savePending) return;
+      if(Date.now() - lastOwnSaveAt < OWN_SAVE_GRACE_MS) return;
       try{
         var res = await sb.from('households').select('data').eq('code', householdCode).maybeSingle();
         if(!res.error && res.data){ applyRemoteState(res.data.data); }
