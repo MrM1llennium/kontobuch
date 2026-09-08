@@ -66,8 +66,8 @@
   }
 
   .rec-card{
-    margin:0 20px 10px; padding:14px 16px; background:var(--paper-raised);
-    border:1px solid var(--line); border-radius:8px;
+    margin:0 20px 10px; padding:14px 16px; background:var(--surface-2);
+    border:none; border-radius:var(--radius-md); box-shadow:var(--shadow-card);
     display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
     cursor:pointer;
   }
@@ -85,8 +85,8 @@
 
   /* ---------- Budget ---------- */
   .budget-card{
-    margin:0 20px 16px; padding:16px; background:var(--paper-raised);
-    border:1px solid var(--line); border-radius:8px;
+    margin:0 20px 16px; padding:16px; background:var(--surface-2);
+    border:none; border-radius:var(--radius-md); box-shadow:var(--shadow-card);
   }
   .budget-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
   .budget-head .bname{ font-size:15.5px; }
@@ -109,7 +109,7 @@
     padding:2px 0; cursor:pointer; text-decoration:underline; margin-top:6px;
   }
   .total-budget-card{
-    padding:18px; background:var(--brass); color:var(--paper); border-radius:10px;
+    padding:18px; background:var(--brass); color:var(--paper); border-radius:var(--radius-md);
   }
   .total-budget-card .tb-label{ font-size:12px; color:var(--brass-soft); margin:0 0 4px; }
   .total-budget-card .tb-amount{ font-size:28px; font-weight:600; font-family:-apple-system, BlinkMacSystemFont, 'SF Mono', ui-monospace, Menlo, monospace; margin:0; }
@@ -123,8 +123,8 @@
 
   /* ---------- Savings ---------- */
   .goal-card{
-    margin:0 20px 16px; padding:16px; background:var(--paper-raised);
-    border:1px solid var(--line); border-radius:8px;
+    margin:0 20px 16px; padding:16px; background:var(--surface-2);
+    border:none; border-radius:var(--radius-md); box-shadow:var(--shadow-card);
   }
   .goal-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px; }
   .goal-head .gname{ font-size:16px; }
