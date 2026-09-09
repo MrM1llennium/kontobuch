@@ -93,24 +93,15 @@
      Containern mehr nötig (siehe layout.css).
      ================================================================== */
   .tabbar-clip{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px; z-index:80;
     overflow:hidden;
+    background:var(--paper); border-top:1px solid var(--line);
+    padding-bottom:var(--safe-bottom);
   }
   .tabbar{
     display:flex; gap:2px;
-    padding:2px 10px 0; margin-bottom:2px;
-    border-bottom:1px solid var(--line);
-  }
-  /* Tab-Leiste fährt beim Öffnen eines Moduls sichtbar von oben rein
-     (rein optisches Detail). Die eigentliche Ursache des früheren
-     Versatzes war Rechenlast durch gleichzeitig gerenderte Tab-
-     Inhalte — behoben in layout.css (.tab-rendered) + shared/ui.js,
-     nicht hier über Verstecken-Tricks kaschiert. */
-  @keyframes tabbarSlideIn{
-    from{ transform:translateY(-100%); }
-    to{ transform:translateY(0); }
-  }
-  .tabbar.tabbar-entering{
-    animation: tabbarSlideIn .34s cubic-bezier(0.16,1,0.3,1) both;
+    padding:6px 10px 2px; margin-bottom:0;
   }
   .tabbar button{
     flex:1; min-width:0; background:none; border:none; cursor:pointer;
