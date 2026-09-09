@@ -171,20 +171,22 @@
   }
   .dash-page{
     width:50%; height:100%; flex-shrink:0;
-    /* overflow-y:scroll statt auto — erzwingt den Scroll-Container
-       immer, auch wenn der Inhalt (noch) kürzer als der Bildschirm
-       ist. Dadurch bleibt der elastische Gummiband-Effekt beim
-       Wischen erhalten, statt dass sich bei kurzem Inhalt gar nichts
-       tut (auto scrollt nur, wenn tatsächlich Überlauf da ist). */
     overflow-y:scroll; -webkit-overflow-scrolling:touch;
     display:flex; flex-direction:column;
-    /* Bewusst WENIGER Abstand als die tatsächliche Höhe des Segment-
-       Controls (46px + 20px Abstand = 66px) — der Glas-Effekt bei
-       Signature braucht echten Inhalt darunter, um sichtbar etwas zu
-       verwischen. Ganz ohne Überlappung schwebt er nur über leerer
-       Fläche und wirkt wie einfaches Weiß mit Schatten, egal wie
-       stark der Weichzeichner eingestellt ist. */
     padding-bottom:calc(34px + var(--safe-bottom));
+  }
+  /* Garantiert IMMER echten (wenn auch minimalen) Überlauf, egal wie
+     kurz der tatsächliche Inhalt ist — bei einem verschachtelten
+     Scroll-Container (nicht die Seite selbst) greift der elastische
+     Gummiband-Effekt unter iOS nur bei echtem Überlauf, nicht schon
+     durch overflow-y:scroll allein. min-height auf dem eigentlichen
+     Inhalt (statt einem zusätzlichen Platzhalter-Element) erzwingt
+     das zuverlässig, unabhängig davon, wie viel echter Inhalt
+     tatsächlich da ist — Flexbox kann eine harte min-height nicht
+     "wegschrumpfen" wie es beim reinen Platzhalter-Element passierte. */
+  .dash-page > .today-card, .dash-page > .tile-grid{
+    min-height:calc(100% + 1px);
+    flex-shrink:0;
   }
   .dash-subline{
     font:var(--text-context); color:var(--ink-soft); margin:2px 0 0;
