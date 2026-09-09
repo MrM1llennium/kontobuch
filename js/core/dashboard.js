@@ -308,10 +308,18 @@
     });
   }
 
+  function updateDashHeaderHeight(){
+    var header = document.querySelector('#screen-home .dash-fixed-header');
+    if(!header) return;
+    document.documentElement.style.setProperty('--dash-header-h', header.offsetHeight+'px');
+  }
+
   function initDashboard(){
     renderDashboardDate();
     initDashboardSwipe();
     initSegmentClicks();
     initSegmentScrollBehavior();
     updateSegmentActive(dashCurrentPage);
+    updateDashHeaderHeight();
+    window.addEventListener('resize', updateDashHeaderHeight);
   }

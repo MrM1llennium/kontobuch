@@ -285,17 +285,9 @@
     document.getElementById('screen-home').classList.add('active');
     currentScreen = 'home';
     window.scrollTo(0, 0);
-    // Zusätzliche Absicherung: Dokument-Ebene komplett gegen
-    // vertikales Scrollen sperren, solange das Dashboard aktiv ist.
-    // Das Dashboard hat sein eigenes internes Scroll-System (jede
-    // .dash-page scrollt für sich) — sollte diese Kapselung aus
-    // irgendeinem Grund nicht vollständig greifen, verhindert das hier
-    // zusätzlich, dass die Geste bis zur Dokument-Ebene durchsickert
-    // und dabei den eigentlich feststehenden Header mitzieht.
-    document.documentElement.classList.add('on-dashboard');
-    document.body.classList.add('on-dashboard');
     updateSidebarActive();
     renderTodayOverview();
+    if(typeof updateDashHeaderHeight === 'function') updateDashHeaderHeight();
     if(typeof setDashboardPage === 'function') setDashboardPage(moduleReturnDashPage || 'today', { animate: false });
   }
   function openModule(name){
@@ -304,8 +296,6 @@
     screenEl.classList.add('active');
     currentScreen = name;
     window.scrollTo(0, 0);
-    document.documentElement.classList.remove('on-dashboard');
-    document.body.classList.remove('on-dashboard');
     updateSidebarActive();
     // Tabbar ist wieder fest am unteren Rand (wie vor dem Redesign) —
     // keine Header-Höhen-Messung und keine Rein-Animation mehr nötig,
@@ -488,8 +478,6 @@
 
   async function startApp(nameForIdentity){
     document.getElementById('app').style.display = 'flex';
-    document.documentElement.classList.add('on-dashboard');
-    document.body.classList.add('on-dashboard');
     await loadState();
     if(nameForIdentity){ await resolveIdentity(nameForIdentity); }
     await generateDueRecurring();
