@@ -295,20 +295,24 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
-    // Tabbar (falls vorhanden) sichtbar von oben "reinfahren" lassen.
-    // Klasse einfach setzen reicht bei einer echten @keyframes-
-    // Animation (siehe components.css) — kein Reflow-Timing-Trick
-    // nötig. Nach Ende wieder entfernen, damit die Animation beim
-    // nächsten Öffnen erneut sauber von vorne startet.
+    // Tabbar (falls vorhanden) für den einen problematischen ersten
+    // Frame komplett unsichtbar halten, dann sichtbar von oben
+    // "reinfahren" lassen. Bewusst per festem, kurzem Timeout statt
+    // requestAnimationFrame — rAF garantiert nur "vor dem nächsten
+    // Repaint", das kann derselbe fehlerhafte Frame sein. Ein festes,
+    // kurzes Timeout überspringt ihn zuverlässiger.
     var tabbarEl = document.querySelector('#screen-'+name+' .tabbar');
     if(tabbarEl){
       tabbarEl.classList.remove('tabbar-entering');
-      void tabbarEl.offsetWidth; // Reflow erzwingen, falls Klasse gerade erst entfernt wurde
-      tabbarEl.classList.add('tabbar-entering');
-      tabbarEl.addEventListener('animationend', function handler(){
-        tabbarEl.classList.remove('tabbar-entering');
-        tabbarEl.removeEventListener('animationend', handler);
-      });
+      tabbarEl.classList.add('tabbar-hide-first-frame');
+      setTimeout(function(){
+        tabbarEl.classList.remove('tabbar-hide-first-frame');
+        tabbarEl.classList.add('tabbar-entering');
+        tabbarEl.addEventListener('animationend', function handler(){
+          tabbarEl.classList.remove('tabbar-entering');
+          tabbarEl.removeEventListener('animationend', handler);
+        });
+      }, 60);
     }
     if(name==='finance') switchView('overview', true);
     if(name==='todos') renderTodos();
