@@ -211,8 +211,19 @@
     will-change: transform;
   }
   .tab-pager > .view{
-    display:flex !important; flex-direction:column; flex-shrink:0;
+    display:none; flex-direction:column; flex-shrink:0;
     height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  }
+  /* Nur die aktive Tab-Seite + direkte Nachbarn werden tatsächlich
+     gerendert (Klasse wird von setupSwipeTabs() in ui.js verwaltet),
+     nicht alle gleichzeitig. Vorher waren bei Finanzen alle 5 Seiten
+     inkl. der Übersicht mit vielen Buchungen gleichzeitig im Layout —
+     das kostete auf echten Geräten spürbar Zeit beim Öffnen und war
+     die eigentliche Ursache für das kurze "falsch stehen, dann
+     umspringen" der Tab-Leiste (keine Grafik-Verzögerung, sondern
+     echte Rechenlast). */
+  .tab-pager > .view.tab-rendered{
+    display:flex !important;
   }
   /* Breite MUSS zur jeweiligen Tab-Anzahl passen (Pager insgesamt
      Tab-Anzahl × 100%, jede einzelne Seite 100% / Tab-Anzahl).
