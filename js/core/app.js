@@ -280,11 +280,18 @@
     b.addEventListener('click', goHome);
   });
 
+  function resetDashboardScroll(){
+    var today = document.getElementById('dashPageToday');
+    var modules = document.getElementById('dashPageModules');
+    if(today) today.scrollTop = 0;
+    if(modules) modules.scrollTop = 0;
+  }
   function goHome(){
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('screen-home').classList.add('active');
     currentScreen = 'home';
     window.scrollTo(0, 0);
+    resetDashboardScroll();
     updateSidebarActive();
     renderTodayOverview();
     if(typeof updateDashHeaderHeight === 'function') updateDashHeaderHeight();
@@ -296,6 +303,11 @@
     screenEl.classList.add('active');
     currentScreen = name;
     window.scrollTo(0, 0);
+    // Dashboard-Scroll-Position wird beim Verlassen zurückgesetzt, damit
+    // beide Ansichten (Heute/Mein Casalo) bei der nächsten Rückkehr
+    // wieder ganz oben starten, statt an der alten Position stehen
+    // zu bleiben.
+    resetDashboardScroll();
     updateSidebarActive();
     // Topbar ist jetzt position:fixed statt sticky (unzuverlässig auf
     // echten Geräten) — der dadurch aus dem Fluss genommene Platz wird
