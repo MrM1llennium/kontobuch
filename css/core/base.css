@@ -19,6 +19,15 @@
        kontrollierte JS-Logik (Dashboard-Swipe, Tab-Swipe) erfolgen.
   */
   }
+  /* Zusätzliche Absicherung speziell für das Dashboard (siehe
+     goHome()/openModule()/startApp() in app.js): Solange die Klasse
+     gesetzt ist, kann die Dokument-Ebene selbst nicht vertikal
+     scrollen — nur die interne .dash-page-Kapselung darf das. Auf
+     allen anderen Screens (Finanzen, Kalender, ...) bleibt normales
+     Dokument-Scrollen unangetastet, die Klasse wird dort entfernt. */
+  html.on-dashboard, body.on-dashboard{
+    overflow-y:hidden;
+  }
   @media (max-width: 480px){
     html, body{ background:var(--paper); }
   }
