@@ -154,45 +154,79 @@
     color:rgba(255,255,255,.62);
   }
 
-  .dash-floating-switch{
+  /* ==================================================================
+     Segment-Control "Heute / Module" (ersetzt den alten Floating-
+     Switch-Button mit wechselndem Zieltext). Beide Beschriftungen
+     stehen immer da, eine helle/farbige "Bubble" zeigt dahinter an,
+     wo man sich gerade befindet, statt wohin man als Nächstes käme.
+     ================================================================== */
+  .dash-segment{
     position:fixed; bottom:calc(20px + var(--safe-bottom)); left:50%;
     transform:translateX(-50%);
-    display:flex; align-items:center; gap:8px;
-    padding:13px 22px 13px 18px;
-    background:var(--brass); color:var(--paper);
+    display:flex; align-items:center; position:fixed;
+    background:var(--brass);
     border:none; border-radius:var(--radius-lg);
     box-shadow:var(--shadow-hero);
+    padding:4px; z-index:60; height:46px;
+    transition: width .34s cubic-bezier(0.16,1,0.3,1),
+                padding .34s cubic-bezier(0.16,1,0.3,1),
+                height .34s cubic-bezier(0.16,1,0.3,1),
+                border-radius .3s ease;
+  }
+  .dash-segment-btn{
+    position:relative; z-index:2;
+    background:none; border:none; cursor:pointer;
+    padding:0 20px; height:100%;
     font-size:13.5px; font-weight:600; letter-spacing:.01em;
     font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
-    cursor:pointer; z-index:60;
-    transition: padding .36s cubic-bezier(0.16,1,0.3,1), background-color .3s ease;
+    color:rgba(255,255,255,.62);
+    white-space:nowrap;
+    transition: color .26s ease, opacity .2s ease;
   }
-  .dash-floating-switch:active{ transform:translateX(-50%) scale(0.97); }
-  .dash-floating-switch .dfs-icon-wrap{ position:relative; width:19px; height:19px; flex-shrink:0; }
-  .dash-floating-switch .dfs-icon{
-    position:absolute; top:0; left:0; width:19px; height:19px;
-    opacity:0; transform:scale(.82) rotate(-8deg);
-    transition: opacity .26s ease, transform .32s cubic-bezier(0.16,1,0.3,1);
+  .dash-segment-btn.active{ color:var(--paper); }
+  .dash-segment-bubble{
+    position:absolute; top:4px; bottom:4px; left:4px;
+    border-radius:calc(var(--radius-lg) - 3px);
+    background:rgba(255,255,255,.16);
+    z-index:1;
+    transition: left .34s cubic-bezier(0.16,1,0.3,1), width .34s cubic-bezier(0.16,1,0.3,1);
   }
-  .dash-floating-switch .dfs-icon.active{ opacity:1; transform:scale(1) rotate(0); }
-  .dash-floating-switch .dfs-label{
-    white-space:nowrap; overflow:hidden; max-width:160px;
-    transition: max-width .36s cubic-bezier(0.16,1,0.3,1), opacity .22s ease, margin-left .36s ease;
-    opacity:1; margin-left:0;
+  .dash-segment-bubble.dragging{ transition:none; }
+
+  /* Beim vertikalen Scrollen zu einem schmalen Streifen zusammen-
+     quetschen (nicht komplett verschwinden) — Beschriftung und Bubble
+     blenden dabei aus. */
+  .dash-segment.compact{
+    width:38px; height:6px; padding:0; border-radius:4px;
   }
-  /* Textwechsel selbst (nicht die Kompakt-Transformation) läuft über
-     diese Klasse kurz auf 0 und wieder auf 1 — das JS tauscht den
-     Text genau in dem Moment aus, in dem die Deckkraft bei 0 steht,
-     dadurch wirkt der Wechsel wie ein weiches Überblenden statt eines
-     harten Sprungs (Finetuning Punkt 9). */
-  .dash-floating-switch .dfs-label.dfs-label-fading{
-    opacity:0; transition: opacity .16s ease;
+  .dash-segment.compact .dash-segment-btn,
+  .dash-segment.compact .dash-segment-bubble{
+    opacity:0;
   }
-  .dash-floating-switch.compact{
-    padding:13px;
+
+  /* Signature: helle, transluzente Glas-Optik statt der kräftigen
+     Akzentfarbe — nur hier, Forest/Lilac/Bubblegum behalten die
+     bisherige, kräftige Farbgebung (siehe Dauerregel in
+     ARCHITECTURE.md: Farbänderungen nur für Signature). */
+  html:not([data-theme]) .dash-segment,
+  html[data-theme="signature"] .dash-segment{
+    background: rgba(255,255,255,.66);
+    -webkit-backdrop-filter: blur(18px) saturate(1.7);
+    backdrop-filter: blur(18px) saturate(1.7);
+    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 10px 26px rgba(0,0,0,.08);
   }
-  .dash-floating-switch.compact .dfs-label{
-    max-width:0; opacity:0; margin-left:-8px;
+  html:not([data-theme]) .dash-segment-btn,
+  html[data-theme="signature"] .dash-segment-btn{
+    color: var(--ink-soft);
+  }
+  html:not([data-theme]) .dash-segment-btn.active,
+  html[data-theme="signature"] .dash-segment-btn.active{
+    color: var(--ink);
+  }
+  html:not([data-theme]) .dash-segment-bubble,
+  html[data-theme="signature"] .dash-segment-bubble{
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
   }
 
 
