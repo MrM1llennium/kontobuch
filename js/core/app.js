@@ -291,10 +291,19 @@
   }
   function openModule(name){
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-    document.getElementById('screen-'+name).classList.add('active');
+    var screenEl = document.getElementById('screen-'+name);
+    screenEl.classList.add('active');
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
+    // Header ist bei Finanzen/Lebensmittel jetzt position:fixed (siehe
+    // .screen-header) statt sticky — der dadurch aus dem normalen
+    // Fluss genommene Platz wird hier gemessen und den Tab-Inhalten
+    // als Abstand nach oben mitgegeben, damit nichts dahinter startet.
+    var headerEl = screenEl.querySelector('.screen-header');
+    if(headerEl){
+      screenEl.style.setProperty('--screen-header-h', headerEl.offsetHeight+'px');
+    }
     // Tabbar (falls vorhanden) sichtbar von oben "reinfahren" lassen —
     // rein optisch schön, die eigentliche Ursache des früheren
     // Versatzes war Rechenlast durch gleichzeitig gerenderte Tab-
