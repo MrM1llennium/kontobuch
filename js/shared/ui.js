@@ -126,8 +126,23 @@
       indicator.style.left = (btnA.offsetLeft + (btnB.offsetLeft-btnA.offsetLeft)*t)+'px';
       indicator.style.width = (btnA.offsetWidth + (btnB.offsetWidth-btnA.offsetWidth)*t)+'px';
     }
+    function updateRenderedViews(name){
+      // Nur aktive Seite + direkte Nachbarn tatsächlich rendern lassen
+      // (nicht alle Tab-Inhalte gleichzeitig) — reduziert die Rechen-
+      // last beim ersten Anzeigen erheblich, besonders bei Tabs mit
+      // viel Inhalt (z. B. Buchungsliste). Nutzt die Kind-Reihenfolge
+      // im Pager direkt statt ID-Konstruktion, da die View-IDs nicht
+      // durchgängig demselben Namensschema folgen (z. B. "week" vs.
+      // "view-mealweek").
+      var centerIdx = indexOf(name);
+      var children = pager.children;
+      for(var idx=0; idx<children.length; idx++){
+        children[idx].classList.toggle('tab-rendered', Math.abs(idx-centerIdx)<=1);
+      }
+    }
     function movePager(name, animate){
       var i = indexOf(name);
+      updateRenderedViews(name);
       pager.style.transition = animate===false ? 'none' : '';
       pager.style.transform = 'translateX(-'+(i*100/tabOrder.length)+'%)';
       if(animate===false){ void pager.offsetHeight; pager.style.transition = ''; }
@@ -146,6 +161,7 @@
 
     // Erst-Positionierung sofort und synchron (kein setTimeout mehr) —
     // verhindert ein sichtbares Nachspringen beim allerersten Layout.
+    updateRenderedViews(opts.getActiveName());
     positionIndicator(opts.getActiveName(), true);
 
     var startX=0, startY=0, tracking=false, decided=false, isHorizontal=false, fromName='';
