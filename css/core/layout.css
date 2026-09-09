@@ -142,7 +142,13 @@
     width:50%; height:100%; flex-shrink:0;
     overflow-y:auto; -webkit-overflow-scrolling:touch;
     display:flex; flex-direction:column;
-    padding-bottom:calc(76px + var(--safe-bottom));
+    /* Bewusst WENIGER Abstand als die tatsächliche Höhe des Segment-
+       Controls (46px + 20px Abstand = 66px) — der Glas-Effekt bei
+       Signature braucht echten Inhalt darunter, um sichtbar etwas zu
+       verwischen. Ganz ohne Überlappung schwebt er nur über leerer
+       Fläche und wirkt wie einfaches Weiß mit Schatten, egal wie
+       stark der Weichzeichner eingestellt ist. */
+    padding-bottom:calc(34px + var(--safe-bottom));
   }
   .dash-subline{
     font:var(--text-context); color:var(--ink-soft); margin:2px 0 0;
@@ -207,13 +213,19 @@
   /* Signature: helle, transluzente Glas-Optik statt der kräftigen
      Akzentfarbe — nur hier, Forest/Lilac/Bubblegum behalten die
      bisherige, kräftige Farbgebung (siehe Dauerregel in
-     ARCHITECTURE.md: Farbänderungen nur für Signature). */
+     ARCHITECTURE.md: Farbänderungen nur für Signature).
+     Deutlich weniger Deckkraft als im ersten Versuch (.66 → .3) plus
+     ein feiner heller Rand zur Kontur — bei Signature sind sowohl der
+     Hintergrund als auch die Kacheln selbst schon fast weiß, ein zu
+     blickdichtes Glas darüber sah dadurch einfach wie normales Weiß
+     aus, egal wie stark der Weichzeichner lief. */
   html:not([data-theme]) .dash-segment,
   html[data-theme="signature"] .dash-segment{
-    background: rgba(255,255,255,.66);
-    -webkit-backdrop-filter: blur(18px) saturate(1.7);
-    backdrop-filter: blur(18px) saturate(1.7);
-    box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 10px 26px rgba(0,0,0,.08);
+    background: rgba(255,255,255,.3);
+    border: 1px solid rgba(255,255,255,.55);
+    -webkit-backdrop-filter: blur(20px) saturate(1.8);
+    backdrop-filter: blur(20px) saturate(1.8);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 12px 28px rgba(0,0,0,.10);
   }
   html:not([data-theme]) .dash-segment-btn,
   html[data-theme="signature"] .dash-segment-btn{
@@ -225,8 +237,8 @@
   }
   html:not([data-theme]) .dash-segment-bubble,
   html[data-theme="signature"] .dash-segment-bubble{
-    background: rgba(255,255,255,.92);
-    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    background: rgba(255,255,255,.78);
+    box-shadow: 0 1px 4px rgba(0,0,0,.10);
   }
 
 

@@ -6,7 +6,14 @@
    ============================================================ */
 
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;min-height:100%;background:var(--ink);
+  html,body{margin:0;padding:0;min-height:100%;background:var(--header-tint);
+    /* War fest auf --ink (dunkel) gesetzt — das passte, solange auch
+       der Header bei jedem Theme dunkel war. Seit Signature einen
+       hellen Header hat, sorgte das für einen sichtbaren dunklen
+       Rand/Streifen überall dort, wo die Seite selbst (statt #app)
+       durchschimmert, z. B. im Notch-/Statusleisten-Bereich. Folgt
+       jetzt derselben Variable wie der Header selbst, damit es dort
+       nie einen Farbbruch gibt, unabhängig vom Theme. */
     overflow-x:hidden; max-width:100%;
     /* Ohne diese Sperre erlaubt der Browser natives, freies horizon-
        tales Wegziehen der GESAMTEN Seite (elastisches Overscrollen,
@@ -18,15 +25,6 @@
        horizontale Bewegung ausschließlich noch über die eigene,
        kontrollierte JS-Logik (Dashboard-Swipe, Tab-Swipe) erfolgen.
   */
-  }
-  /* Zusätzliche Absicherung speziell für das Dashboard (siehe
-     goHome()/openModule()/startApp() in app.js): Solange die Klasse
-     gesetzt ist, kann die Dokument-Ebene selbst nicht vertikal
-     scrollen — nur die interne .dash-page-Kapselung darf das. Auf
-     allen anderen Screens (Finanzen, Kalender, ...) bleibt normales
-     Dokument-Scrollen unangetastet, die Klasse wird dort entfernt. */
-  html.on-dashboard, body.on-dashboard{
-    overflow-y:hidden;
   }
   @media (max-width: 480px){
     html, body{ background:var(--paper); }
