@@ -296,29 +296,10 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
-    // Header ist bei Finanzen/Lebensmittel jetzt position:fixed (siehe
-    // .screen-header) statt sticky — der dadurch aus dem normalen
-    // Fluss genommene Platz wird hier gemessen und den Tab-Inhalten
-    // als Abstand nach oben mitgegeben, damit nichts dahinter startet.
-    var headerEl = screenEl.querySelector('.screen-header');
-    if(headerEl){
-      screenEl.style.setProperty('--screen-header-h', headerEl.offsetHeight+'px');
-    }
-    // Tabbar (falls vorhanden) sichtbar von oben "reinfahren" lassen —
-    // rein optisch schön, die eigentliche Ursache des früheren
-    // Versatzes war Rechenlast durch gleichzeitig gerenderte Tab-
-    // Inhalte, jetzt an der Wurzel behoben (siehe setupSwipeTabs() /
-    // .tab-rendered in shared/ui.js + layout.css).
-    var tabbarEl = document.querySelector('#screen-'+name+' .tabbar');
-    if(tabbarEl){
-      tabbarEl.classList.remove('tabbar-entering');
-      void tabbarEl.offsetWidth;
-      tabbarEl.classList.add('tabbar-entering');
-      tabbarEl.addEventListener('animationend', function handler(){
-        tabbarEl.classList.remove('tabbar-entering');
-        tabbarEl.removeEventListener('animationend', handler);
-      });
-    }
+    // Tabbar ist wieder fest am unteren Rand (wie vor dem Redesign) —
+    // keine Header-Höhen-Messung und keine Rein-Animation mehr nötig,
+    // sie ist ja bereits fertig positioniert, sobald der Screen aktiv
+    // wird.
     if(name==='finance') switchView('overview', true);
     if(name==='todos') renderTodos();
     if(name==='notes') renderNotesList();
