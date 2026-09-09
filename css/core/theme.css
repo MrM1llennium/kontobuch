@@ -325,23 +325,3 @@
     backdrop-filter: blur(14px) saturate(1.4);
   }
 
-  /* ============================================================
-     ATMOSPHÄRE-SYSTEM (Clean/Botanical) — eigene, von Farbe/Stil
-     unabhängige Achse für Modern. Steuert AUSSCHLIESSLICH die
-     Hintergrund-Illustrationen oben in Dashboard/Mein Casalo
-     (.dash-atmosphere-SVGs, je zwei pro Seite direkt im HTML —
-     eine Clean-, eine Botanical-Variante — hier per Attribut nur
-     ein-/ausgeblendet). Cards, Typografie, Navigation, Modulfarben
-     kennen dieses Attribut nicht — bewusst komplett getrennt vom
-     bestehenden Farbsystem. Nur für Modern relevant; bei Kawaii
-     bleiben beide Varianten verborgen (Positionierung siehe
-     layout.css). Aktuell rein statisch (keine Parallax-Kopplung an
-     den Swipe) — bewusst separater, späterer Schritt.
-     ============================================================ */
-  /* Sichtbarkeit je Seite + Atmosphäre: siehe layout.css
-     (.dash-atmosphere-Regeln dort, kombiniert mit der von
-     dashboard.js gesetzten .showing-modules-Klasse). Hier nur die
-     Kawaii-Ausnahme — bekommt gar keine Atmosphäre zu sehen, egal
-     welcher Zustand sonst aktiv wäre. */
-  html[data-style="kawaii"] .dash-atmosphere{ display:none !important; }
-

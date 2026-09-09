@@ -141,23 +141,6 @@
     width:100%; max-width:480px; z-index:80;
     background:var(--paper);
   }
-  /* Hintergrund-Illustrationen (Clean/Botanical) — sitzen HINTER
-     Header und Content, spannen den oberen Bereich auf, in dem laut
-     Referenzbild sowohl Header-Text als auch die ersten Cards liegen.
-     Jeweils 4 SVGs im HTML (2 Seiten × 2 Atmosphären), hier wird pro
-     Zustand genau eine sichtbar geschaltet — welche Seite gerade
-     aktiv ist, steuert eine von dashboard.js gesetzte Klasse auf
-     #screen-home, welche Atmosphäre aktiv ist das bestehende
-     data-atmosphere-Attribut (siehe theme.css für Kawaii-Ausnahme). */
-  .dash-atmosphere{
-    display:none; position:fixed; left:50%; transform:translateX(-50%);
-    width:100%; max-width:480px; top:0; height:280px;
-    z-index:0; pointer-events:none;
-  }
-  html:not([data-atmosphere="botanical"]) #screen-home:not(.showing-modules) .dash-atmo-today.atmo-clean{ display:block; }
-  html[data-atmosphere="botanical"] #screen-home:not(.showing-modules) .dash-atmo-today.atmo-botanical{ display:block; }
-  html:not([data-atmosphere="botanical"]) #screen-home.showing-modules .dash-atmo-modules.atmo-clean{ display:block; }
-  html[data-atmosphere="botanical"] #screen-home.showing-modules .dash-atmo-modules.atmo-botanical{ display:block; }
   .dash-header-crossfade{ position:relative; min-height:52px; }
   .dash-header-text{
     position:absolute; top:0; left:0; right:0;
