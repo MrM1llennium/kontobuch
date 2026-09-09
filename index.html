@@ -12,16 +12,16 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <title>Home Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/core/theme.css?v=20260909j">
-<link rel="stylesheet" href="css/core/base.css?v=20260909j">
-<link rel="stylesheet" href="css/core/layout.css?v=20260909j">
-<link rel="stylesheet" href="css/shared/components.css?v=20260909j">
-<link rel="stylesheet" href="css/modules/finance.css?v=20260909j">
-<link rel="stylesheet" href="css/modules/calendar.css?v=20260909j">
-<link rel="stylesheet" href="css/modules/todos.css?v=20260909j">
-<link rel="stylesheet" href="css/modules/groceries.css?v=20260909j">
-<link rel="stylesheet" href="css/modules/projects.css?v=20260909j">
-<link rel="stylesheet" href="css/modules/notes.css?v=20260909j">
+<link rel="stylesheet" href="css/core/theme.css?v=20260909k">
+<link rel="stylesheet" href="css/core/base.css?v=20260909k">
+<link rel="stylesheet" href="css/core/layout.css?v=20260909k">
+<link rel="stylesheet" href="css/shared/components.css?v=20260909k">
+<link rel="stylesheet" href="css/modules/finance.css?v=20260909k">
+<link rel="stylesheet" href="css/modules/calendar.css?v=20260909k">
+<link rel="stylesheet" href="css/modules/todos.css?v=20260909k">
+<link rel="stylesheet" href="css/modules/groceries.css?v=20260909k">
+<link rel="stylesheet" href="css/modules/projects.css?v=20260909k">
+<link rel="stylesheet" href="css/modules/notes.css?v=20260909k">
 </head>
 <body>
 
@@ -107,6 +107,7 @@
 
   <!-- ============ HOME ============ -->
   <div class="screen active" id="screen-home">
+    <div class="dash-atmosphere" id="dashAtmosphere" aria-hidden="true"></div>
     <div class="topbar dash-fixed-header">
       <div class="top-controls">
         <button class="hamburger-btn" data-open-sidebar aria-label="Menü">
@@ -694,15 +695,19 @@
       </div>
 
       <p class="section-title">Design</p>
-      <p class="page-sub" style="margin-top:-4px;">Stil und Farbe wählen — gilt pro Gerät.</p>
+      <p class="page-sub" style="margin-top:-4px;">Stil und Atmosphäre wählen — gilt pro Gerät.</p>
       <div class="form-wrap" style="padding-top:10px;">
         <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">Stil</label>
         <div class="mode-switch" id="styleSwitch" style="margin-bottom:16px;">
           <button type="button" data-style-choice="modern" class="active">Modern</button>
           <button type="button" data-style-choice="kawaii">Kawaii</button>
         </div>
-        <label style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">Farbe</label>
-        <div class="mode-switch" id="themeSwitch" style="margin-bottom:0;">
+        <label id="atmosphereLabel" style="display:block; font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">Atmosphäre</label>
+        <div class="mode-switch" id="atmosphereSwitch" style="margin-bottom:0;">
+          <button type="button" data-atmosphere-choice="clean" class="active">Clean</button>
+          <button type="button" data-atmosphere-choice="botanical">Botanical</button>
+        </div>
+        <div class="mode-switch" id="themeSwitch" style="display:none;">
           <button type="button" data-theme-choice="signature" data-theme-style="modern" class="active">✨ Signature</button>
           <button type="button" data-theme-choice="forest" data-theme-style="modern">🌲 Forest</button>
           <button type="button" data-theme-choice="lilac" data-theme-style="modern">🪻 Lilac</button>
@@ -1255,17 +1260,17 @@
 
 </div>
 
-<script src="js/core/state.js?v=20260909j"></script>
-<script src="js/shared/utils.js?v=20260909j"></script>
-<script src="js/shared/ui.js?v=20260909j"></script>
-<script src="js/core/storage.js?v=20260909j"></script>
-<script src="js/core/app.js?v=20260909j"></script>
-<script src="js/core/dashboard.js?v=20260909j"></script>
-<script src="js/modules/finance.js?v=20260909j"></script>
-<script src="js/modules/calendar.js?v=20260909j"></script>
-<script src="js/modules/todos.js?v=20260909j"></script>
-<script src="js/modules/groceries.js?v=20260909j"></script>
-<script src="js/modules/projects.js?v=20260909j"></script>
-<script src="js/modules/notes.js?v=20260909j"></script>
+<script src="js/core/state.js?v=20260909k"></script>
+<script src="js/shared/utils.js?v=20260909k"></script>
+<script src="js/shared/ui.js?v=20260909k"></script>
+<script src="js/core/storage.js?v=20260909k"></script>
+<script src="js/core/app.js?v=20260909k"></script>
+<script src="js/core/dashboard.js?v=20260909k"></script>
+<script src="js/modules/finance.js?v=20260909k"></script>
+<script src="js/modules/calendar.js?v=20260909k"></script>
+<script src="js/modules/todos.js?v=20260909k"></script>
+<script src="js/modules/groceries.js?v=20260909k"></script>
+<script src="js/modules/projects.js?v=20260909k"></script>
+<script src="js/modules/notes.js?v=20260909k"></script>
 </body>
 </html>
