@@ -183,43 +183,44 @@
       headerToday.classList.toggle('active', page==='today');
       headerModules.classList.toggle('active', page==='modules');
     }
-    updateFloatingSwitchLabel();
-    // Beim Wechsel zeigt der Floating Switch wieder seine volle Pillen-
-    // Form (neuer Kontext, neue Scrollposition oben).
-    setFloatingSwitchCompact(false);
+    updateSegmentActive(page);
+    // Beim Wechsel zeigt das Segment wieder seine volle Form (neuer
+    // Kontext, neue Scrollposition oben).
+    setSegmentCompact(false);
   }
 
-  function updateFloatingSwitchLabel(){
-    var label = document.querySelector('#dashFloatingSwitch .dfs-label');
-    var iconModules = document.querySelector('#dashFloatingSwitch .dfs-icon-modules');
-    var iconToday = document.querySelector('#dashFloatingSwitch .dfs-icon-today');
-    if(!label) return;
-    var newText = dashCurrentPage==='today' ? 'Mein Casalo' : 'Heute';
-    if(label.textContent === newText) return; // nichts zu tun, kein unnötiges Überblenden
-    // Zeigt bewusst das ZIEL, nicht die aktuelle Ansicht (Spezifikation
-    // Finetuning Punkt 10): auf "Heute" -> Ziel ist "Mein Casalo"
-    // (Raster-Symbol), auf "Mein Casalo" -> Ziel ist "Heute" (Sonne).
-    // Text und Icon wechseln als weiches Überblenden statt eines
-    // harten Sprungs (Finetuning Punkt 9): kurz ausblenden, Inhalt
-    // austauschen, wieder einblenden.
-    label.classList.add('dfs-label-fading');
-    if(iconModules && iconToday){
-      iconModules.classList.remove('active');
-      iconToday.classList.remove('active');
-    }
-    setTimeout(function(){
-      label.textContent = newText;
-      label.classList.remove('dfs-label-fading');
-      if(iconModules && iconToday){
-        iconModules.classList.toggle('active', dashCurrentPage==='today');
-        iconToday.classList.toggle('active', dashCurrentPage!=='today');
-      }
-    }, 160);
+  /* ---- Segment-Control "Heute / Module": Bubble zeigt die aktuelle
+     Position, nicht das Ziel — anders als der frühere Floating-Switch-
+     Button mit wechselndem Text. ---- */
+  function positionSegmentBubble(page, dragging){
+    var bubble = document.getElementById('dashSegmentBubble');
+    var btn = document.getElementById(page==='today' ? 'dashSegBtnToday' : 'dashSegBtnModules');
+    if(!bubble || !btn) return;
+    bubble.classList.toggle('dragging', !!dragging);
+    bubble.style.left = btn.offsetLeft+'px';
+    bubble.style.width = btn.offsetWidth+'px';
+  }
+  function positionSegmentBubbleBetween(t){
+    // t: 0 = ganz bei "Heute", 1 = ganz bei "Module"
+    var bubble = document.getElementById('dashSegmentBubble');
+    var btnToday = document.getElementById('dashSegBtnToday');
+    var btnModules = document.getElementById('dashSegBtnModules');
+    if(!bubble || !btnToday || !btnModules) return;
+    bubble.classList.add('dragging');
+    bubble.style.left = (btnToday.offsetLeft + (btnModules.offsetLeft-btnToday.offsetLeft)*t)+'px';
+    bubble.style.width = (btnToday.offsetWidth + (btnModules.offsetWidth-btnToday.offsetWidth)*t)+'px';
+  }
+  function updateSegmentActive(page){
+    var btnToday = document.getElementById('dashSegBtnToday');
+    var btnModules = document.getElementById('dashSegBtnModules');
+    if(btnToday) btnToday.classList.toggle('active', page==='today');
+    if(btnModules) btnModules.classList.toggle('active', page==='modules');
+    positionSegmentBubble(page, false);
   }
 
-  function setFloatingSwitchCompact(compact){
-    var btn = document.getElementById('dashFloatingSwitch');
-    if(btn) btn.classList.toggle('compact', !!compact);
+  function setSegmentCompact(compact){
+    var seg = document.getElementById('dashSegment');
+    if(seg) seg.classList.toggle('compact', !!compact);
   }
 
   /* ---- Swipe-Erkennung (reines Touch-Handling, keine Bibliothek) ---- */
@@ -256,6 +257,11 @@
         var next = Math.max(-50, Math.min(0, base + dxPercent));
         pager.style.transition = 'none';
         pager.style.transform = 'translateX('+next+'%)';
+        // Segment-Bubble live mitgleiten lassen, exakt proportional
+        // zum Fortschritt der Geste — dieselbe Technik wie beim
+        // Tab-Unterstrich.
+        var progress = Math.max(0, Math.min(1, next / -50));
+        positionSegmentBubbleBetween(progress);
       }
     }, { passive: false });
 
@@ -281,25 +287,23 @@
     });
   }
 
-  /* ---- Floating Switch: Klick zum Wechseln ---- */
-  function initFloatingSwitch(){
-    var btn = document.getElementById('dashFloatingSwitch');
-    if(!btn) return;
-    btn.addEventListener('click', function(){
-      setDashboardPage(dashCurrentPage==='today' ? 'modules' : 'today');
+  /* ---- Segment-Control: Klick auf "Heute" bzw. "Module" ---- */
+  function initSegmentClicks(){
+    document.querySelectorAll('.dash-segment-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var target = btn.getAttribute('data-target');
+        if(target && target!==dashCurrentPage) setDashboardPage(target);
+      });
     });
   }
 
-  /* ---- Floating Switch: Transformation zu rundem Button beim Scrollen ---- */
-  function initFloatingSwitchScrollBehavior(){
+  /* ---- Segment-Control: zu schmalem Streifen zusammenquetschen beim Scrollen ---- */
+  function initSegmentScrollBehavior(){
     ['dashPageToday','dashPageModules'].forEach(function(id){
       var page = document.getElementById(id);
       if(!page) return;
-      var lastY = 0;
       page.addEventListener('scroll', function(){
-        var y = page.scrollTop;
-        setFloatingSwitchCompact(y > 24);
-        lastY = y;
+        setSegmentCompact(page.scrollTop > 24);
       }, { passive: true });
     });
   }
@@ -307,7 +311,7 @@
   function initDashboard(){
     renderDashboardDate();
     initDashboardSwipe();
-    initFloatingSwitch();
-    initFloatingSwitchScrollBehavior();
-    updateFloatingSwitchLabel();
+    initSegmentClicks();
+    initSegmentScrollBehavior();
+    updateSegmentActive(dashCurrentPage);
   }
