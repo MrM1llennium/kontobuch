@@ -295,37 +295,20 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
-    // ---- DIAGNOSE-TEST (bitte nach dem Test wieder entfernen) ----
-    // Färbt die Tab-Leiste beim Öffnen für 2 Sekunden knallrot, komplett
-    // unabhängig vom CSS-Klassen-System oben — reines Inline-Style
-    // direkt per JS. Wenn das NICHT sichtbar ist, läuft dieser Code
-    // bei dir gar nicht erst (Cache-Problem). Wenn es SICHTBAR ist,
-    // läuft der Code, dann liegt's an der Animation selbst.
-    var tabbarElDebug = document.querySelector('#screen-'+name+' .tabbar');
-    if(tabbarElDebug){
-      tabbarElDebug.style.background = 'red';
-      setTimeout(function(){ tabbarElDebug.style.background = ''; }, 2000);
-    }
-    // ---- ENDE DIAGNOSE-TEST ----
-
-    // Tabbar (falls vorhanden) für den einen problematischen ersten
-    // Frame komplett unsichtbar halten, dann sichtbar von oben
-    // "reinfahren" lassen. Bewusst per festem, kurzem Timeout statt
-    // requestAnimationFrame — rAF garantiert nur "vor dem nächsten
-    // Repaint", das kann derselbe fehlerhafte Frame sein. Ein festes,
-    // kurzes Timeout überspringt ihn zuverlässiger.
+    // Tabbar (falls vorhanden) sichtbar von oben "reinfahren" lassen —
+    // rein optisch schön, die eigentliche Ursache des früheren
+    // Versatzes war Rechenlast durch gleichzeitig gerenderte Tab-
+    // Inhalte, jetzt an der Wurzel behoben (siehe setupSwipeTabs() /
+    // .tab-rendered in shared/ui.js + layout.css).
     var tabbarEl = document.querySelector('#screen-'+name+' .tabbar');
     if(tabbarEl){
       tabbarEl.classList.remove('tabbar-entering');
-      tabbarEl.classList.add('tabbar-hide-first-frame');
-      setTimeout(function(){
-        tabbarEl.classList.remove('tabbar-hide-first-frame');
-        tabbarEl.classList.add('tabbar-entering');
-        tabbarEl.addEventListener('animationend', function handler(){
-          tabbarEl.classList.remove('tabbar-entering');
-          tabbarEl.removeEventListener('animationend', handler);
-        });
-      }, 60);
+      void tabbarEl.offsetWidth;
+      tabbarEl.classList.add('tabbar-entering');
+      tabbarEl.addEventListener('animationend', function handler(){
+        tabbarEl.classList.remove('tabbar-entering');
+        tabbarEl.removeEventListener('animationend', handler);
+      });
     }
     if(name==='finance') switchView('overview', true);
     if(name==='todos') renderTodos();
