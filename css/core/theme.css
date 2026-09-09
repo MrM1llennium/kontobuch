@@ -327,56 +327,21 @@
 
   /* ============================================================
      ATMOSPHÄRE-SYSTEM (Clean/Botanical) — eigene, von Farbe/Stil
-     unabhängige Achse für Modern. Steuert AUSSCHLIESSLICH den
-     Hintergrund-Layer hinter Dashboard/Mein Casalo (.dash-atmosphere,
-     siehe HTML + layout.css für Positionierung). Cards, Typografie,
-     Navigation, Modulfarben kennen dieses Attribut nicht — bewusst
-     komplett getrennt vom bestehenden Farbsystem.
-     Nur für Modern relevant; bei Kawaii bleibt der Layer leer (siehe
-     Sichtbarkeits-Regel unten), damit die bestehende Kawaii-Optik
-     unangetastet bleibt.
-     Aktuell rein statisch (keine Parallax-Kopplung an den Swipe) —
-     das ist laut Plan ein bewusst separater, späterer Schritt.
+     unabhängige Achse für Modern. Steuert AUSSCHLIESSLICH die
+     Hintergrund-Illustrationen oben in Dashboard/Mein Casalo
+     (.dash-atmosphere-SVGs, je zwei pro Seite direkt im HTML —
+     eine Clean-, eine Botanical-Variante — hier per Attribut nur
+     ein-/ausgeblendet). Cards, Typografie, Navigation, Modulfarben
+     kennen dieses Attribut nicht — bewusst komplett getrennt vom
+     bestehenden Farbsystem. Nur für Modern relevant; bei Kawaii
+     bleiben beide Varianten verborgen (Positionierung siehe
+     layout.css). Aktuell rein statisch (keine Parallax-Kopplung an
+     den Swipe) — bewusst separater, späterer Schritt.
      ============================================================ */
-  .dash-atmosphere{
-    position:fixed; inset:0; z-index:0; pointer-events:none;
-    overflow:hidden; opacity:0;
-  }
-  html:not([data-style="kawaii"]) .dash-atmosphere{
-    opacity:1;
-  }
+  /* Sichtbarkeit je Seite + Atmosphäre: siehe layout.css
+     (.dash-atmosphere-Regeln dort, kombiniert mit der von
+     dashboard.js gesetzten .showing-modules-Klasse). Hier nur die
+     Kawaii-Ausnahme — bekommt gar keine Atmosphäre zu sehen, egal
+     welcher Zustand sonst aktiv wäre. */
+  html[data-style="kawaii"] .dash-atmosphere{ display:none !important; }
 
-  /* Clean — sehr helle, minimalistische, abstrakte weiche Formen.
-     Zwei sanft verlaufende, verschwommene Farbflächen, kein Bild,
-     reine CSS-Gradients. */
-  html[data-atmosphere="clean"] .dash-atmosphere{
-    background:
-      radial-gradient(ellipse 480px 320px at 82% 8%, rgba(244,196,163,.38), transparent 68%),
-      radial-gradient(ellipse 420px 300px at 12% 20%, rgba(163,196,224,.30), transparent 65%),
-      radial-gradient(ellipse 520px 380px at 50% 100%, rgba(224,208,184,.20), transparent 70%);
-  }
-
-  /* Botanical — gleiche ruhige Basis, zusätzlich dezente organische
-     Blattformen (reine CSS-Formen über border-radius/rotate, keine
-     Bild-Assets, bewusst reduziert/geometrisch statt illustrativ). */
-  html[data-atmosphere="botanical"] .dash-atmosphere{
-    background:
-      radial-gradient(ellipse 460px 320px at 85% 6%, rgba(196,214,178,.32), transparent 68%),
-      radial-gradient(ellipse 400px 300px at 8% 18%, rgba(163,196,224,.22), transparent 65%),
-      radial-gradient(ellipse 520px 380px at 50% 100%, rgba(224,208,184,.18), transparent 70%);
-  }
-  html[data-atmosphere="botanical"] .dash-atmosphere::before,
-  html[data-atmosphere="botanical"] .dash-atmosphere::after{
-    content:""; position:absolute;
-    background:linear-gradient(135deg, rgba(151,181,140,.28), rgba(151,181,140,.06));
-    border-radius:0% 100% 0% 100% / 0% 100% 0% 100%;
-  }
-  html[data-atmosphere="botanical"] .dash-atmosphere::before{
-    width:190px; height:280px; top:-40px; right:-30px;
-    transform:rotate(18deg);
-  }
-  html[data-atmosphere="botanical"] .dash-atmosphere::after{
-    width:130px; height:190px; top:60px; right:70px;
-    transform:rotate(-8deg);
-    opacity:.7;
-  }
