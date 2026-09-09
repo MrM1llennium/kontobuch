@@ -25,18 +25,15 @@
      Sticky-Verhalten übernimmt der Wrapper als Ganzes (verhindert
      verschachteltes Sticky-Verhalten zweier Ebenen übereinander).
      ================================================================== */
-  .screen-header{
-    position:fixed; top:0; left:50%; transform:translateX(-50%);
-    width:100%; max-width:480px; z-index:80;
-    background:var(--paper);
-    /* Bewusst fixed statt sticky (Unterschied zur alten, fest am
-       unteren Rand positionierten Tabbar, die dieses Problem nie
-       hatte): sticky muss seine Position relativ zum normalen
-       Dokumentfluss berechnen, fixed ist rein viewport-relativ und
-       kommt ohne diese Berechnung aus — exakt dasselbe Muster wie
-       beim bereits unauffälligen Floating Switch. */
-  }
-  .screen-header .topbar{ position:static; }
+  /* .screen-header als eigener Sticky-/Fixed-Wrapper entfernt (mehrere
+     Anläufe ohne Wirkung auf das Versatz-Problem der Tabbar — siehe
+     ARCHITECTURE.md-Historie). Topbar läuft jetzt wieder ganz normal
+     sticky wie bei jedem anderen Screen auch (.topbar-Basisregel
+     weiter unten). Die Tabbar selbst wandert zurück an den unteren
+     Bildschirmrand — strukturell identisch zur ursprünglichen, nie
+     auffälligen Bottom-Tabbar von vor dem Redesign, nur mit
+     Text-Beschriftung statt Icons und dem neuen gleitenden
+     Unterstrich statt einfachem Farbwechsel. */
   .brand{
     font-size:13px;
     letter-spacing:.04em;
@@ -220,13 +217,11 @@
   .tab-pager > .view{
     display:flex !important; flex-direction:column; flex-shrink:0;
     height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
-    /* Header ist jetzt position:fixed (siehe .screen-header) und damit
-       aus dem normalen Fluss raus — der Platz dafür wird per JS
-       gemessen und hier als Variable eingesetzt (siehe openModule()
-       in app.js). Auf dem einzelnen scrollbaren View statt auf dem
-       Pager selbst, damit der Inhalt beim Scrollen korrekt UNTER dem
-       Header verschwindet statt einer starren Lücke zu bleiben. */
-    padding-top: var(--screen-header-h, 100px);
+    /* Tabbar ist jetzt wieder fest am unteren Rand (siehe .tabbar-clip
+       in components.css) statt im oberen Header — Platz dafür unten
+       reservieren, Topbar oben läuft wieder ganz normal im Fluss,
+       braucht keinen gemessenen Abstand mehr. */
+    padding-bottom: calc(60px + var(--safe-bottom));
   }
   /* Der Versuch, per display:none nur einen Ausschnitt zu rendern
      (Runde zuvor), war ein eigener Bug: display:none nimmt ein
