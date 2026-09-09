@@ -100,22 +100,11 @@
     padding:2px 10px 0; margin-bottom:2px;
     border-bottom:1px solid var(--line);
   }
-  /* Der falsch positionierte allererste Frame beim Öffnen eines
-     Moduls betrifft die HORIZONTALE Berechnung der Tab-Leiste (kurz
-     verschoben, "…tistik" statt "Übersicht" sichtbar) — eine reine
-     vertikale Rein-/Rausfahr-Animation allein deckt das nicht ab,
-     weil sie während der eigentlichen Bewegung ja trotzdem den
-     (kurzzeitig falschen) horizontalen Zustand zeigen würde.
-     Deshalb jetzt zweistufig: Die Tab-Leiste ist zunächst komplett
-     unsichtbar (visibility:hidden — behält ihre Höhe, nimmt aber am
-     Layout teil, damit sich in der Zwischenzeit nichts verschiebt),
-     dann setzt JS nach einer kurzen Verzögerung (nicht per
-     requestAnimationFrame, sondern per festem, kurzem Timeout, um den
-     einen problematischen Frame sicher zu überspringen) erst die
-     Sichtbarkeit und die Rein-Animation gemeinsam. */
-  .tabbar.tabbar-hide-first-frame{
-    visibility:hidden;
-  }
+  /* Tab-Leiste fährt beim Öffnen eines Moduls sichtbar von oben rein
+     (rein optisches Detail). Die eigentliche Ursache des früheren
+     Versatzes war Rechenlast durch gleichzeitig gerenderte Tab-
+     Inhalte — behoben in layout.css (.tab-rendered) + shared/ui.js,
+     nicht hier über Verstecken-Tricks kaschiert. */
   @keyframes tabbarSlideIn{
     from{ transform:translateY(-100%); }
     to{ transform:translateY(0); }
