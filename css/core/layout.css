@@ -218,7 +218,7 @@
     will-change: transform;
   }
   .tab-pager > .view{
-    display:none; flex-direction:column; flex-shrink:0;
+    display:flex !important; flex-direction:column; flex-shrink:0;
     height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
     /* Header ist jetzt position:fixed (siehe .screen-header) und damit
        aus dem normalen Fluss raus — der Platz dafür wird per JS
@@ -228,14 +228,14 @@
        Header verschwindet statt einer starren Lücke zu bleiben. */
     padding-top: var(--screen-header-h, 100px);
   }
-  /* Nur die aktive Tab-Seite + direkte Nachbarn werden tatsächlich
-     gerendert (Klasse wird von setupSwipeTabs() in ui.js verwaltet),
-     nicht alle gleichzeitig. Vorher waren bei Finanzen alle 5 Seiten
-     inkl. der Übersicht mit vielen Buchungen gleichzeitig im Layout —
-     das kostete auf echten Geräten spürbar Zeit beim Öffnen und war
-     die eigentliche Ursache für das kurze "falsch stehen, dann
-     umspringen" der Tab-Leiste (keine Grafik-Verzögerung, sondern
-     echte Rechenlast). */
+  /* Der Versuch, per display:none nur einen Ausschnitt zu rendern
+     (Runde zuvor), war ein eigener Bug: display:none nimmt ein
+     Flexbox-Kind komplett aus der Breitenberechnung raus, dadurch
+     rutschten die sichtbaren Tabs zusammen und landeten an falscher
+     Position (Tab zeigte "Statistik", Inhalt war "Budget"). Zurück-
+     gebaut auf immer alle 5 gleichzeitig darstellen — korrekt, auch
+     wenn potenziell etwas mehr Rechenlast als die (fehlerhafte)
+     Zwischenlösung. */
   .tab-pager > .view.tab-rendered{
     display:flex !important;
   }
