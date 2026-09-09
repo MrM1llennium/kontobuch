@@ -297,10 +297,13 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
-    // Tabbar ist wieder fest am unteren Rand (wie vor dem Redesign) —
-    // keine Header-Höhen-Messung und keine Rein-Animation mehr nötig,
-    // sie ist ja bereits fertig positioniert, sobald der Screen aktiv
-    // wird.
+    // Topbar ist jetzt position:fixed statt sticky (unzuverlässig auf
+    // echten Geräten) — der dadurch aus dem Fluss genommene Platz wird
+    // hier gemessen und dem Inhalt als oberer Abstand mitgegeben.
+    var topbarEl = screenEl.querySelector('.topbar');
+    if(topbarEl){
+      document.documentElement.style.setProperty('--topbar-h', topbarEl.offsetHeight+'px');
+    }
     if(name==='finance') switchView('overview', true);
     if(name==='todos') renderTodos();
     if(name==='notes') renderNotesList();
