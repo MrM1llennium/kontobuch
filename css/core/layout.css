@@ -171,7 +171,12 @@
   }
   .dash-page{
     width:50%; height:100%; flex-shrink:0;
-    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    /* overflow-y:scroll statt auto — erzwingt den Scroll-Container
+       immer, auch wenn der Inhalt (noch) kürzer als der Bildschirm
+       ist. Dadurch bleibt der elastische Gummiband-Effekt beim
+       Wischen erhalten, statt dass sich bei kurzem Inhalt gar nichts
+       tut (auto scrollt nur, wenn tatsächlich Überlauf da ist). */
+    overflow-y:scroll; -webkit-overflow-scrolling:touch;
     display:flex; flex-direction:column;
     /* Bewusst WENIGER Abstand als die tatsächliche Höhe des Segment-
        Controls (46px + 20px Abstand = 66px) — der Glas-Effekt bei
