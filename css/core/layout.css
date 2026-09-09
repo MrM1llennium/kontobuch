@@ -111,17 +111,20 @@
 
   /* ==================================================================
      REDESIGN PHASE C / FINETUNING RUNDE 1 — Dashboard: zwei
-     horizontale Ansichten (Heute <-> Mein Casalo), Swipe + Floating
-     Switch. Header liegt jetzt AUSSERHALB des Pagers (eigenes,
-     stabiles Element) und swipt dadurch nicht mehr optisch mit —
-     nur sein Textinhalt blendet weich zwischen den beiden Zuständen
-     über (siehe .dash-header-crossfade).
+     horizontale Ansichten (Heute <-> Mein Casalo), Swipe + Segment-
+     Control. Header UND Pager-Bereich laufen jetzt beide auf
+     position:fixed statt auf einer Eindämmung über overflow:hidden
+     am Screen selbst — Letzteres hat sich auf echten Geräten als
+     unzuverlässig erwiesen (Header scrollte sichtbar mit, siehe
+     Bildschirmfoto-Fund). position:fixed ist rein viewport-bezogen
+     und damit unabhängig von jeder Fluss-/Eindämmungsberechnung —
+     dasselbe bewährte Prinzip wie bei der Tab-Leiste am Boden.
      ================================================================== */
-  #screen-home.active{
-    height:100vh; min-height:100vh; overflow:hidden;
-    display:flex; flex-direction:column;
+  .dash-fixed-header{
+    position:fixed; top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px; z-index:80;
+    background:var(--paper);
   }
-  .dash-fixed-header{ flex-shrink:0; position:relative; z-index:80; }
   .dash-header-crossfade{ position:relative; min-height:52px; }
   .dash-header-text{
     position:absolute; top:0; left:0; right:0;
@@ -133,8 +136,20 @@
     position:relative; opacity:1; transform:translateY(0);
     pointer-events:auto;
   }
+  /* Äußerer, fixer "Sichtfenster"-Rahmen: übernimmt Zentrierung,
+     Begrenzung auf den Bereich unter dem Header und schneidet die
+     200% breiten Pager-Inhalte sauber ab. Die Höhe des Headers wird
+     per JS gemessen (siehe initDashboard() in dashboard.js), da sie
+     je nach Gerät/Safe-Area variiert. */
+  .dash-pager-viewport{
+    position:fixed; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    top:var(--dash-header-h, 108px);
+    bottom:0;
+    overflow:hidden;
+  }
   .dash-pager{
-    display:flex; width:200%; flex:1; min-height:0;
+    display:flex; width:200%; height:100%;
     transition: transform .48s cubic-bezier(0.22, 0.61, 0.36, 1);
     will-change: transform;
   }
@@ -214,18 +229,17 @@
      Akzentfarbe — nur hier, Forest/Lilac/Bubblegum behalten die
      bisherige, kräftige Farbgebung (siehe Dauerregel in
      ARCHITECTURE.md: Farbänderungen nur für Signature).
-     Deutlich weniger Deckkraft als im ersten Versuch (.66 → .3) plus
-     ein feiner heller Rand zur Kontur — bei Signature sind sowohl der
-     Hintergrund als auch die Kacheln selbst schon fast weiß, ein zu
-     blickdichtes Glas darüber sah dadurch einfach wie normales Weiß
-     aus, egal wie stark der Weichzeichner lief. */
+     Nochmals deutlich transparenter (.3 → .16) auf ausdrücklichen
+     Wunsch — so durchsichtig wie möglich, während die Schrift noch
+     lesbar bleibt. Der feine helle Rand bleibt als Kontur, sonst
+     würde die Form auf hellem Untergrund fast verschwinden. */
   html:not([data-theme]) .dash-segment,
   html[data-theme="signature"] .dash-segment{
-    background: rgba(255,255,255,.3);
-    border: 1px solid rgba(255,255,255,.55);
-    -webkit-backdrop-filter: blur(20px) saturate(1.8);
-    backdrop-filter: blur(20px) saturate(1.8);
-    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 12px 28px rgba(0,0,0,.10);
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.6);
+    -webkit-backdrop-filter: blur(22px) saturate(2);
+    backdrop-filter: blur(22px) saturate(2);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 12px 28px rgba(0,0,0,.12);
   }
   html:not([data-theme]) .dash-segment-btn,
   html[data-theme="signature"] .dash-segment-btn{
