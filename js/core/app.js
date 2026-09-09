@@ -56,16 +56,8 @@
   /* ================= Design/Style/Theme ================= */
   var THEME_KEY = 'kontobuch-theme';
   var STYLE_KEY = 'kontobuch-style';
-  var ATMOSPHERE_KEY = 'kontobuch-atmosphere';
-  // Modern hat ab jetzt nur noch eine (interne) Farbwelt — die
-  // bisherige "signature"-Palette ist jetzt schlicht die Modern-Basis,
-  // keine wählbare Option mehr. Forest/Lilac technisch nicht gelöscht
-  // (auf Wunsch erhalten für später), aber aus der Auswahl entfernt:
-  // Selbst ein alter, in localStorage gespeicherter Wert wird über
-  // diese Prüfung automatisch auf "signature" zurückgesetzt.
-  var VALID_THEMES_BY_STYLE = { modern: ['signature'], kawaii: ['bubblegum'] };
+  var VALID_THEMES_BY_STYLE = { modern: ['signature','forest','lilac'], kawaii: ['bubblegum'] };
   var DEFAULT_THEME_BY_STYLE = { modern: 'signature', kawaii: 'bubblegum' };
-  var VALID_ATMOSPHERES = ['clean','botanical'];
 
   function applyStyle(style){
     if(style!=='kawaii') style = 'modern';
@@ -77,15 +69,10 @@
     document.querySelectorAll('#styleSwitch button').forEach(function(b){
       b.classList.toggle('active', b.getAttribute('data-style-choice')===style);
     });
-    // Atmosphäre-Auswahl gehört nur zu Modern — Kawaii bleibt davon
-    // vollständig unberührt (bekommt sie gar nicht erst zu sehen).
-    var atmosphereGroup = document.getElementById('atmosphereSwitch');
-    var atmosphereLabel = document.getElementById('atmosphereLabel');
-    if(atmosphereGroup) atmosphereGroup.style.display = style==='modern' ? '' : 'none';
-    if(atmosphereLabel) atmosphereLabel.style.display = style==='modern' ? '' : 'none';
-    // Farboptionen-Zeile bleibt bewusst versteckt (siehe HTML-Kommentar) —
-    // Modern hat keine wählbare Farbe mehr, Kawaii wählt Bubblegum nicht
-    // manuell, sondern bekommt es automatisch über DEFAULT_THEME_BY_STYLE.
+    // Nur die zum Style passenden Farboptionen anzeigen
+    document.querySelectorAll('#themeSwitch button').forEach(function(b){
+      b.style.display = b.getAttribute('data-theme-style')===style ? '' : 'none';
+    });
     // Falls die aktuell gewählte Farbe zum neuen Style nicht passt, auf die
     // Standardfarbe dieses Styles wechseln.
     var currentTheme = localStorage.getItem(THEME_KEY) || 'signature';
@@ -106,25 +93,6 @@
       b.classList.toggle('active', b.getAttribute('data-theme-choice')===theme);
     });
   }
-  /* ---- Atmosphäre (Clean/Botanical) — eigene, von Farbe/Stil
-     unabhängige Achse, nur für Modern relevant. Steuert ausschließlich
-     den Hintergrund-Layer von Dashboard/Mein Casalo (.dash-atmosphere
-     in layout.css) — Cards, Typografie, Navigation, Modulfarben lesen
-     dieses Attribut nirgends. ---- */
-  function applyAtmosphere(atmosphere){
-    if(VALID_ATMOSPHERES.indexOf(atmosphere)===-1) atmosphere = 'clean';
-    document.documentElement.setAttribute('data-atmosphere', atmosphere);
-    document.querySelectorAll('#atmosphereSwitch button').forEach(function(b){
-      b.classList.toggle('active', b.getAttribute('data-atmosphere-choice')===atmosphere);
-    });
-  }
-  document.querySelectorAll('#atmosphereSwitch button').forEach(function(b){
-    b.addEventListener('click', function(){
-      var atmosphere = b.getAttribute('data-atmosphere-choice');
-      localStorage.setItem(ATMOSPHERE_KEY, atmosphere);
-      applyAtmosphere(atmosphere);
-    });
-  });
   document.querySelectorAll('#styleSwitch button').forEach(function(b){
     b.addEventListener('click', function(){
       var style = b.getAttribute('data-style-choice');
@@ -140,7 +108,6 @@
     });
   });
   applyStyle(localStorage.getItem(STYLE_KEY) || 'modern');
-  applyAtmosphere(localStorage.getItem(ATMOSPHERE_KEY) || 'clean');
 
   /* ---- Nutzerverwaltung: Grundlagen ---- */
   var currentUserId = localStorage.getItem(CURRENT_USER_KEY) || null;

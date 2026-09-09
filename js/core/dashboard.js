@@ -183,12 +183,6 @@
       headerToday.classList.toggle('active', page==='today');
       headerModules.classList.toggle('active', page==='modules');
     }
-    // Steuert, welche der vier Atmosphäre-SVGs sichtbar ist (siehe
-    // .dash-atmosphere-Regeln in layout.css) — rein statisches
-    // Ein-/Ausblenden je aktiver Seite, keine Bewegungskopplung an
-    // den Swipe selbst.
-    var screenHome = document.getElementById('screen-home');
-    if(screenHome) screenHome.classList.toggle('showing-modules', page==='modules');
     updateSegmentActive(page);
     // Beim Wechsel zeigt das Segment wieder seine volle Form (neuer
     // Kontext, neue Scrollposition oben).
