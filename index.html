@@ -12,16 +12,16 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <title>Home Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/core/theme.css?v=20260909l">
-<link rel="stylesheet" href="css/core/base.css?v=20260909l">
-<link rel="stylesheet" href="css/core/layout.css?v=20260909l">
-<link rel="stylesheet" href="css/shared/components.css?v=20260909l">
-<link rel="stylesheet" href="css/modules/finance.css?v=20260909l">
-<link rel="stylesheet" href="css/modules/calendar.css?v=20260909l">
-<link rel="stylesheet" href="css/modules/todos.css?v=20260909l">
-<link rel="stylesheet" href="css/modules/groceries.css?v=20260909l">
-<link rel="stylesheet" href="css/modules/projects.css?v=20260909l">
-<link rel="stylesheet" href="css/modules/notes.css?v=20260909l">
+<link rel="stylesheet" href="css/core/theme.css?v=20260909m">
+<link rel="stylesheet" href="css/core/base.css?v=20260909m">
+<link rel="stylesheet" href="css/core/layout.css?v=20260909m">
+<link rel="stylesheet" href="css/shared/components.css?v=20260909m">
+<link rel="stylesheet" href="css/modules/finance.css?v=20260909m">
+<link rel="stylesheet" href="css/modules/calendar.css?v=20260909m">
+<link rel="stylesheet" href="css/modules/todos.css?v=20260909m">
+<link rel="stylesheet" href="css/modules/groceries.css?v=20260909m">
+<link rel="stylesheet" href="css/modules/projects.css?v=20260909m">
+<link rel="stylesheet" href="css/modules/notes.css?v=20260909m">
 </head>
 <body>
 
@@ -107,77 +107,87 @@
 
   <!-- ============ HOME ============ -->
   <div class="screen active" id="screen-home">
-    <svg class="dash-atmosphere dash-atmo-today atmo-clean" id="atmoTodayClean" viewBox="0 0 390 260" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <svg class="dash-atmosphere dash-atmo-today atmo-clean" id="atmoTodayClean" viewBox="0 0 390 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
-        <linearGradient id="atmoBlueToday" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#AFC9E8"/>
-          <stop offset="100%" stop-color="#AFC9E8" stop-opacity="0"/>
-        </linearGradient>
-        <linearGradient id="atmoPeachToday" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#F3C7A0"/>
-          <stop offset="100%" stop-color="#F3C7A0" stop-opacity="0"/>
-        </linearGradient>
+        <radialGradient id="atmoBlueToday" cx="25%" cy="10%" r="60%">
+          <stop offset="0%" stop-color="#8FB2E0"/>
+          <stop offset="100%" stop-color="#8FB2E0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="atmoPeachToday" cx="85%" cy="16%" r="55%">
+          <stop offset="0%" stop-color="#F0A272"/>
+          <stop offset="100%" stop-color="#F0A272" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="atmoSoftToday"><feGaussianBlur stdDeviation="6"/></filter>
       </defs>
-      <path d="M-30,120 Q100,40 230,85 T480,55 L480,-30 L-30,-30 Z" fill="url(#atmoBlueToday)" opacity=".42"/>
-      <path d="M-30,165 Q130,95 260,130 T480,110 L480,-30 L-30,-30 Z" fill="url(#atmoPeachToday)" opacity=".38"/>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoBlueToday)" opacity=".85" filter="url(#atmoSoftToday)"/>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoPeachToday)" opacity=".85" filter="url(#atmoSoftToday)"/>
     </svg>
-    <svg class="dash-atmosphere dash-atmo-today atmo-botanical" id="atmoTodayBotanical" viewBox="0 0 390 260" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <svg class="dash-atmosphere dash-atmo-today atmo-botanical" id="atmoTodayBotanical" viewBox="0 0 390 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
-        <linearGradient id="atmoBlueToday2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#AFC9E8"/>
-          <stop offset="100%" stop-color="#AFC9E8" stop-opacity="0"/>
-        </linearGradient>
-        <linearGradient id="atmoPeachToday2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#F3C7A0"/>
-          <stop offset="100%" stop-color="#F3C7A0" stop-opacity="0"/>
-        </linearGradient>
+        <radialGradient id="atmoBlueToday2" cx="25%" cy="10%" r="60%">
+          <stop offset="0%" stop-color="#8FB2E0"/>
+          <stop offset="100%" stop-color="#8FB2E0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="atmoPeachToday2" cx="85%" cy="16%" r="55%">
+          <stop offset="0%" stop-color="#F0A272"/>
+          <stop offset="100%" stop-color="#F0A272" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="atmoSoftToday2"><feGaussianBlur stdDeviation="6"/></filter>
         <radialGradient id="atmoSun" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#F7D3A1"/>
-          <stop offset="100%" stop-color="#F3C7A0" stop-opacity="0"/>
+          <stop offset="0%" stop-color="#FBD9A5"/>
+          <stop offset="70%" stop-color="#F6C287"/>
+          <stop offset="100%" stop-color="#F6C287" stop-opacity="0"/>
         </radialGradient>
       </defs>
-      <path d="M-30,120 Q100,40 230,85 T480,55 L480,-30 L-30,-30 Z" fill="url(#atmoBlueToday2)" opacity=".38"/>
-      <circle cx="300" cy="70" r="52" fill="url(#atmoSun)" opacity=".65"/>
-      <path d="M-30,165 Q130,95 260,130 T480,110 L480,-30 L-30,-30 Z" fill="url(#atmoPeachToday2)" opacity=".4"/>
-      <path d="M55,45 q7,-7 14,0 q7,-7 14,0" fill="none" stroke="#9AAEC4" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>
-      <path d="M85,32 q6,-6 12,0 q6,-6 12,0" fill="none" stroke="#9AAEC4" stroke-width="1.6" stroke-linecap="round" opacity=".45"/>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoBlueToday2)" opacity=".85" filter="url(#atmoSoftToday2)"/>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoPeachToday2)" opacity=".85" filter="url(#atmoSoftToday2)"/>
+      <circle cx="290" cy="60" r="46" fill="url(#atmoSun)" opacity=".9"/>
+      <path d="M60,35 q7,-9 14,0 q7,-9 14,0" fill="none" stroke="#7B93AD" stroke-width="1.8" stroke-linecap="round" opacity=".5"/>
+      <path d="M92,22 q6,-7 12,0 q6,-7 12,0" fill="none" stroke="#7B93AD" stroke-width="1.8" stroke-linecap="round" opacity=".4"/>
     </svg>
-    <svg class="dash-atmosphere dash-atmo-modules atmo-clean" id="atmoModulesClean" viewBox="0 0 390 260" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
+    <svg class="dash-atmosphere dash-atmo-modules atmo-clean" id="atmoModulesClean" viewBox="0 0 390 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
-        <linearGradient id="atmoBlueMod" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#AFC9E8"/>
-          <stop offset="100%" stop-color="#AFC9E8" stop-opacity="0"/>
+        <radialGradient id="atmoBlueMod" cx="25%" cy="10%" r="60%">
+          <stop offset="0%" stop-color="#8FB2E0"/>
+          <stop offset="100%" stop-color="#8FB2E0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="atmoPeachMod" cx="85%" cy="16%" r="55%">
+          <stop offset="0%" stop-color="#F0A272"/>
+          <stop offset="100%" stop-color="#F0A272" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="atmoSoftMod"><feGaussianBlur stdDeviation="6"/></filter>
+      </defs>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoBlueMod)" opacity=".85" filter="url(#atmoSoftMod)"/>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoPeachMod)" opacity=".85" filter="url(#atmoSoftMod)"/>
+    </svg>
+    <svg class="dash-atmosphere dash-atmo-modules atmo-botanical" id="atmoModulesBotanical" viewBox="0 0 390 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <radialGradient id="atmoBlueMod2" cx="25%" cy="10%" r="60%">
+          <stop offset="0%" stop-color="#8FB2E0"/>
+          <stop offset="100%" stop-color="#8FB2E0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="atmoPeachMod2" cx="85%" cy="16%" r="55%">
+          <stop offset="0%" stop-color="#F0A272"/>
+          <stop offset="100%" stop-color="#F0A272" stop-opacity="0"/>
+        </radialGradient>
+        <filter id="atmoSoftMod2"><feGaussianBlur stdDeviation="6"/></filter>
+        <linearGradient id="atmoLeaf1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#9DB988"/>
+          <stop offset="100%" stop-color="#7E9C6C"/>
         </linearGradient>
-        <linearGradient id="atmoPeachMod" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#F3C7A0"/>
-          <stop offset="100%" stop-color="#F3C7A0" stop-opacity="0"/>
+        <linearGradient id="atmoLeaf2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#B4CC9F"/>
+          <stop offset="100%" stop-color="#93AE7D"/>
         </linearGradient>
       </defs>
-      <path d="M-30,110 Q110,30 240,80 T480,50 L480,-30 L-30,-30 Z" fill="url(#atmoBlueMod)" opacity=".4"/>
-      <path d="M-30,155 Q140,90 270,120 T480,105 L480,-30 L-30,-30 Z" fill="url(#atmoPeachMod)" opacity=".36"/>
-    </svg>
-    <svg class="dash-atmosphere dash-atmo-modules atmo-botanical" id="atmoModulesBotanical" viewBox="0 0 390 260" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
-      <defs>
-        <linearGradient id="atmoBlueMod2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#AFC9E8"/>
-          <stop offset="100%" stop-color="#AFC9E8" stop-opacity="0"/>
-        </linearGradient>
-        <linearGradient id="atmoPeachMod2" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#F3C7A0"/>
-          <stop offset="100%" stop-color="#F3C7A0" stop-opacity="0"/>
-        </linearGradient>
-        <linearGradient id="atmoLeaf" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#AABF97"/>
-          <stop offset="100%" stop-color="#8FA97C"/>
-        </linearGradient>
-      </defs>
-      <path d="M-30,110 Q110,30 240,80 T480,50 L480,-30 L-30,-30 Z" fill="url(#atmoBlueMod2)" opacity=".38"/>
-      <path d="M-30,155 Q140,90 270,120 T480,105 L480,-30 L-30,-30 Z" fill="url(#atmoPeachMod2)" opacity=".34"/>
-      <g transform="translate(305,95)">
-        <line x1="0" y1="70" x2="4" y2="8" stroke="#96A98A" stroke-width="2" stroke-linecap="round" opacity=".6"/>
-        <ellipse cx="-14" cy="24" rx="11" ry="26" fill="url(#atmoLeaf)" opacity=".62" transform="rotate(-28 -14 24)"/>
-        <ellipse cx="16" cy="12" rx="10" ry="24" fill="url(#atmoLeaf)" opacity=".55" transform="rotate(22 16 12)"/>
-        <ellipse cx="2" cy="-16" rx="8" ry="20" fill="url(#atmoLeaf)" opacity=".5" transform="rotate(-4 2 -16)"/>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoBlueMod2)" opacity=".85" filter="url(#atmoSoftMod2)"/>
+      <path d="M-40,140 C70,60 170,45 270,80 C350,108 390,80 430,55 L430,-40 L-40,-40 Z" fill="url(#atmoPeachMod2)" opacity=".85" filter="url(#atmoSoftMod2)"/>
+      <g transform="translate(300,50) scale(0.85)">
+        <path d="M0,90 C-2,55 3,25 8,0" fill="none" stroke="#8CA478" stroke-width="2.2" stroke-linecap="round" opacity=".65"/>
+        <path d="M6,45 C-8,38 -22,42 -32,55 C-14,58 2,54 10,48 Z" fill="url(#atmoLeaf1)" opacity=".75"/>
+        <path d="M9,20 C24,12 38,16 48,28 C30,32 14,29 6,24 Z" fill="url(#atmoLeaf2)" opacity=".7"/>
+        <path d="M7,66 C-6,62 -18,67 -26,78 C-10,79 4,76 11,70 Z" fill="url(#atmoLeaf1)" opacity=".6"/>
+        <path d="M8,4 C18,-6 30,-8 40,-2 C28,6 16,7 8,4 Z" fill="url(#atmoLeaf2)" opacity=".6"/>
       </g>
     </svg>
     <div class="topbar dash-fixed-header">
@@ -1332,17 +1342,17 @@
 
 </div>
 
-<script src="js/core/state.js?v=20260909l"></script>
-<script src="js/shared/utils.js?v=20260909l"></script>
-<script src="js/shared/ui.js?v=20260909l"></script>
-<script src="js/core/storage.js?v=20260909l"></script>
-<script src="js/core/app.js?v=20260909l"></script>
-<script src="js/core/dashboard.js?v=20260909l"></script>
-<script src="js/modules/finance.js?v=20260909l"></script>
-<script src="js/modules/calendar.js?v=20260909l"></script>
-<script src="js/modules/todos.js?v=20260909l"></script>
-<script src="js/modules/groceries.js?v=20260909l"></script>
-<script src="js/modules/projects.js?v=20260909l"></script>
-<script src="js/modules/notes.js?v=20260909l"></script>
+<script src="js/core/state.js?v=20260909m"></script>
+<script src="js/shared/utils.js?v=20260909m"></script>
+<script src="js/shared/ui.js?v=20260909m"></script>
+<script src="js/core/storage.js?v=20260909m"></script>
+<script src="js/core/app.js?v=20260909m"></script>
+<script src="js/core/dashboard.js?v=20260909m"></script>
+<script src="js/modules/finance.js?v=20260909m"></script>
+<script src="js/modules/calendar.js?v=20260909m"></script>
+<script src="js/modules/todos.js?v=20260909m"></script>
+<script src="js/modules/groceries.js?v=20260909m"></script>
+<script src="js/modules/projects.js?v=20260909m"></script>
+<script src="js/modules/notes.js?v=20260909m"></script>
 </body>
 </html>
