@@ -295,6 +295,19 @@
     currentScreen = name;
     window.scrollTo(0, 0);
     updateSidebarActive();
+    // ---- DIAGNOSE-TEST (bitte nach dem Test wieder entfernen) ----
+    // Färbt die Tab-Leiste beim Öffnen für 2 Sekunden knallrot, komplett
+    // unabhängig vom CSS-Klassen-System oben — reines Inline-Style
+    // direkt per JS. Wenn das NICHT sichtbar ist, läuft dieser Code
+    // bei dir gar nicht erst (Cache-Problem). Wenn es SICHTBAR ist,
+    // läuft der Code, dann liegt's an der Animation selbst.
+    var tabbarElDebug = document.querySelector('#screen-'+name+' .tabbar');
+    if(tabbarElDebug){
+      tabbarElDebug.style.background = 'red';
+      setTimeout(function(){ tabbarElDebug.style.background = ''; }, 2000);
+    }
+    // ---- ENDE DIAGNOSE-TEST ----
+
     // Tabbar (falls vorhanden) für den einen problematischen ersten
     // Frame komplett unsichtbar halten, dann sichtbar von oben
     // "reinfahren" lassen. Bewusst per festem, kurzem Timeout statt
