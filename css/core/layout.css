@@ -11,9 +11,16 @@
     background:var(--header-tint);
     color:var(--ink);
     border-bottom:1px solid var(--line);
-    position:sticky;
-    top:0;
+    position:fixed; top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
     z-index:80;
+    /* War position:sticky — hat sich auf echten Geräten wiederholt
+       als unzuverlässig erwiesen (Tab-Leiste, Dashboard-Header, jetzt
+       auch hier bestätigt: Header scrollte bei Modulen sichtbar mit).
+       fixed ist rein viewport-bezogen und hat sich bei genau diesem
+       Problem bereits zweimal bewährt. Der dadurch aus dem Fluss
+       genommene Platz wird per JS gemessen und dem Inhalt als oberer
+       Abstand mitgegeben (siehe --topbar-h, app.js). */
   }
   /* ==================================================================
      REDESIGN FINETUNING — Header + Tabbar gemeinsam fixiert.
@@ -120,6 +127,15 @@
      und damit unabhängig von jeder Fluss-/Eindämmungsberechnung —
      dasselbe bewährte Prinzip wie bei der Tab-Leiste am Boden.
      ================================================================== */
+  /* #screen-home selbst hat praktisch keinen eigenen In-Fluss-Inhalt
+     mehr (Header UND Wischbereich sind beide position:fixed) — ohne
+     diese Überschreibung würde die allgemeine .screen-Regel
+     (min-height:100vh) trotzdem eine volle Bildschirmhöhe im
+     normalen Fluss beanspruchen und dadurch eine unnötige, ins Leere
+     laufende Dokument-Scrollbar erzeugen: Es erscheint eine Scroll-
+     leiste, aber nichts bewegt sich dabei, weil der eigentliche
+     (fixierte) Inhalt davon unberührt bleibt. */
+  #screen-home.active{ min-height:0; height:auto; }
   .dash-fixed-header{
     position:fixed; top:0; left:50%; transform:translateX(-50%);
     width:100%; max-width:480px; z-index:80;
@@ -277,10 +293,11 @@
   .tab-pager > .view{
     display:flex !important; flex-direction:column; flex-shrink:0;
     height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
-    /* Tabbar ist jetzt wieder fest am unteren Rand (siehe .tabbar-clip
-       in components.css) statt im oberen Header — Platz dafür unten
-       reservieren, Topbar oben läuft wieder ganz normal im Fluss,
-       braucht keinen gemessenen Abstand mehr. */
+    /* Tabbar ist fest am unteren Rand (siehe .tabbar-clip in
+       components.css) — Platz dafür unten reservieren. Topbar ist
+       jetzt ebenfalls fixed (siehe .topbar) statt im Fluss — Platz
+       dafür oben per JS gemessen (--topbar-h, app.js). */
+    padding-top: var(--topbar-h, 100px);
     padding-bottom: calc(60px + var(--safe-bottom));
   }
   /* Der Versuch, per display:none nur einen Ausschnitt zu rendern
@@ -317,6 +334,10 @@
   .tab-indicator.dragging{ transition:none; }
   .view.active{ display:block; }
   .module-body{ flex:1; overflow-y:auto; padding-bottom:30px; }
+  /* Nur, wenn direkt auf eine (jetzt fixed positionierte) .topbar
+     folgend — .recipeViewView z.B. hat keine eigene Topbar und
+     braucht diesen Ausgleich nicht. */
+  .topbar + .module-body{ padding-top:var(--topbar-h, 100px); }
 
   /* ---------- Code gate ---------- */
   #codeGate{
