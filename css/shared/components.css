@@ -100,14 +100,22 @@
     padding:2px 10px 0; margin-bottom:2px;
     border-bottom:1px solid var(--line);
   }
-  /* Beim Öffnen eines Moduls fährt die Tab-Leiste sichtbar von oben
-     rein. Bewusst als echte @keyframes-Animation statt der vorherigen
-     "Klasse setzen, zwei Frames warten, wieder entfernen"-Technik für
-     Transitions — die ist in Safari/iOS bekanntermaßen unzuverlässig
-     (Timing zwischen den beiden Style-Änderungen wird manchmal vom
-     Browser zusammengefasst, dann passiert optisch gar nichts). Eine
-     Animation startet dagegen zuverlässig sofort, sobald die Klasse
-     gesetzt wird. */
+  /* Der falsch positionierte allererste Frame beim Öffnen eines
+     Moduls betrifft die HORIZONTALE Berechnung der Tab-Leiste (kurz
+     verschoben, "…tistik" statt "Übersicht" sichtbar) — eine reine
+     vertikale Rein-/Rausfahr-Animation allein deckt das nicht ab,
+     weil sie während der eigentlichen Bewegung ja trotzdem den
+     (kurzzeitig falschen) horizontalen Zustand zeigen würde.
+     Deshalb jetzt zweistufig: Die Tab-Leiste ist zunächst komplett
+     unsichtbar (visibility:hidden — behält ihre Höhe, nimmt aber am
+     Layout teil, damit sich in der Zwischenzeit nichts verschiebt),
+     dann setzt JS nach einer kurzen Verzögerung (nicht per
+     requestAnimationFrame, sondern per festem, kurzem Timeout, um den
+     einen problematischen Frame sicher zu überspringen) erst die
+     Sichtbarkeit und die Rein-Animation gemeinsam. */
+  .tabbar.tabbar-hide-first-frame{
+    visibility:hidden;
+  }
   @keyframes tabbarSlideIn{
     from{ transform:translateY(-100%); }
     to{ transform:translateY(0); }
