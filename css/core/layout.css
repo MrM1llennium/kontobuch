@@ -399,7 +399,7 @@
        components.css) — Platz dafür unten reservieren. Oberer Abstand
        wird jetzt vom .tab-pager-viewport selbst übernommen (top:
        var(--topbar-h)), braucht hier kein eigenes Padding mehr. */
-    padding-bottom: calc(76px + var(--safe-bottom));
+    padding-bottom: calc(78px + var(--safe-bottom));
   }
   /* Der Versuch, per display:none nur einen Ausschnitt zu rendern
      (Runde zuvor), war ein eigener Bug: display:none nimmt ein
