@@ -12,16 +12,16 @@
 <link rel="icon" href="icon-192.png" type="image/png">
 <title>Home Hub</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<link rel="stylesheet" href="css/core/theme.css?v=20260910f">
-<link rel="stylesheet" href="css/core/base.css?v=20260910f">
-<link rel="stylesheet" href="css/core/layout.css?v=20260910f">
-<link rel="stylesheet" href="css/shared/components.css?v=20260910f">
-<link rel="stylesheet" href="css/modules/finance.css?v=20260910f">
-<link rel="stylesheet" href="css/modules/calendar.css?v=20260910f">
-<link rel="stylesheet" href="css/modules/todos.css?v=20260910f">
-<link rel="stylesheet" href="css/modules/groceries.css?v=20260910f">
-<link rel="stylesheet" href="css/modules/projects.css?v=20260910f">
-<link rel="stylesheet" href="css/modules/notes.css?v=20260910f">
+<link rel="stylesheet" href="css/core/theme.css?v=20260910g">
+<link rel="stylesheet" href="css/core/base.css?v=20260910g">
+<link rel="stylesheet" href="css/core/layout.css?v=20260910g">
+<link rel="stylesheet" href="css/shared/components.css?v=20260910g">
+<link rel="stylesheet" href="css/modules/finance.css?v=20260910g">
+<link rel="stylesheet" href="css/modules/calendar.css?v=20260910g">
+<link rel="stylesheet" href="css/modules/todos.css?v=20260910g">
+<link rel="stylesheet" href="css/modules/groceries.css?v=20260910g">
+<link rel="stylesheet" href="css/modules/projects.css?v=20260910g">
+<link rel="stylesheet" href="css/modules/notes.css?v=20260910g">
 </head>
 <body>
 
@@ -275,33 +275,33 @@
       </div>
       <button type="button" class="recipe-card-close" id="backFromRecipeViewBtn">Schließen</button>
     </div>
-    </div>
 
     <div id="recipeEditView" style="display:none;">
-      <div class="form-wrap">
-        <div class="field">
-          <label for="recipeNameInput">Name</label>
-          <input type="text" id="recipeNameInput" placeholder="z. B. Spaghetti Bolognese">
-        </div>
-        <div class="field">
-          <label>Zutaten</label>
-          <div id="recipeIngredientsList" style="margin-bottom:8px;"></div>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="recipeIngredientAmountInput" placeholder="Menge (z. B. 200g)" style="width:38%; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
-            <input type="text" id="recipeIngredientInput" placeholder="Zutat (z. B. Mehl)" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
-            <button type="button" class="btn" id="addIngredientBtn" style="width:auto; padding:12px 16px;">+</button>
+      <button type="button" class="recipe-card-gear" id="cancelRecipeBtn" aria-label="Abbrechen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="recipe-card-scroll">
+        <div class="form-wrap" style="padding-top:20px;">
+          <div class="field">
+            <label for="recipeNameInput">Name</label>
+            <input type="text" id="recipeNameInput" placeholder="z. B. Spaghetti Bolognese">
           </div>
+          <div class="field">
+            <label>Zutaten</label>
+            <div id="recipeIngredientsList" style="margin-bottom:8px;"></div>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="recipeIngredientAmountInput" placeholder="Menge (z. B. 200g)" style="width:38%; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
+              <input type="text" id="recipeIngredientInput" placeholder="Zutat (z. B. Mehl)" style="flex:1; padding:12px; border:1px solid var(--line); border-radius:6px; background:var(--paper-raised); font-size:15.5px; font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;">
+              <button type="button" class="btn" id="addIngredientBtn" style="width:auto; padding:12px 16px;">+</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="recipeInstructionsInput">Anleitung</label>
+            <textarea id="recipeInstructionsInput" placeholder="Zubereitungsschritte…" style="min-height:130px;"></textarea>
+          </div>
+          <button type="button" class="link-btn" id="deleteRecipeBtn" style="margin-top:4px; color:var(--red); display:none;">Rezept löschen</button>
         </div>
-        <div class="field">
-          <label for="recipeInstructionsInput">Anleitung</label>
-          <textarea id="recipeInstructionsInput" placeholder="Zubereitungsschritte…" style="min-height:130px;"></textarea>
-        </div>
-        <div class="btn-row">
-          <button class="btn ghost" id="cancelRecipeBtn">Zurück</button>
-          <button class="btn" id="saveRecipeBtn">Speichern</button>
-        </div>
-        <button type="button" class="link-btn" id="deleteRecipeBtn" style="margin-top:16px; color:var(--red); display:none;">Rezept löschen</button>
       </div>
+      <button type="button" class="recipe-card-close" id="saveRecipeBtn">Speichern</button>
+    </div>
     </div>
   </div>
 
@@ -1259,17 +1259,17 @@
 
 </div>
 
-<script src="js/core/state.js?v=20260910f"></script>
-<script src="js/shared/utils.js?v=20260910f"></script>
-<script src="js/shared/ui.js?v=20260910f"></script>
-<script src="js/core/storage.js?v=20260910f"></script>
-<script src="js/core/app.js?v=20260910f"></script>
-<script src="js/core/dashboard.js?v=20260910f"></script>
-<script src="js/modules/finance.js?v=20260910f"></script>
-<script src="js/modules/calendar.js?v=20260910f"></script>
-<script src="js/modules/todos.js?v=20260910f"></script>
-<script src="js/modules/groceries.js?v=20260910f"></script>
-<script src="js/modules/projects.js?v=20260910f"></script>
-<script src="js/modules/notes.js?v=20260910f"></script>
+<script src="js/core/state.js?v=20260910g"></script>
+<script src="js/shared/utils.js?v=20260910g"></script>
+<script src="js/shared/ui.js?v=20260910g"></script>
+<script src="js/core/storage.js?v=20260910g"></script>
+<script src="js/core/app.js?v=20260910g"></script>
+<script src="js/core/dashboard.js?v=20260910g"></script>
+<script src="js/modules/finance.js?v=20260910g"></script>
+<script src="js/modules/calendar.js?v=20260910g"></script>
+<script src="js/modules/todos.js?v=20260910g"></script>
+<script src="js/modules/groceries.js?v=20260910g"></script>
+<script src="js/modules/projects.js?v=20260910g"></script>
+<script src="js/modules/notes.js?v=20260910g"></script>
 </body>
 </html>
