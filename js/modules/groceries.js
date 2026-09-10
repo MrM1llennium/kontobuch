@@ -677,7 +677,6 @@
     document.getElementById('mealTabbarClip').style.display = 'none';
     document.getElementById('recipeViewView').style.display = 'flex';
     document.getElementById('recipeViewView').style.flexDirection = 'column';
-    document.getElementById('recipeViewView').style.minHeight = '100vh';
     window.scrollTo(0, 0);
   }
   function closeRecipeView(){
