@@ -329,6 +329,30 @@
     top:var(--topbar-h, 100px); bottom:0;
     overflow:hidden;
   }
+  /* Alternative Vollbild-Ansichten innerhalb eines Moduls (z. B.
+     Rezept ansehen/bearbeiten in Lebensmittel) sind normale, nicht
+     positionierte Elemente — der (jetzt fixierte) .tab-pager-viewport
+     liegt darüber und "verdeckt" sie dadurch nicht mehr richtig,
+     sondern beide waren gleichzeitig sichtbar. Braucht dieselbe
+     feste Positionierung + einen expliziten z-index, um den Tab-
+     Bereich zuverlässig zu überdecken, wenn aktiv. */
+  #recipeViewView, #recipeEditView{
+    position:fixed; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    top:var(--topbar-h, 100px); bottom:0;
+    z-index:70;
+    background:var(--paper);
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+  }
+  /* Der obere Abstand wird jetzt vom äußeren Fixed-Container selbst
+     übernommen (top:var(--topbar-h)) — das innere .module-body würde
+     ihn sonst ein zweites Mal addieren. Scrollen läuft jetzt ebenfalls
+     am äußeren Container, das innere braucht kein eigenes overflow
+     mehr (verschachteltes doppeltes Scrollen vermeiden). */
+  #recipeViewView .module-body, #recipeEditView .module-body{
+    padding-top:0; overflow:visible; flex:none;
+  }
   .tab-pager{
     display:flex; height:100%;
     transition: transform .44s cubic-bezier(0.22, 0.61, 0.36, 1);
