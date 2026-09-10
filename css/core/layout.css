@@ -412,7 +412,7 @@
     padding:14px 16px;
   }
   #recipeViewBackdrop.active{ display:flex; }
-  #recipeViewView{
+  #recipeViewView, #recipeEditView{
     position:relative;
     width:100%; max-width:448px; max-height:100%;
     background:var(--paper);
