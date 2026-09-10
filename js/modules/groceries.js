@@ -697,14 +697,12 @@
     document.getElementById('recipeIngredientAmountInput').value = '';
     document.getElementById('recipeIngredientInput').value = '';
     renderIngredientEditList();
-    document.getElementById('view-mealweek').classList.remove('active');
-    document.getElementById('view-mealrecipes').classList.remove('active');
+    document.getElementById('recipeViewBackdrop').classList.add('active');
     document.getElementById('recipeViewView').style.display = 'none';
-    document.getElementById('mealTabbar').style.display = 'none';
-    document.getElementById('mealTabbarClip').style.display = 'none';
-    document.getElementById('recipeEditView').style.display = 'block';
+    document.getElementById('recipeEditView').style.display = 'flex';
     document.getElementById('deleteRecipeBtn').style.display = id ? 'block' : 'none';
-    window.scrollTo(0, 0);
+    var scrollArea = document.querySelector('#recipeEditView .recipe-card-scroll');
+    if(scrollArea) scrollArea.scrollTop = 0;
   }
   function closeRecipeEdit(){
     var wasEditingId = editingRecipeId;
@@ -715,8 +713,7 @@
     if(returnTo==='view' && stillExists){
       openRecipeView(wasEditingId);
     } else {
-      document.getElementById('mealTabbar').style.display = 'flex';
-    document.getElementById('mealTabbarClip').style.display = '';
+      document.getElementById('recipeViewBackdrop').classList.remove('active');
       switchMealView('recipes');
     }
   }
