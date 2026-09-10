@@ -671,20 +671,15 @@
       }).join('');
     }
     document.getElementById('recipeViewInstructions').textContent = r.instructions || 'Keine Zubereitungsschritte hinterlegt.';
-    document.getElementById('view-mealweek').classList.remove('active');
-    document.getElementById('view-mealrecipes').classList.remove('active');
-    document.getElementById('mealTabbar').style.display = 'none';
-    document.getElementById('mealTabbarClip').style.display = 'none';
+    document.getElementById('recipeViewBackdrop').classList.add('active');
     document.getElementById('recipeViewView').style.display = 'flex';
-    document.getElementById('recipeViewView').style.flexDirection = 'column';
-    window.scrollTo(0, 0);
+    var scrollArea = document.querySelector('#recipeViewView .recipe-card-scroll');
+    if(scrollArea) scrollArea.scrollTop = 0;
   }
   function closeRecipeView(){
     viewingRecipeId = null;
+    document.getElementById('recipeViewBackdrop').classList.remove('active');
     document.getElementById('recipeViewView').style.display = 'none';
-    document.getElementById('mealTabbar').style.display = 'flex';
-    document.getElementById('mealTabbarClip').style.display = '';
-    switchMealView('recipes');
   }
   document.getElementById('backFromRecipeViewBtn').addEventListener('click', closeRecipeView);
   document.getElementById('editRecipeFromViewBtn').addEventListener('click', function(){
