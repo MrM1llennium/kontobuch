@@ -337,6 +337,20 @@
        var(--topbar-h)), braucht hier kein eigenes Padding mehr. */
     padding-bottom: calc(60px + var(--safe-bottom));
   }
+  /* Garantiert IMMER echten (wenn auch winzigen) Überlauf, egal wie
+     kurz der tatsächliche Inhalt eines Tabs ist (z. B. Budget mit
+     wenigen Kategorien vs. Statistik mit Diagramm+Liste). Ohne das:
+     bei zu kurzem Inhalt fehlt der Bezug für den Touch-Scroll auf iOS
+     komplett — dabei bewegt sich sichtbar nur der Hintergrund/Bounce-
+     Effekt, während der (bereits vollständig sichtbare) Inhalt selbst
+     stehen bleibt. min-height (statt nur height) ist entscheidend —
+     eine reine feste Höhe lässt sich von Flexbox trotz flex:none
+     wegschrumpfen (genau das griff hier zunächst nicht), eine
+     Mindesthöhe ist dagegen eine harte Untergrenze, die Flexbox
+     respektieren muss. */
+  .tab-pager > .view::after{
+    content:""; display:block; flex:none; min-height:calc(100% + 1px); width:1px;
+  }
   /* Der Versuch, per display:none nur einen Ausschnitt zu rendern
      (Runde zuvor), war ein eigener Bug: display:none nimmt ein
      Flexbox-Kind komplett aus der Breitenberechnung raus, dadurch
@@ -371,6 +385,20 @@
   .tab-indicator.dragging{ transition:none; }
   .view.active{ display:block; }
   .module-body{ flex:1; overflow-y:auto; padding-bottom:30px; }
+  /* Garantiert IMMER echten (wenn auch winzigen) Überlauf, egal wie
+     kurz der tatsächliche Inhalt einer Modul-Seite ist (z. B. Notizen
+     mit wenigen Einträgen). Ohne das fehlt iOS bei zu kurzem Inhalt
+     der Bezug für den Touch-Scroll komplett — sichtbar bewegt sich
+     dann nur der Hintergrund/Bounce-Effekt, während der (bereits
+     vollständig sichtbare) Inhalt selbst stehen bleibt. Dasselbe
+     Prinzip wie bei .dash-page und .tab-pager > .view, hier auf alle
+     einseitigen Module (Kalender, To-Dos, Notizen, Projekte,
+     Einstellungen) übertragen. min-height statt reiner height, weil
+     Flexbox eine reine Höhe trotz flex:none wegschrumpfen kann, eine
+     Mindesthöhe dagegen eine harte Untergrenze ist. */
+  .module-body::after{
+    content:""; display:block; flex:none; min-height:calc(100% + 1px); width:1px;
+  }
   /* Nur, wenn direkt auf eine (jetzt fixed positionierte) .topbar
      folgend — .recipeViewView z.B. hat keine eigene Topbar und
      braucht diesen Ausgleich nicht. */
