@@ -204,8 +204,12 @@
   .dash-subline{
     font:var(--text-context); color:var(--ink-soft); margin:2px 0 0;
   }
-  html:not([data-theme]) .dash-subline,
-  html[data-theme="signature"] .dash-subline,
+  /* Signature hat einen hellen Dashboard-Header — die normale, dunkle
+     Schriftfarbe reicht dort. Nur Forest/Lilac haben (noch) einen
+     kräftigen, dunklen Vollton als Header-Hintergrund und brauchen
+     deshalb weiterhin helle Schrift. War vorher versehentlich auch
+     für Signature gesetzt — dadurch weiße Schrift auf inzwischen
+     hellem Untergrund, praktisch unsichtbar. */
   html[data-theme="forest"] .dash-subline,
   html[data-theme="lilac"] .dash-subline{
     color:rgba(255,255,255,.62);
