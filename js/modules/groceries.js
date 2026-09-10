@@ -487,6 +487,7 @@
     document.getElementById('recipeViewView').style.display = 'none';
     document.getElementById('recipeEditView').style.display = 'none';
     document.getElementById('mealTabbar').style.display = 'flex';
+    document.getElementById('mealTabbarClip').style.display = '';
     document.getElementById('view-shopping').classList.toggle('active', name==='shopping');
     document.getElementById('view-pantry').classList.toggle('active', name==='pantry');
     document.getElementById('view-mealweek').classList.toggle('active', name==='week');
@@ -673,6 +674,7 @@
     document.getElementById('view-mealweek').classList.remove('active');
     document.getElementById('view-mealrecipes').classList.remove('active');
     document.getElementById('mealTabbar').style.display = 'none';
+    document.getElementById('mealTabbarClip').style.display = 'none';
     document.getElementById('recipeViewView').style.display = 'flex';
     document.getElementById('recipeViewView').style.flexDirection = 'column';
     document.getElementById('recipeViewView').style.minHeight = '100vh';
@@ -682,6 +684,7 @@
     viewingRecipeId = null;
     document.getElementById('recipeViewView').style.display = 'none';
     document.getElementById('mealTabbar').style.display = 'flex';
+    document.getElementById('mealTabbarClip').style.display = '';
     switchMealView('recipes');
   }
   document.getElementById('backFromRecipeViewBtn').addEventListener('click', closeRecipeView);
@@ -704,6 +707,7 @@
     document.getElementById('view-mealrecipes').classList.remove('active');
     document.getElementById('recipeViewView').style.display = 'none';
     document.getElementById('mealTabbar').style.display = 'none';
+    document.getElementById('mealTabbarClip').style.display = 'none';
     document.getElementById('recipeEditView').style.display = 'block';
     document.getElementById('deleteRecipeBtn').style.display = id ? 'block' : 'none';
     window.scrollTo(0, 0);
@@ -718,6 +722,7 @@
       openRecipeView(wasEditingId);
     } else {
       document.getElementById('mealTabbar').style.display = 'flex';
+    document.getElementById('mealTabbarClip').style.display = '';
       switchMealView('recipes');
     }
   }
