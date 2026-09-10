@@ -21,6 +21,7 @@
        Problem bereits zweimal bewährt. Der dadurch aus dem Fluss
        genommene Platz wird per JS gemessen und dem Inhalt als oberer
        Abstand mitgegeben (siehe --topbar-h, app.js). */
+    touch-action:none;
   }
   /* ==================================================================
      REDESIGN FINETUNING — Header + Tabbar gemeinsam fixiert.
@@ -218,6 +219,14 @@
     border:none; border-radius:var(--radius-lg);
     box-shadow:var(--shadow-hero);
     padding:4px; z-index:60; height:46px;
+    /* Gleiches Prinzip wie beim Header (siehe .topbar): position:fixed
+       liegt außerhalb des scrollbaren Bereichs. Landet der Finger beim
+       Scrollen zufällig hier (naheliegend, sitzt ja unten im Bild),
+       "verliert" die Geste sonst den Bezug zum Scroll-Container —
+       touch-action:none macht das technisch unmöglich. Antippen der
+       Buttons (Heute/Module) bleibt davon unberührt, nur Ziehen wird
+       unterbunden. */
+    touch-action:none;
     transition: width .34s cubic-bezier(0.16,1,0.3,1),
                 padding .34s cubic-bezier(0.16,1,0.3,1),
                 height .34s cubic-bezier(0.16,1,0.3,1),
@@ -298,8 +307,24 @@
      dargestellt (nicht mehr über display:none gesteuert), jede Seite
      scrollt für sich selbst.
      ================================================================== */
+  /* .tab-pager-viewport: feste, eigenständige Höhe (position:fixed mit
+     festem top/bottom) statt sich auf die Flexbox-Höhenvererbung von
+     .screen zu verlassen. Genau das war der Bug: Ohne diese feste
+     Referenz bestimmte das HÖCHSTE Tab (z. B. Übersicht mit vielen
+     Buchungen) versehentlich die Höhe für ALLE Tabs gemeinsam (height:
+     100% griff dann bei jedem auf denselben, vom höchsten Kind
+     "hochgezogenen" Wert zu) — dadurch ließen sich kurze Tabs genauso
+     weit scrollen wie der längste, obwohl dort kein Inhalt mehr kam.
+     Dasselbe Prinzip, das beim Dashboard-Wischbereich schon zuverlässig
+     funktioniert (.dash-pager-viewport). */
+  .tab-pager-viewport{
+    position:fixed; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    top:var(--topbar-h, 100px); bottom:0;
+    overflow:hidden;
+  }
   .tab-pager{
-    display:flex; flex:1; min-height:0; overflow:hidden;
+    display:flex; height:100%;
     transition: transform .44s cubic-bezier(0.22, 0.61, 0.36, 1);
     will-change: transform;
   }
@@ -307,10 +332,9 @@
     display:flex !important; flex-direction:column; flex-shrink:0;
     height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
     /* Tabbar ist fest am unteren Rand (siehe .tabbar-clip in
-       components.css) — Platz dafür unten reservieren. Topbar ist
-       jetzt ebenfalls fixed (siehe .topbar) statt im Fluss — Platz
-       dafür oben per JS gemessen (--topbar-h, app.js). */
-    padding-top: var(--topbar-h, 100px);
+       components.css) — Platz dafür unten reservieren. Oberer Abstand
+       wird jetzt vom .tab-pager-viewport selbst übernommen (top:
+       var(--topbar-h)), braucht hier kein eigenes Padding mehr. */
     padding-bottom: calc(60px + var(--safe-bottom));
   }
   /* Der Versuch, per display:none nur einen Ausschnitt zu rendern
