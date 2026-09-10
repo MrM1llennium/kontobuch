@@ -287,6 +287,46 @@
     });
   }
 
+  /* ---- Wisch-Gesten, die auf dem Header starten, an die gerade
+     aktive Seite weiterleiten. Der Header ist position:fixed und
+     liegt AUSSERHALB des scrollbaren Bereichs — eine Geste, die dort
+     beginnt, hat sonst gar keinen Bezug zu einem scrollbaren Element
+     und "geht ins Leere" (fühlt sich an, als würde nichts reagieren,
+     oder als würde man aus Versehen an eine falsche Stelle geraten).
+     Reine vertikale Weiterleitung, kein horizontaler Swipe hier —
+     Seitenwechsel per Wischen soll weiterhin nur über den Inhalt
+     selbst funktionieren. ---- */
+  function initHeaderScrollForward(){
+    var header = document.querySelector('.dash-fixed-header');
+    if(!header) return;
+    var startY = 0, startScrollTop = 0, tracking = false;
+
+    function activePage(){
+      return document.getElementById(dashCurrentPage==='modules' ? 'dashPageModules' : 'dashPageToday');
+    }
+
+    header.addEventListener('touchstart', function(e){
+      if(e.touches.length !== 1) return;
+      var page = activePage();
+      if(!page) return;
+      startY = e.touches[0].clientY;
+      startScrollTop = page.scrollTop;
+      tracking = true;
+    }, { passive: true });
+
+    header.addEventListener('touchmove', function(e){
+      if(!tracking || e.touches.length !== 1) return;
+      var page = activePage();
+      if(!page) return;
+      var dy = startY - e.touches[0].clientY;
+      page.scrollTop = startScrollTop + dy;
+    }, { passive: true });
+
+    header.addEventListener('touchend', function(){
+      tracking = false;
+    });
+  }
+
   /* ---- Segment-Control: Klick auf "Heute" bzw. "Module" ---- */
   function initSegmentClicks(){
     document.querySelectorAll('.dash-segment-btn').forEach(function(btn){
@@ -317,6 +357,7 @@
   function initDashboard(){
     renderDashboardDate();
     initDashboardSwipe();
+    initHeaderScrollForward();
     initSegmentClicks();
     initSegmentScrollBehavior();
     updateSegmentActive(dashCurrentPage);
