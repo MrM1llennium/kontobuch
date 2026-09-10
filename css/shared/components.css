@@ -93,7 +93,7 @@
      Containern mehr nötig (siehe layout.css).
      ================================================================== */
   .tabbar-clip{
-    position:fixed; bottom:calc(6px + var(--safe-bottom)); left:50%;
+    position:fixed; bottom:var(--safe-bottom); left:50%;
     transform:translateX(-50%);
     width:calc(100% - 32px); max-width:448px; z-index:80;
     overflow:hidden;
