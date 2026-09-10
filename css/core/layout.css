@@ -178,7 +178,7 @@
   }
   .dash-page{
     width:50%; height:100%; flex-shrink:0;
-    overflow-y:scroll; -webkit-overflow-scrolling:touch;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
     /* Verhindert, dass eine Geste über den Scroll-Rand hinaus (z. B.
        ganz oben weiter nach unten ziehen) zum übergeordneten Dokument
        "durchsickert" — sonst zieht man sichtbar den Hintergrund/die
