@@ -299,6 +299,31 @@
     box-shadow: 0 1px 4px rgba(0,0,0,.10);
   }
 
+  /* Dieselbe Glas-Optik jetzt auch für die Tab-Leiste in Modulen
+     (Finanzen, Lebensmittel) — optisch dieselbe Familie wie die
+     Heute/Module-Pille, nur über die volle Breite gezogen. */
+  html:not([data-theme]) .tabbar-clip,
+  html[data-theme="signature"] .tabbar-clip{
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.6);
+    -webkit-backdrop-filter: blur(22px) saturate(2);
+    backdrop-filter: blur(22px) saturate(2);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05), 0 12px 28px rgba(0,0,0,.12);
+  }
+  html:not([data-theme]) .tabbar button,
+  html[data-theme="signature"] .tabbar button{
+    color: var(--ink-soft);
+  }
+  html:not([data-theme]) .tabbar button.active,
+  html[data-theme="signature"] .tabbar button.active{
+    color: var(--ink);
+  }
+  html:not([data-theme]) .tab-indicator,
+  html[data-theme="signature"] .tab-indicator{
+    background: rgba(255,255,255,.78);
+    box-shadow: 0 1px 4px rgba(0,0,0,.10);
+  }
+
 
   /* ---------- Views ---------- */
   .view{ display:none; flex:1; overflow-y:auto; padding-bottom:30px; }
@@ -374,7 +399,7 @@
        components.css) — Platz dafür unten reservieren. Oberer Abstand
        wird jetzt vom .tab-pager-viewport selbst übernommen (top:
        var(--topbar-h)), braucht hier kein eigenes Padding mehr. */
-    padding-bottom: calc(60px + var(--safe-bottom));
+    padding-bottom: calc(76px + var(--safe-bottom));
   }
   /* Der Versuch, per display:none nur einen Ausschnitt zu rendern
      (Runde zuvor), war ein eigener Bug: display:none nimmt ein
@@ -403,9 +428,16 @@
      statt eines statischen ::after — kann so während des Swipes live
      mitgleiten statt nur beim Tap hart umzuspringen. */
   .tabbar{ position:relative; }
+  /* War ein dünner Unterstrich am unteren Rand — jetzt eine volle,
+     abgerundete "Blase" hinter dem aktiven Tab, exakt wie die Heute/
+     Module-Pille im Dashboard (.dash-segment-bubble). Dieselbe
+     JS-Positionierungslogik (setupSwipeTabs in shared/ui.js) bleibt
+     unverändert — nur das optische Erscheinungsbild ändert sich. */
   .tab-indicator{
-    position:absolute; bottom:-1px; height:2px; background:var(--brass);
-    border-radius:2px; transition: left .44s cubic-bezier(0.22,0.61,0.36,1), width .44s cubic-bezier(0.22,0.61,0.36,1);
+    position:absolute; top:4px; bottom:4px; z-index:1;
+    border-radius:calc(var(--radius-lg) - 3px);
+    background:rgba(255,255,255,.16);
+    transition: left .44s cubic-bezier(0.22,0.61,0.36,1), width .44s cubic-bezier(0.22,0.61,0.36,1);
   }
   .tab-indicator.dragging{ transition:none; }
   .view.active{ display:block; }
