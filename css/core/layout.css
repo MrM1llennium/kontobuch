@@ -179,6 +179,12 @@
   .dash-page{
     width:50%; height:100%; flex-shrink:0;
     overflow-y:scroll; -webkit-overflow-scrolling:touch;
+    /* Verhindert, dass eine Geste über den Scroll-Rand hinaus (z. B.
+       ganz oben weiter nach unten ziehen) zum übergeordneten Dokument
+       "durchsickert" — sonst zieht man sichtbar den Hintergrund/die
+       ganze Seite mit, und der Scroll-Zustand braucht danach eine
+       Weile, bis er sich wieder fängt. */
+    overscroll-behavior-y: contain;
     display:flex; flex-direction:column;
     padding-bottom:calc(34px + var(--safe-bottom));
   }
@@ -331,6 +337,7 @@
   .tab-pager > .view{
     display:flex !important; flex-direction:column; flex-shrink:0;
     height:100%; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y: contain;
     /* Tabbar ist fest am unteren Rand (siehe .tabbar-clip in
        components.css) — Platz dafür unten reservieren. Oberer Abstand
        wird jetzt vom .tab-pager-viewport selbst übernommen (top:
@@ -370,7 +377,7 @@
   }
   .tab-indicator.dragging{ transition:none; }
   .view.active{ display:block; }
-  .module-body{ flex:1; overflow-y:auto; padding-bottom:30px; }
+  .module-body{ flex:1; overflow-y:auto; overscroll-behavior-y:contain; padding-bottom:30px; }
   /* Nur, wenn direkt auf eine (jetzt fixed positionierte) .topbar
      folgend — .recipeViewView z.B. hat keine eigene Topbar und
      braucht diesen Ausgleich nicht. */

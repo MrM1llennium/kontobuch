@@ -25,6 +25,14 @@
        horizontale Bewegung ausschließlich noch über die eigene,
        kontrollierte JS-Logik (Dashboard-Swipe, Tab-Swipe) erfolgen.
   */
+    /* Zusätzliche Absicherung: Falls eine Scroll-Geste trotz der
+       overscroll-behavior-Sperren an den einzelnen Scroll-Containern
+       (siehe layout.css) doch einmal bis zum Dokument durchsickert,
+       soll sich die Seite selbst gar nicht erst sichtbar bewegen
+       können — verhindert das "Hintergrund wird mitgezogen"-Verhalten
+       und den kurzen, unruhigen Zustand danach, bis sich alles wieder
+       fängt. */
+    overscroll-behavior-y: none;
   }
   @media (max-width: 480px){
     html, body{ background:var(--paper); }
