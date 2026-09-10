@@ -140,6 +140,12 @@
     position:fixed; top:0; left:50%; transform:translateX(-50%);
     width:100%; max-width:480px; z-index:80;
     background:var(--paper);
+    /* Verhindert zuverlässig JEDE Scroll-/Wisch-Reaktion für Gesten,
+       die auf dem Header beginnen — keine Weiterleitung, kein
+       Versuch, "klug" zu reagieren, einfach komplett inaktiv für
+       Touch-Gesten. Antippen (Hamburger-Menü) bleibt davon
+       unberührt, nur Ziehen/Scrollen wird unterbunden. */
+    touch-action:none;
   }
   .dash-header-crossfade{ position:relative; min-height:52px; }
   .dash-header-text{
