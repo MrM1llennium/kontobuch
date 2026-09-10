@@ -297,17 +297,6 @@
     });
   }
 
-  /* ---- Segment-Control: zu schmalem Streifen zusammenquetschen beim Scrollen ---- */
-  function initSegmentScrollBehavior(){
-    ['dashPageToday','dashPageModules'].forEach(function(id){
-      var page = document.getElementById(id);
-      if(!page) return;
-      page.addEventListener('scroll', function(){
-        setSegmentCompact(page.scrollTop > 24);
-      }, { passive: true });
-    });
-  }
-
   function updateDashHeaderHeight(){
     var header = document.querySelector('#screen-home .dash-fixed-header');
     if(!header) return;
@@ -318,7 +307,6 @@
     renderDashboardDate();
     initDashboardSwipe();
     initSegmentClicks();
-    initSegmentScrollBehavior();
     updateSegmentActive(dashCurrentPage);
     updateDashHeaderHeight();
     window.addEventListener('resize', updateDashHeaderHeight);
