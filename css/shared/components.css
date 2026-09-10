@@ -93,27 +93,35 @@
      Containern mehr nötig (siehe layout.css).
      ================================================================== */
   .tabbar-clip{
-    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-    width:100%; max-width:480px; z-index:80;
+    position:fixed; bottom:calc(20px + var(--safe-bottom)); left:50%;
+    transform:translateX(-50%);
+    width:calc(100% - 32px); max-width:448px; z-index:80;
     overflow:hidden;
-    background:var(--paper); border-top:1px solid var(--line);
-    padding-bottom:var(--safe-bottom);
+    background:var(--brass);
+    border:none; border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-hero);
+    /* Gleiches Prinzip wie beim Header: liegt außerhalb des scroll-
+       baren Bereichs, Gesten dort würden sonst "verloren gehen" —
+       touch-action:none macht das technisch unmöglich. Antippen der
+       Tabs bleibt davon unberührt, nur Ziehen wird unterbunden. */
+    touch-action:none;
   }
   .tabbar{
     display:flex; gap:2px;
-    padding:6px 10px 2px; margin-bottom:0;
+    padding:4px; margin-bottom:0; height:46px;
   }
   .tabbar button{
     flex:1; min-width:0; background:none; border:none; cursor:pointer;
-    padding:12px 2px 11px; position:relative; white-space:nowrap;
+    padding:0 4px; position:relative; white-space:nowrap; z-index:2;
     overflow:hidden; text-overflow:ellipsis;
     display:flex; align-items:center; justify-content:center; gap:0;
-    color:var(--ink-soft); font-weight:500;
+    color:rgba(255,255,255,.62); font-weight:600; letter-spacing:.01em;
     font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif; font-size:12.5px;
+    transition: color .26s ease;
   }
   .tabbar button svg{ display:none; }
-  .tabbar button.active{ color:var(--ink); font-weight:600; }
-  /* Unterstrich läuft jetzt über das echte .tab-indicator-Element
+  .tabbar button.active{ color:var(--paper); }
+  /* "Blase" läuft jetzt über das echte .tab-indicator-Element
      (siehe layout.css) statt über dieses ::after — kann dadurch live
      während eines Tab-Swipes mitgleiten statt nur beim Tap zu
      springen. */
