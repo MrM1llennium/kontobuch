@@ -358,14 +358,15 @@
     top:var(--topbar-h, 100px); bottom:0;
     overflow:hidden;
   }
-  /* Alternative Vollbild-Ansichten innerhalb eines Moduls (z. B.
-     Rezept ansehen/bearbeiten in Lebensmittel) sind normale, nicht
-     positionierte Elemente — der (jetzt fixierte) .tab-pager-viewport
-     liegt darüber und "verdeckt" sie dadurch nicht mehr richtig,
-     sondern beide waren gleichzeitig sichtbar. Braucht dieselbe
-     feste Positionierung + einen expliziten z-index, um den Tab-
-     Bereich zuverlässig zu überdecken, wenn aktiv. */
-  #recipeViewView, #recipeEditView{
+  /* Alternative Vollbild-Ansicht innerhalb eines Moduls (Rezept
+     bearbeiten in Lebensmittel) ist ein normales, nicht positioniertes
+     Element — der (jetzt fixierte) .tab-pager-viewport liegt darüber
+     und "verdeckt" es dadurch nicht mehr richtig, sondern beide waren
+     gleichzeitig sichtbar. Braucht dieselbe feste Positionierung +
+     einen expliziten z-index, um den Tab-Bereich zuverlässig zu
+     überdecken, wenn aktiv. (Rezept ANSEHEN hat inzwischen eine
+     eigene Kartenoptik, siehe .recipe-card-* weiter unten.) */
+  #recipeEditView{
     position:fixed; left:50%; transform:translateX(-50%);
     width:100%; max-width:480px;
     top:var(--topbar-h, 100px); bottom:0;
@@ -379,16 +380,71 @@
      ihn sonst ein zweites Mal addieren. Scrollen läuft jetzt ebenfalls
      am äußeren Container, das innere braucht kein eigenes overflow
      mehr (verschachteltes doppeltes Scrollen vermeiden). */
-  #recipeViewView .module-body, #recipeEditView .module-body{
+  #recipeEditView .module-body{
     padding-top:0; overflow:visible; flex:none;
   }
-  /* Der "Zurück"-Button (recipeViewView) bzw. "Speichern" (recipeEditView)
-     sitzt in einem eigenen, direkten Geschwister-Element (.form-wrap)
-     — ohne flex-shrink:0 konnte Flexbox das bei zu langem Rezept-
-     Inhalt zusammendrücken/abschneiden, statt echten Überlauf zum
-     Scrollen zuzulassen. */
-  #recipeViewView > .form-wrap, #recipeEditView > .form-wrap{
+  /* Der "Speichern"-Button sitzt in einem eigenen, direkten Geschwister-
+     Element (.form-wrap) — ohne flex-shrink:0 konnte Flexbox das bei
+     zu langem Rezept-Inhalt zusammendrücken/abschneiden, statt echten
+     Überlauf zum Scrollen zuzulassen. */
+  #recipeEditView > .form-wrap{
     flex-shrink:0;
+  }
+
+  /* ==================================================================
+     Rezept ANSEHEN — schwebende Karte statt Vollbild-Seite. Rand auf
+     allen Seiten (Backdrop als zentrierender Flex-Container), Karte
+     selbst wird per max-height begrenzt, schrumpft aber bei kurzen
+     Rezepten automatisch mit dem Inhalt statt immer die Maximalgröße
+     auszufüllen. Breite bleibt dabei immer gleich. Zahnrad (bearbeiten)
+     oben rechts und "Schließen"-Pille unten sind beide fix INNERHALB
+     der Karte — nur der Bereich dazwischen scrollt. */
+  #recipeViewBackdrop{
+    display:none;
+    position:fixed; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px;
+    top:var(--topbar-h, 100px); bottom:calc(70px + var(--safe-bottom));
+    z-index:75;
+    background:rgba(28,26,24,.48);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    align-items:center; justify-content:center;
+    padding:14px 16px;
+  }
+  #recipeViewBackdrop.active{ display:flex; }
+  #recipeViewView{
+    position:relative;
+    width:100%; max-width:448px; max-height:100%;
+    background:var(--paper);
+    border-radius:28px;
+    box-shadow:var(--shadow-hero);
+    overflow:hidden;
+    display:flex; flex-direction:column;
+  }
+  .recipe-card-gear{
+    position:absolute; top:14px; right:14px; z-index:3;
+    width:36px; height:36px; border-radius:50%;
+    background:rgba(0,0,0,.06);
+    display:flex; align-items:center; justify-content:center;
+    border:none; cursor:pointer; color:var(--ink-soft);
+  }
+  .recipe-card-gear svg{ width:19px; height:19px; }
+  .recipe-card-scroll{
+    flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+    /* Genug Platz am Ende, damit die schwebende Schließen-Pille beim
+       ganz-runter-Scrollen nie über dem letzten Text liegt. */
+    padding-bottom:76px;
+  }
+  .recipe-card-close{
+    position:absolute; left:50%; bottom:16px; transform:translateX(-50%);
+    z-index:3;
+    background:var(--brass); color:var(--paper);
+    border:none; border-radius:var(--radius-lg);
+    padding:13px 30px; font-weight:600; font-size:14px;
+    font-family:-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, sans-serif;
+    box-shadow:var(--shadow-hero);
+    cursor:pointer;
   }
   .tab-pager{
     display:flex; height:100%;
