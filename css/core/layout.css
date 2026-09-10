@@ -377,11 +377,19 @@
   }
   .tab-indicator.dragging{ transition:none; }
   .view.active{ display:block; }
-  .module-body{ flex:1; overflow-y:auto; overscroll-behavior-y:contain; padding-bottom:30px; }
-  /* Nur, wenn direkt auf eine (jetzt fixed positionierte) .topbar
-     folgend — .recipeViewView z.B. hat keine eigene Topbar und
-     braucht diesen Ausgleich nicht. */
-  .topbar + .module-body{ padding-top:var(--topbar-h, 100px); }
+  .module-body{
+    flex:1; overflow-y:auto; overscroll-behavior-y:contain; padding-bottom:30px;
+    /* Unconditional statt nur ".topbar + .module-body" (direkter
+       Nachbar) — das hat zwei echte Bugs verursacht: Sowohl das
+       Rezept-Ansicht-Overlay (recipeViewView) als auch die Projekt-
+       Board-Ansicht (projectBoardView) sind ein ZWEITES module-body
+       im selben Screen, kein direkter Nachbar von .topbar mehr —
+       bekamen dadurch nie den oberen Abstand und rutschten hinter den
+       fixierten Header. Jedes module-body sitzt in der Praxis unter
+       genau einer .topbar seines Screens, auch wenn nicht direkt
+       benachbart — daher jetzt immer anwenden. */
+    padding-top:var(--topbar-h, 100px);
+  }
 
   /* ---------- Code gate ---------- */
   #codeGate{
